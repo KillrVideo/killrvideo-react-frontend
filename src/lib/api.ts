@@ -1,15 +1,21 @@
 import { ApiError } from '@/types/api';
 import { components } from '@/types/killrvideo-openapi-types';
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000/api/v1';
+const API_BASE_URL = '/api/v1';
 
 class ApiClient {
   private baseUrl: string;
   private token: string | null = null;
+  private userId: string;
 
   constructor(baseUrl: string) {
     this.baseUrl = baseUrl;
     this.token = localStorage.getItem('auth_token');
+  }
+
+  setUserId(userId: string) {
+    this.userId = userId;
+    localStorage.setItem('user_id', userId);
   }
 
   setToken(token: string) {
@@ -38,10 +44,12 @@ class ApiClient {
       headers['Authorization'] = `Bearer ${this.token}`;
     }
 
-    const response = await fetch(url, {
-      ...options,
-      headers,
-    });
+    try {
+      const response = await fetch(url, {
+        ...options,
+        headers,
+        credentials: 'include',
+      });
 
     if (!response.ok) {
       if (response.status === 401) {
@@ -52,11 +60,15 @@ class ApiClient {
       throw error;
     }
 
-    if (response.status === 204) {
-      return {} as T;
-    }
+      if (response.status === 204) {
+        return {} as T;
+      }
 
-    return response.json();
+      return response.json();
+    } catch (error) {
+      console.error('API request failed:', { url, error });
+      throw error;
+    }
   }
 
   // Auth endpoints
@@ -75,11 +87,11 @@ class ApiClient {
   }
 
   async getProfile(): Promise<components["schemas"]["User"]> {
-    return this.request('/users/me');
+    return this.request(`/users/${this.userId}`);
   }
 
   async updateProfile(data: components["schemas"]["UserProfileUpdateRequest"]): Promise<components["schemas"]["User"]> {
-    return this.request('/users/me', {
+    return this.request(`/users/${this.userId}`, {
       method: 'PUT',
       body: JSON.stringify(data),
     });
@@ -115,7 +127,7 @@ class ApiClient {
   }
 
   async getLatestVideos(page: number = 1, pageSize: number = 10): Promise<components["schemas"]["PaginatedResponse_VideoSummary_"]> {
-    return this.request(`/videos/latest?page=${page}&pageSize=${pageSize}`);
+    return this.request(`/videos/latest/page/${page}/page_size/${pageSize}`);
   }
 
   async getTrendingVideos(days: number = 1, limit: number = 10): Promise<Array<components["schemas"]["VideoSummary"]>> {

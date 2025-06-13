@@ -10,11 +10,27 @@ import {
   UserCreateRequest,
 } from '@/types/api';
 
+//export const useProfile = () => {
+//  return useQuery({
+//    queryKey: ['user', 'profile'],
+//    queryFn: () => apiClient.getProfile(),
+//  });
+//};
+
 // Video hooks
 export const useLatestVideos = (page: number = 1, pageSize: number = 10) => {
   return useQuery({
     queryKey: ['videos', 'latest', page, pageSize],
-    queryFn: () => apiClient.getLatestVideos(page, pageSize),
+    queryFn: async () => {
+      try {
+        const response = await apiClient.getLatestVideos(page, pageSize);
+        //console.log('Latest videos response:', response);
+        return response;
+      } catch (error) {
+        console.error('Error fetching latest videos:', error);
+        throw error;
+      }
+    },
   });
 };
 
@@ -271,6 +287,7 @@ export const useLogin = () => {
         } else {
           queryClient.invalidateQueries({ queryKey: ['user', 'profile'] });
         }
+        apiClient.setUserId(data.userId);
       }
     },
   });

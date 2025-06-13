@@ -1,12 +1,93 @@
 import VideoCard from '@/components/video/VideoCard';
 import { useLatestVideos } from '@/hooks/useApi';
-import { VideoSummary } from '@/types/api';
+import { VideoSummary, PaginatedResponse } from '@/types/api';
 
-const placeholderThumb = 'https://placehold.co/400x225?text=Video';
+const PLACEHOLDER_THUMB = 'https://via.placeholder.com/400x225';
+
+interface ApiVideoResponse {
+  video_id: string;
+  title: string;
+  thumbnail_url?: string;
+  user_id: string;
+  upload_date: string;
+  category?: string;
+  views: number;
+  rating?: number;
+}
+
+const mapApiResponseToVideoSummary = (video: ApiVideoResponse): VideoSummary => ({
+  key: video.video_id,
+  videoId: video.video_id,
+  title: video.title,
+  thumbnailUrl: video.thumbnail_url,
+  userId: video.user_id,
+  submittedAt: video.upload_date,
+  contentRating: video.rating?.toString(),
+  category: video.category,
+  viewCount: video.views
+});
 
 const FeaturedVideos = () => {
-  const { data, isLoading, isError } = useLatestVideos(1, 9);
-  const videos = (data?.data ?? []) as VideoSummary[];
+  const { data: videosData, isLoading, error } = useLatestVideos(1, 5);
+  console.log('videosData == ', videosData);
+  
+  const videos = [];
+  if (videosData) {
+    for (const videoA of videosData) {
+      //console.log('videoA == ', videoA);
+      videos.push(mapApiResponseToVideoSummary(videoA));
+    }
+  }
+
+  if (isLoading) {
+    return (
+      <section className="py-16 bg-white">
+        <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center">
+            <h2 className="font-sora text-3xl md:text-4xl font-bold text-gray-900 mb-4">
+              Loading videos...
+            </h2>
+          </div>
+        </div>
+      </section>
+    );
+  }
+
+  if (error) {
+    console.error('Featured videos error:', error);
+    return (
+      <section className="py-16 bg-white">
+        <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center">
+            <h2 className="font-sora text-3xl md:text-4xl font-bold text-gray-900 mb-4">
+              Error loading videos
+            </h2>
+            <p className="text-red-600">
+              {error instanceof Error ? error.message : 'An error occurred while loading videos'}
+            </p>
+          </div>
+        </div>
+      </section>
+    );
+  }
+
+  if (!videos.length) {
+    return (
+      <section className="py-16 bg-white">
+        <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center">
+            <h2 className="font-sora text-3xl md:text-4xl font-bold text-gray-900 mb-4">
+              No videos available
+            </h2>
+            <p className="text-gray-600">
+              Check back later for new content
+            </p>
+          </div>
+        </div>
+      </section>
+    );
+  }
+
   return (
     <section className="py-16 bg-white">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
@@ -21,7 +102,7 @@ const FeaturedVideos = () => {
 
         {isLoading ? (
           <p className="text-center">Loading...</p>
-        ) : isError ? (
+        ) : error ? (
           <p className="text-center text-red-500">Failed to load videos.</p>
         ) : videos.length === 0 ? (
           <p className="text-center text-muted-foreground">No videos available.</p>
@@ -29,11 +110,11 @@ const FeaturedVideos = () => {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {videos.map((video) => (
               <VideoCard
-                key={video.videoId}
+                key={video.key}
                 id={video.videoId}
                 title={video.title}
                 creator={video.userId}
-                thumbnail={video.thumbnailUrl || placeholderThumb}
+                thumbnail={video.thumbnailUrl || PLACEHOLDER_THUMB}
                 duration=""
                 views={((video as any).views ?? (video as any).viewCount) as number}
                 rating={video.averageRating ?? 0}
@@ -43,12 +124,6 @@ const FeaturedVideos = () => {
             ))}
           </div>
         )}
-
-        <div className="text-center mt-12">
-          <button className="font-noto text-primary hover:text-purple-800 font-semibold text-lg transition-colors">
-            View All Videos →
-          </button>
-        </div>
       </div>
     </section>
   );
