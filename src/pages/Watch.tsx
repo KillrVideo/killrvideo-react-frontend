@@ -1,5 +1,5 @@
-import { useParams } from 'react-router-dom';
-import { useEffect, useRef } from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
+import { useEffect, useRef, useState } from 'react';
 import {
   useVideo,
   useRecordView,
@@ -15,6 +15,8 @@ import { Badge } from '@/components/ui/badge';
 import CommentsSection from '@/components/comments/CommentsSection';
 import StarRating from '@/components/StarRating';
 import RelatedVideos from '@/components/video/RelatedVideos';
+import { useAuth } from '@/hooks/useAuth';
+import ReportFlagDialog from '@/components/moderation/ReportFlagDialog';
 
 // Utilities
 const formatNumber = (raw?: number | null) => {
@@ -26,6 +28,9 @@ const formatNumber = (raw?: number | null) => {
 
 const Watch = () => {
   const { id } = useParams();
+  const navigate = useNavigate();
+  const { isAuthenticated } = useAuth();
+  const [reportOpen, setReportOpen] = useState(false);
 
   // Queries / mutations -------------------------------------------
   const {
@@ -109,7 +114,13 @@ const Watch = () => {
                 </div>
                 
                 <div className="flex items-center space-x-2">
-                  <Button variant="outline" size="sm">
+                  <Button variant="outline" size="sm" onClick={() => {
+                    if (!isAuthenticated) {
+                      navigate('/auth');
+                    } else {
+                      setReportOpen(true);
+                    }
+                  }}>
                     <Flag className="w-4 h-4 mr-1" />
                     Report
                   </Button>
@@ -157,6 +168,11 @@ const Watch = () => {
             </div>
 
             <CommentsSection videoId={id || ''} />
+            <ReportFlagDialog
+              open={reportOpen}
+              onOpenChange={setReportOpen}
+              videoId={id || ''}
+            />
           </div>
 
           {/* Sidebar */}

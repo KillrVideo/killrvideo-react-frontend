@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { useGetModerationFlags, useActionFlag } from '@/hooks/useApi';
+import { useGetModerationFlags, useActionFlag, useVideo } from '@/hooks/useApi';
 import { FlagResponse } from '@/types/api';
 import { Flag, AlertTriangle, CheckCircle, XCircle, Clock } from 'lucide-react';
 import { toast } from 'sonner';
@@ -91,6 +91,21 @@ export default function Moderation() {
     }
   };
 
+  // Fetch and display the video title for video flags
+  const VideoTitle = ({ videoId }: { videoId: string }) => {
+    const { data: video, isLoading } = useVideo(videoId);
+
+    if (isLoading) {
+      return <span className="italic text-muted-foreground">Loading...</span>;
+    }
+
+    if (!video || !(video as any).title) {
+      return <span className="italic text-muted-foreground">Unknown Video</span>;
+    }
+
+    return <span>{(video as any).title}</span>;
+  };
+
   if (isLoading) {
     return (
       <Layout>
@@ -155,7 +170,11 @@ export default function Moderation() {
                   </CardHeader>
                   <CardContent className="space-y-4">
                     <div>
-                      <p className="text-sm font-medium">Content ID: {flag.contentId}</p>
+                      {flag.contentType === 'video' ? (
+                        <p className="text-sm font-medium">Video: <VideoTitle videoId={flag.contentId} /></p>
+                      ) : (
+                        <p className="text-sm font-medium">Content ID: {flag.contentId}</p>
+                      )}
                       {flag.reasonText && (
                         <p className="text-sm text-muted-foreground mt-1">
                           Additional details: {flag.reasonText}
