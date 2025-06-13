@@ -44,9 +44,14 @@ const CommentsSection = ({ videoId }: CommentsSectionProps) => {
 
   const handleSubmit = async () => {
     if (!text.trim()) return;
-    await addComment.mutateAsync(text.trim());
-    setText('');
-    setPage(1); // reset pagination to load latest comments
+    try {
+      await addComment.mutateAsync(text.trim());
+      setText('');
+      setPage(1); // reset pagination to load latest comments
+    } catch (err: any) {
+      // Simple client-side feedback; could be replaced with toast
+      alert(err?.detail ?? 'Unable to add comment.');
+    }
   };
 
   const totalPages = commentPage?.pagination.totalPages ?? 1;

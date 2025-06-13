@@ -87,11 +87,11 @@ class ApiClient {
   }
 
   async getProfile(): Promise<components["schemas"]["User"]> {
-    return this.request(`/users/${this.userId}`);
+    return this.request('/users/me');
   }
 
   async updateProfile(data: components["schemas"]["UserProfileUpdateRequest"]): Promise<components["schemas"]["User"]> {
-    return this.request(`/users/${this.userId}`, {
+    return this.request('/users/me', {
       method: 'PUT',
       body: JSON.stringify(data),
     });
@@ -127,7 +127,7 @@ class ApiClient {
   }
 
   async getLatestVideos(page: number = 1, pageSize: number = 10): Promise<components["schemas"]["PaginatedResponse_VideoSummary_"]> {
-    return this.request(`/videos/latest/page/${page}/page_size/${pageSize}`);
+    return this.request(`/videos/latest?page=${page}&pageSize=${pageSize}`);
   }
 
   async getTrendingVideos(days: number = 1, limit: number = 10): Promise<Array<components["schemas"]["VideoSummary"]>> {

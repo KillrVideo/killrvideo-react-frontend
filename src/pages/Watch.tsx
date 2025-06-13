@@ -44,7 +44,6 @@ const Watch = () => {
   const averageRatingDisplay =
     ratingSummary?.averageRating ?? aggregateRating?.averageRating ?? video?.averageRating ?? 0;
 
-  // Fetch uploader info
   const { data: uploader } = useUser(video?.userId ?? '');
 
   // ---------------------------------------------------------------
@@ -120,7 +119,7 @@ const Watch = () => {
               <div className="flex items-center justify-between border-t border-b border-gray-200 py-4">
                 <div>
                   <h3 className="font-sora font-semibold text-lg text-gray-900">
-                    {video ? `Uploaded by: ${uploader ? `${uploader.firstName} ${uploader.lastName}`.trim() : video.userId}` : ''}
+                    {video ? `Uploaded by: ${uploader ? `${uploader.firstName} ${uploader.lastName}`.trim() : video.userId.substring(0,8)}` : ''}
                   </h3>
                   <p className="font-noto text-gray-600">
                     {video && `Uploaded on ${new Date(video.submittedAt).toLocaleDateString()}`}

@@ -30,17 +30,15 @@ const VideoCard = ({
 }: VideoCardProps) => {
   const [imageLoaded, setImageLoaded] = useState(false);
 
-  // Determine if creator looks like a UUID (optionally prefixed by 'User ')
-  let creatorId = creator.startsWith('User ') ? creator.slice(5).trim() : creator;
+  // Resolve creator name via user endpoint when uuid detected
   const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-  const shouldLookup = uuidRegex.test(creatorId);
+  const shouldLookup = uuidRegex.test(creator);
+  const { data: uploader } = useUser(shouldLookup ? creator : '');
 
-  const { data: uploader } = useUser(shouldLookup ? creatorId : '');
-
-  const displayCreator = uploader
+  let displayCreator = uploader
     ? `${uploader.firstName} ${uploader.lastName}`.trim()
     : shouldLookup
-      ? creatorId.substring(0, 8)
+      ? creator.substring(0, 8)
       : creator;
 
   const formatViews = (raw?: number | null) => {

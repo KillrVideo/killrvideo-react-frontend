@@ -377,11 +377,13 @@ export const useRevokeModerator = () => {
   });
 };
 
-// Generic single-user fetch (public)
+// Public user fetch by ID (new endpoint)
 export const useUser = (userId: string) => {
   return useQuery({
-    queryKey: ['user', userId],
+    queryKey: ['user', 'public', userId],
     queryFn: () => apiClient.getUser(userId),
     enabled: !!userId,
+    staleTime: 1000 * 60 * 60, // 1 hour
   });
 };
+

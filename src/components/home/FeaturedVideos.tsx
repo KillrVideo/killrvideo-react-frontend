@@ -1,43 +1,12 @@
 import VideoCard from '@/components/video/VideoCard';
 import { useLatestVideos } from '@/hooks/useApi';
-import { VideoSummary, PaginatedResponse } from '@/types/api';
+import { VideoSummary } from '@/types/api';
 
 const PLACEHOLDER_THUMB = 'https://via.placeholder.com/400x225';
 
-interface ApiVideoResponse {
-  video_id: string;
-  title: string;
-  thumbnail_url?: string;
-  user_id: string;
-  upload_date: string;
-  category?: string;
-  views: number;
-  rating?: number;
-}
-
-const mapApiResponseToVideoSummary = (video: ApiVideoResponse): VideoSummary => ({
-  key: video.video_id,
-  videoId: video.video_id,
-  title: video.title,
-  thumbnailUrl: video.thumbnail_url,
-  userId: video.user_id,
-  submittedAt: video.upload_date,
-  contentRating: video.rating?.toString(),
-  category: video.category,
-  viewCount: video.views
-});
-
 const FeaturedVideos = () => {
-  const { data: videosData, isLoading, error } = useLatestVideos(1, 5);
-  console.log('videosData == ', videosData);
-  
-  const videos = [];
-  if (videosData) {
-    for (const videoA of videosData) {
-      //console.log('videoA == ', videoA);
-      videos.push(mapApiResponseToVideoSummary(videoA));
-    }
-  }
+  const { data: videosResp, isLoading, error } = useLatestVideos(1, 5);
+  const videos: VideoSummary[] = (videosResp?.data as VideoSummary[]) || [];
 
   if (isLoading) {
     return (
@@ -110,7 +79,7 @@ const FeaturedVideos = () => {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {videos.map((video) => (
               <VideoCard
-                key={video.key}
+                key={video.videoId}
                 id={video.videoId}
                 title={video.title}
                 creator={video.userId}
