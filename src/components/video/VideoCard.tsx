@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { Clock, Eye, Star } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { useUser } from '@/hooks/useApi';
 
 interface VideoCardProps {
   id: string;
@@ -28,6 +29,19 @@ const VideoCard = ({
   uploadDate 
 }: VideoCardProps) => {
   const [imageLoaded, setImageLoaded] = useState(false);
+
+  // Determine if creator looks like a UUID (optionally prefixed by 'User ')
+  let creatorId = creator.startsWith('User ') ? creator.slice(5).trim() : creator;
+  const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+  const shouldLookup = uuidRegex.test(creatorId);
+
+  const { data: uploader } = useUser(shouldLookup ? creatorId : '');
+
+  const displayCreator = uploader
+    ? `${uploader.firstName} ${uploader.lastName}`.trim()
+    : shouldLookup
+      ? creatorId.substring(0, 8)
+      : creator;
 
   const formatViews = (raw?: number | null) => {
     const num = raw ?? 0;
@@ -79,7 +93,7 @@ const VideoCard = ({
           </h3>
         </Link>
         
-        <p className="text-sm text-gray-600 font-noto mb-3">{creator}</p>
+        <p className="text-sm text-gray-600 font-noto mb-3">{displayCreator}</p>
         
         <div className="flex items-center justify-between text-sm text-gray-500 mb-3 font-noto">
           <div className="flex items-center space-x-4">

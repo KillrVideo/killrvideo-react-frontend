@@ -82,7 +82,7 @@ const Trending = () => {
                     <VideoCard
                       id={video.videoId}
                       title={video.title}
-                      creator={`User ${video.userId}`}
+                      creator={video.userId}
                       thumbnail={video.thumbnailUrl}
                       duration="0:00"
                       views={((video as any).views ?? (video as any).viewCount) as number}
