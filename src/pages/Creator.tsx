@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Layout from '@/components/layout/Layout';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -13,6 +13,7 @@ import {
   useSubmitVideo, 
   useVideosByUser, 
   useProfile,
+  useVideo,
   useUpdateVideo,
   useVideoStatus
 } from '@/hooks/useApi';
@@ -35,6 +36,22 @@ export default function Creator() {
   const submitVideoMutation = useSubmitVideo();
   const updateVideoMutation = useUpdateVideo();
 
+  const [pendingVideoId, setPendingVideoId] = useState<string | null>(null);
+  const { data: fullVideo } = useVideo(pendingVideoId || '');
+
+  // When full video arrives, initialize edit form
+  useEffect(() => {
+    if (fullVideo) {
+      setEditingVideo(fullVideo as VideoDetailResponse);
+      setEditForm({
+        title: fullVideo.title,
+        description: fullVideo.description || '',
+        tags: (fullVideo.tags ?? []).join(', ')
+      });
+      setPendingVideoId(null);
+    }
+  }, [fullVideo]);
+
   if (!user) {
     return <Navigate to="/auth" replace />;
   }
@@ -54,13 +71,8 @@ export default function Creator() {
     }
   };
 
-  const handleEditVideo = (video: VideoDetailResponse) => {
-    setEditingVideo(video);
-    setEditForm({
-      title: video.title,
-      description: video.description || '',
-      tags: (video.tags ?? []).join(', ')
-    });
+  const handleEditVideo = (videoSummary: any) => {
+    setPendingVideoId(videoSummary.videoId);
   };
 
   const handleUpdateVideo = async (e: React.FormEvent) => {
