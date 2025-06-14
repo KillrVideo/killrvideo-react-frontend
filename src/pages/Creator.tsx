@@ -14,8 +14,7 @@ import {
   useVideosByUser, 
   useProfile,
   useVideo,
-  useUpdateVideo,
-  useVideoStatus
+  useUpdateVideo
 } from '@/hooks/useApi';
 import { VideoDetailResponse, PaginatedResponse } from '@/types/api';
 import { toast } from 'sonner';
@@ -23,7 +22,11 @@ import { Navigate } from 'react-router-dom';
 
 export default function Creator() {
   const { user } = useAuth();
-  const [videoUrl, setVideoUrl] = useState('');
+  const [submitForm, setSubmitForm] = useState({
+    youtubeUrl: '',
+    description: '',
+    tags: ''
+  });
   const [editingVideo, setEditingVideo] = useState<VideoDetailResponse | null>(null);
   const [editForm, setEditForm] = useState({
     title: '',
@@ -60,11 +63,18 @@ export default function Creator() {
 
   const handleSubmitVideo = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!videoUrl.trim()) return;
+    if (!submitForm.youtubeUrl.trim()) return;
 
     try {
-      await submitVideoMutation.mutateAsync({ youtubeUrl: videoUrl });
-      setVideoUrl('');
+      await submitVideoMutation.mutateAsync({
+        youtubeUrl: submitForm.youtubeUrl.trim(),
+        description: submitForm.description.trim() || undefined,
+        tags: submitForm.tags
+          .split(',')
+          .map((t) => t.trim())
+          .filter(Boolean),
+      });
+      setSubmitForm({ youtubeUrl: '', description: '', tags: '' });
       toast.success('Video submitted successfully!');
     } catch (error: any) {
       toast.error(error.detail || 'Failed to submit video');
@@ -194,9 +204,33 @@ export default function Creator() {
                       id="youtube-url"
                       type="url"
                       placeholder="https://www.youtube.com/watch?v=..."
-                      value={videoUrl}
-                      onChange={(e) => setVideoUrl(e.target.value)}
+                      value={submitForm.youtubeUrl}
+                      onChange={(e) =>
+                        setSubmitForm({ ...submitForm, youtubeUrl: e.target.value })
+                      }
                       required
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="description">Description</Label>
+                    <Textarea
+                      id="description"
+                      rows={4}
+                      value={submitForm.description}
+                      onChange={(e) =>
+                        setSubmitForm({ ...submitForm, description: e.target.value })
+                      }
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="tags">Tags (comma-separated)</Label>
+                    <Input
+                      id="tags"
+                      placeholder="gaming, tutorial, entertainment"
+                      value={submitForm.tags}
+                      onChange={(e) =>
+                        setSubmitForm({ ...submitForm, tags: e.target.value })
+                      }
                     />
                   </div>
                   <Button 

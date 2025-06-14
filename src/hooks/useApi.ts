@@ -69,7 +69,8 @@ export const useSubmitVideo = () => {
   const queryClient = useQueryClient();
   
   return useMutation({
-    mutationFn: (data: { youtubeUrl: string }) => apiClient.submitVideo(data),
+    mutationFn: (data: { youtubeUrl: string; description?: string; tags?: string[] }) =>
+      apiClient.submitVideo(data as any),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['videos'] });
     },

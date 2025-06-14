@@ -136,6 +136,8 @@ export interface UserCreateResponse {
 
 export interface VideoSubmitRequest {
   youtubeUrl: string;
+  description?: string;
+  tags?: string[];
 }
 
 export interface VideoUpdateRequest {

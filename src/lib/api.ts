@@ -98,7 +98,7 @@ class ApiClient {
   }
 
   // Video endpoints
-  async submitVideo(data: components["schemas"]["VideoSubmitRequest"]): Promise<components["schemas"]["VideoDetailResponse"]> {
+  async submitVideo(data: import('../types/api').VideoSubmitRequest): Promise<components["schemas"]["VideoDetailResponse"]> {
     return this.request('/videos', {
       method: 'POST',
       body: JSON.stringify(data),
