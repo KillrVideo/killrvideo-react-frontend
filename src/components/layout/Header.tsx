@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -13,6 +12,7 @@ import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { useAuth } from '@/hooks/useAuth';
 import { apiClient } from '@/lib/api';
 import { User } from 'lucide-react';
+import SearchBar from '@/components/search/SearchBar';
 
 const Header = () => {
   const { user, isAuthenticated } = useAuth();
@@ -60,6 +60,11 @@ const Header = () => {
             </Link>
           )}
         </nav>
+
+        {/* Search bar (desktop) */}
+        <div className="hidden md:block flex-1 mx-6 max-w-xl">
+          <SearchBar compact initialQuery="" className="w-full" />
+        </div>
 
         <div className="flex items-center space-x-4">
           {isAuthenticated ? (

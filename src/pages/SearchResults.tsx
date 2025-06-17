@@ -1,69 +1,27 @@
-
-import { useState, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import Layout from '@/components/layout/Layout';
 import VideoCard from '@/components/video/VideoCard';
-import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Search, Loader2 } from 'lucide-react';
 import { useSearchVideos } from '@/hooks/useApi';
+import SearchBar from '@/components/search/SearchBar';
 
 const SearchResults = () => {
-  const [searchParams, setSearchParams] = useSearchParams();
-  const [searchQuery, setSearchQuery] = useState(searchParams.get('q') || '');
+  const [searchParams] = useSearchParams();
   const query = searchParams.get('q') || '';
 
   const { data: searchResults, isLoading, error } = useSearchVideos({
     query,
     page: 1,
-    pageSize: 20
+    pageSize: 20,
   });
-
-  const handleSearch = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (searchQuery.trim()) {
-      setSearchParams({ q: searchQuery.trim() });
-    }
-  };
-
-  const formatViews = (views: number) => {
-    if (views >= 1_000_000) return `${(views / 1_000_000).toFixed(1)}M`;
-    if (views >= 1_000) return `${(views / 1_000).toFixed(1)}K`;
-    return views.toString();
-  };
-
-  const getTimeAgo = (date: string) => {
-    const now = new Date();
-    const uploadTime = new Date(date);
-    const diffTime = Math.abs(now.getTime() - uploadTime.getTime());
-    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-    
-    if (diffDays === 1) return '1 day ago';
-    if (diffDays < 7) return `${diffDays} days ago`;
-    if (diffDays < 30) return `${Math.ceil(diffDays / 7)} weeks ago`;
-    return `${Math.ceil(diffDays / 30)} months ago`;
-  };
 
   return (
     <Layout>
       <div className="container mx-auto px-4 py-8">
-        {/* Search Bar */}
+        {/* Search Bar (page-level, always visible) */}
         <div className="max-w-2xl mx-auto mb-8">
-          <form onSubmit={handleSearch} className="flex gap-4">
-            <div className="flex-1 relative">
-              <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
-              <Input
-                type="text"
-                placeholder="Search for videos, creators, or topics..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-12 pr-4 py-3 h-12 text-gray-900"
-              />
-            </div>
-            <Button type="submit" size="lg" className="h-12 px-8">
-              Search
-            </Button>
-          </form>
+          <SearchBar initialQuery={query} className="w-full" />
         </div>
 
         {/* Search Results */}
