@@ -37,10 +37,11 @@ class ApiClient {
     const url = `${this.baseUrl}${endpoint}`;
     const headers: Record<string, string> = {
       'Content-Type': 'application/json',
-      ...(options.headers as Record<string, string>),
+      //...(options.headers as Record<string, string>),
     };
 
     if (this.token) {
+      //console.log('Setting token == ', this.token);
       headers['Authorization'] = `Bearer ${this.token}`;
     }
 
@@ -260,7 +261,6 @@ class ApiClient {
   async getUser(userId: string): Promise<components["schemas"]["User"]> {
     if (!userId) {
       return this.request(`/users/${userId}`);
-      //return this.request(`/users/me`);
     }
   }
 }

@@ -8,6 +8,9 @@ const FeaturedVideos = () => {
   const { data: videosResp, isLoading, error } = useLatestVideos(1, 5);
   const videos: VideoSummary[] = (videosResp?.data as VideoSummary[]) || [];
 
+  //console.log('videosResp == ', videosResp);
+  //console.log('videos == ', videos);
+
   if (isLoading) {
     return (
       <section className="py-16 bg-white">
@@ -79,7 +82,7 @@ const FeaturedVideos = () => {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {videos.map((video) => (
               <VideoCard
-                key={video.videoId}
+                key={video.key}
                 id={video.videoId}
                 title={video.title}
                 creator={video.userId}
