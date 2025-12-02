@@ -85,7 +85,7 @@ const FeaturedVideos = () => {
                 creator={video.userId}
                 thumbnail={video.thumbnailUrl || PLACEHOLDER_THUMB}
                 duration=""
-                views={((video as any).views ?? (video as any).viewCount) as number}
+                views={video.viewCount}
                 rating={video.averageRating ?? 0}
                 tags={[]} // Tags not available in summary
                 uploadDate={video.submittedAt}

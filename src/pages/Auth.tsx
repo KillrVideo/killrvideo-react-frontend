@@ -33,8 +33,9 @@ export default function Auth() {
       await loginMutation.mutateAsync(loginForm);
       toast.success('Login successful!');
       navigate('/');
-    } catch (error: any) {
-      toast.error(error.detail || 'Login failed');
+    } catch (error: unknown) {
+      const apiError = error as { detail?: string };
+      toast.error(apiError.detail || 'Login failed');
     }
   };
 
@@ -48,8 +49,9 @@ export default function Auth() {
       await registerMutation.mutateAsync(registerForm);
       toast.success('Registration successful!');
       navigate('/');
-    } catch (error: any) {
-      toast.error(error.detail || 'Registration failed');
+    } catch (error: unknown) {
+      const apiError = error as { detail?: string };
+      toast.error(apiError.detail || 'Registration failed');
     }
   };
 

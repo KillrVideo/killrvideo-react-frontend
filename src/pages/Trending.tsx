@@ -85,7 +85,7 @@ const Trending = () => {
                       creator={video.userId}
                       thumbnail={video.thumbnailUrl}
                       duration="0:00"
-                      views={((video as any).views ?? (video as any).viewCount) as number}
+                      views={video.viewCount}
                       rating={video.averageRating}
                       tags={[]}
                       uploadDate={video.submittedAt}

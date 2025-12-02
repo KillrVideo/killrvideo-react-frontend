@@ -6,7 +6,7 @@ import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useGetModerationFlags, useActionFlag, useVideo } from '@/hooks/useApi';
-import { FlagResponse } from '@/types/api';
+import { FlagResponse, VideoDetailResponse } from '@/types/api';
 import { Flag, AlertTriangle, CheckCircle, XCircle, Clock } from 'lucide-react';
 import { toast } from 'sonner';
 import Layout from '@/components/layout/Layout';
@@ -22,8 +22,9 @@ export default function Moderation() {
       try {
         await actionFlagMutation.mutateAsync({ status, moderatorNotes });
         toast.success(`Flag ${status} successfully`);
-      } catch (error: any) {
-        toast.error(error.detail || 'Failed to update flag');
+      } catch (error: unknown) {
+        const apiError = error as { detail?: string };
+        toast.error(apiError.detail || 'Failed to update flag');
       }
     };
 
@@ -99,11 +100,12 @@ export default function Moderation() {
       return <span className="italic text-muted-foreground">Loading...</span>;
     }
 
-    if (!video || !(video as any).title) {
+    const videoData = video as VideoDetailResponse | undefined;
+    if (!videoData?.title) {
       return <span className="italic text-muted-foreground">Unknown Video</span>;
     }
 
-    return <span>{(video as any).title}</span>;
+    return <span>{videoData.title}</span>;
   };
 
   if (isLoading) {

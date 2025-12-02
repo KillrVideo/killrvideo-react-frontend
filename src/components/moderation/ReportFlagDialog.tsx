@@ -13,6 +13,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { useFlagContent } from "@/hooks/useApi";
 import { toast } from "@/components/ui/use-toast";
+import { FlagCreateRequest } from "@/types/api";
 
 interface ReportFlagDialogProps {
   videoId: string;
@@ -49,7 +50,7 @@ export default function ReportFlagDialog({
       await flagMutation.mutateAsync({
         contentType: "video",
         contentId: videoId,
-        reasonCode: reasonCode as any,
+        reasonCode: reasonCode as FlagCreateRequest["reasonCode"],
         reasonText: reasonCode === "other" && reasonText ? reasonText : undefined,
       });
       toast({
@@ -60,10 +61,11 @@ export default function ReportFlagDialog({
       setReasonCode("");
       setReasonText("");
       onOpenChange(false);
-    } catch (err: any) {
+    } catch (err: unknown) {
+      const apiError = err as { detail?: string };
       toast({
         title: "Could not submit report",
-        description: err?.detail || "Please try again later.",
+        description: apiError?.detail || "Please try again later.",
       });
     }
   };

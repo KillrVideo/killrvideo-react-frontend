@@ -76,12 +76,13 @@ export default function Creator() {
       });
       setSubmitForm({ youtubeUrl: '', description: '', tags: '' });
       toast.success('Video submitted successfully!');
-    } catch (error: any) {
-      toast.error(error.detail || 'Failed to submit video');
+    } catch (error: unknown) {
+      const apiError = error as { detail?: string };
+      toast.error(apiError.detail || 'Failed to submit video');
     }
   };
 
-  const handleEditVideo = (videoSummary: any) => {
+  const handleEditVideo = (videoSummary: VideoDetailResponse) => {
     setPendingVideoId(videoSummary.videoId);
   };
 
@@ -100,8 +101,9 @@ export default function Creator() {
       });
       setEditingVideo(null);
       toast.success('Video updated successfully!');
-    } catch (error: any) {
-      toast.error(error.detail || 'Failed to update video');
+    } catch (error: unknown) {
+      const apiError = error as { detail?: string };
+      toast.error(apiError.detail || 'Failed to update video');
     }
   };
 
@@ -116,7 +118,7 @@ export default function Creator() {
   };
 
   // Calculate stats
-  const totalViews = videos.reduce((sum, video) => sum + (((video as any).views ?? (video as any).viewCount) as number), 0);
+  const totalViews = videos.reduce((sum, video) => sum + (video.viewCount ?? 0), 0);
   const totalVideos = videos.length;
   const avgRating = videos.reduce((sum, video) => sum + (video.averageRating || 0), 0) / totalVideos || 0;
 
@@ -326,7 +328,7 @@ export default function Creator() {
                           <div className="flex items-center gap-4 text-sm text-muted-foreground">
                             <div className="flex items-center gap-1">
                               <Eye className="h-4 w-4" />
-                              {((video as any).views ?? (video as any).viewCount) as number} views
+                              {video.viewCount ?? 0} views
                             </div>
                             {video.averageRating && (
                               <div className="flex items-center gap-1">

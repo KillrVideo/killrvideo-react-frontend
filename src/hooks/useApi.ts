@@ -1,14 +1,20 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiClient } from '@/lib/api';
-import { 
-  VideoDetailResponse, 
-  VideoSummary, 
-  CommentResponse, 
+import {
+  VideoDetailResponse,
+  VideoSummary,
+  CommentResponse,
   User,
   PaginatedResponse,
   UserLoginRequest,
   UserCreateRequest,
+  VideoSubmitRequest,
+  VideoUpdateRequest,
+  AggregateRatingResponse,
+  SearchParams,
+  FlagCreateRequest,
 } from '@/types/api';
+import { components } from '@/types/killrvideo-openapi-types';
 
 //export const useProfile = () => {
 //  return useQuery({
@@ -69,8 +75,8 @@ export const useSubmitVideo = () => {
   const queryClient = useQueryClient();
   
   return useMutation({
-    mutationFn: (data: { youtubeUrl: string; description?: string; tags?: string[] }) =>
-      apiClient.submitVideo(data as any),
+    mutationFn: (data: VideoSubmitRequest) =>
+      apiClient.submitVideo(data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['videos'] });
     },
@@ -81,7 +87,7 @@ export const useUpdateVideo = () => {
   const queryClient = useQueryClient();
   
   return useMutation({
-    mutationFn: ({ videoId, data }: { videoId: string; data: any }) =>
+    mutationFn: ({ videoId, data }: { videoId: string; data: VideoUpdateRequest }) =>
       apiClient.updateVideo(videoId, data),
     onSuccess: (_, { videoId }) => {
       queryClient.invalidateQueries({ queryKey: ['videos', videoId] });
@@ -97,12 +103,12 @@ export const useRecordView = () => {
     onMutate: async (videoId: string) => {
       await queryClient.cancelQueries({ queryKey: ['videos', videoId] });
 
-      const previousVideo: any = queryClient.getQueryData(['videos', videoId]);
+      const previousVideo = queryClient.getQueryData<VideoDetailResponse>(['videos', videoId]);
 
       if (previousVideo) {
         queryClient.setQueryData(['videos', videoId], {
           ...previousVideo,
-          views: ((previousVideo as any).views ?? (previousVideo as any).viewCount ?? 0) + 1,
+          viewCount: (previousVideo.viewCount ?? 0) + 1,
         });
       }
 
@@ -173,8 +179,8 @@ export const useRateVideo = (videoId: string) => {
       await queryClient.cancelQueries({ queryKey: ['aggregate-rating', videoId] });
 
       // Snapshot current cache values
-      const previousAgg: any = queryClient.getQueryData(['aggregate-rating', videoId]);
-      const previousVideo: any = queryClient.getQueryData(['videos', videoId]);
+      const previousAgg = queryClient.getQueryData<AggregateRatingResponse>(['aggregate-rating', videoId]);
+      const previousVideo = queryClient.getQueryData<VideoDetailResponse>(['videos', videoId]);
 
       // Build a new optimistic aggregate rating object
       const totalCount = previousAgg?.totalRatingsCount ?? 0;
@@ -219,7 +225,7 @@ export const useRateVideo = (videoId: string) => {
 };
 
 // Search hooks
-export const useSearchVideos = (params: any) => {
+export const useSearchVideos = (params: SearchParams) => {
   return useQuery({
     queryKey: ['search', 'videos', params],
     queryFn: () => apiClient.searchVideos(params),
@@ -278,7 +284,7 @@ export const useLogin = () => {
   return useMutation({
     mutationFn: (credentials: UserLoginRequest) =>
       apiClient.login(credentials),
-    onSuccess: (data: any) => {
+    onSuccess: (data: components["schemas"]["UserLoginResponse"]) => {
       if (data.token) {
         apiClient.setToken(data.token);
         // Prime cache and localStorage with the new user
@@ -288,7 +294,7 @@ export const useLogin = () => {
         } else {
           queryClient.invalidateQueries({ queryKey: ['user', 'profile'] });
         }
-        apiClient.setUserId(data.userId);
+        apiClient.setUserId(data.user?.userId ?? '');
       }
     },
   });
@@ -296,11 +302,11 @@ export const useLogin = () => {
 
 export const useRegister = () => {
   const queryClient = useQueryClient();
-  
+
   return useMutation({
     mutationFn: (userInfo: UserCreateRequest) =>
       apiClient.register(userInfo),
-    onSuccess: (data: any) => {
+    onSuccess: (data: components["schemas"]["UserCreateResponse"]) => {
       if (data.token) {
         apiClient.setToken(data.token);
         if (data.user) {
@@ -344,7 +350,7 @@ export const useActionFlag = (flagId: string) => {
 
 export const useFlagContent = () => {
   return useMutation({
-    mutationFn: (data: any) => apiClient.flagContent(data),
+    mutationFn: (data: FlagCreateRequest) => apiClient.flagContent(data),
   });
 };
 

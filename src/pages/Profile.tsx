@@ -12,6 +12,7 @@ import { Separator } from '@/components/ui/separator';
 import { User, MessageSquare } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 import { apiClient } from '@/lib/api';
+import { CommentResponse } from '@/types/api';
 
 const Profile = () => {
   const { user, isLoading } = useAuth();
@@ -40,8 +41,7 @@ const Profile = () => {
         title: "Profile updated",
         description: "Your profile has been successfully updated.",
       });
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    } catch (error) {
+    } catch {
       toast({
         title: "Error",
         description: "Failed to update profile. Please try again.",
@@ -226,7 +226,7 @@ const Profile = () => {
                   </div>
                 ) : commentsData?.data?.length ? (
                   <div className="space-y-4">
-                    {commentsData.data.map((comment: any, index: number) => (
+                    {commentsData.data.map((comment: CommentResponse, index: number) => (
                       <div key={comment.commentid || index} className="border rounded-lg p-4">
                         <div className="flex justify-between items-start mb-2">
                           <div className="text-sm text-muted-foreground">

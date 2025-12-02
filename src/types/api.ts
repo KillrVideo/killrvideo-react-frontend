@@ -104,7 +104,7 @@ export interface Pagination {
   totalPages: number;
 }
 
-export interface PaginatedResponse<T = any> {
+export interface PaginatedResponse<T = unknown> {
   data: T[];
   pagination: Pagination;
 }

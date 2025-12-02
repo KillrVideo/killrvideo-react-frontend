@@ -49,9 +49,10 @@ const CommentsSection = ({ videoId }: CommentsSectionProps) => {
       await addComment.mutateAsync(text.trim());
       setText('');
       setPage(1); // reset pagination to load latest comments
-    } catch (err: any) {
+    } catch (err: unknown) {
       // Simple client-side feedback; could be replaced with toast
-      alert(err?.detail ?? 'Unable to add comment.');
+      const apiError = err as { detail?: string };
+      alert(apiError?.detail ?? 'Unable to add comment.');
     }
   };
 
@@ -91,8 +92,8 @@ const CommentsSection = ({ videoId }: CommentsSectionProps) => {
                 <div className="flex items-center space-x-2">
                   <h4 className="font-noto font-semibold text-gray-900">
                     {/* Prefer backend-supplied name fields if available */}
-                    {('firstName' in comment && comment.firstName)
-                      ? `${(comment as any).firstName} ${(comment as any).lastName ?? ''}`.trim()
+                    {('firstName' in comment && (comment as Comment & { firstName?: string }).firstName)
+                      ? `${(comment as Comment & { firstName?: string; lastName?: string }).firstName} ${(comment as Comment & { firstName?: string; lastName?: string }).lastName ?? ''}`.trim()
                       : comment.userid.substring(0, 8)}
                   </h4>
                   <Badge

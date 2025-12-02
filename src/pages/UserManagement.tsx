@@ -33,8 +33,9 @@ export default function UserManagement() {
     try {
       await assignModeratorMutation.mutateAsync(userId);
       toast.success('Moderator role assigned successfully');
-    } catch (error: any) {
-      toast.error(error.detail || 'Failed to assign moderator role');
+    } catch (error: unknown) {
+      const apiError = error as { detail?: string };
+      toast.error(apiError.detail || 'Failed to assign moderator role');
     }
   };
 
@@ -42,8 +43,9 @@ export default function UserManagement() {
     try {
       await revokeModeratorMutation.mutateAsync(userId);
       toast.success('Moderator role revoked successfully');
-    } catch (error: any) {
-      toast.error(error.detail || 'Failed to revoke moderator role');
+    } catch (error: unknown) {
+      const apiError = error as { detail?: string };
+      toast.error(apiError.detail || 'Failed to revoke moderator role');
     }
   };
 

@@ -56,14 +56,14 @@ const Watch = () => {
 
   // Record a view exactly once per mount after video data is available
   const hasRecordedRef = useRef(false);
+  const recordViewMutate = recordView.mutate;
 
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
     if (!hasRecordedRef.current && video && id) {
       hasRecordedRef.current = true;
-      recordView.mutate(id);
+      recordViewMutate(id);
     }
-  }, [video, id]);
+  }, [video, id, recordViewMutate]);
 
   return (
     <Layout>
@@ -104,7 +104,7 @@ const Watch = () => {
                   <EducationalTooltip id="counter-views" side="top">
                     <span className="flex items-center">
                       <Eye className="w-4 h-4 mr-1" />
-                      {video ? formatNumber((video as any).views ?? (video as any).viewCount) + ' views' : ''}
+                      {video ? formatNumber(video.viewCount) + ' views' : ''}
                     </span>
                   </EducationalTooltip>
                   <span className="flex items-center">

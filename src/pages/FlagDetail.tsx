@@ -32,8 +32,9 @@ export default function FlagDetail() {
       });
       toast.success(`Flag ${status} successfully`);
       navigate('/moderation');
-    } catch (error: any) {
-      toast.error(error.detail || 'Failed to update flag');
+    } catch (error: unknown) {
+      const apiError = error as { detail?: string };
+      toast.error(apiError.detail || 'Failed to update flag');
     }
   };
 
