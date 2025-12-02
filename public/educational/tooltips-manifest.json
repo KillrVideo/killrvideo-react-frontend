@@ -1,0 +1,123 @@
+{
+  "version": "2.0.0",
+  "description": "Educational tooltip manifest for KillrVideo guided tour - linked to explainer docs",
+  "tooltips": [
+    {
+      "id": "search-sai-overview",
+      "title": "Tag Filtering with SAI Indexes",
+      "contentFile": "extracted/sai_indexes_tooltip.md",
+      "explainerSource": {
+        "file": "docs/explainer/search/GET_search_videos.md",
+        "lines": [147, 227],
+        "sections": ["data-model", "sai-indexes"]
+      },
+      "component": "VideoCard",
+      "priority": "medium",
+      "category": "database-concepts"
+    },
+    {
+      "id": "search-vector-semantic",
+      "title": "Vector Search & Semantic Matching",
+      "contentFile": "extracted/vector_search_tooltip.md",
+      "explainerSource": {
+        "file": "docs/explainer/search/GET_search_videos.md",
+        "lines": [57, 84],
+        "sections": ["what-is-vector-search"]
+      },
+      "component": "SearchBar",
+      "priority": "high",
+      "category": "search"
+    },
+    {
+      "id": "search-results-ranking",
+      "title": "Semantic vs Keyword Search",
+      "contentFile": "extracted/search_comparison_tooltip.md",
+      "explainerSource": {
+        "file": "docs/explainer/search/GET_search_videos.md",
+        "lines": [186, 196],
+        "sections": ["semantic-vs-keyword-search"]
+      },
+      "component": "SearchResults",
+      "priority": "high",
+      "category": "search"
+    },
+    {
+      "id": "partition-keys-explained",
+      "title": "Partition Keys in Cassandra",
+      "contentFile": "extracted/partition_keys_tooltip.md",
+      "explainerSource": {
+        "file": "docs/explainer/account_management/POST_users_register.md",
+        "lines": [41, 47],
+        "sections": ["what-is-a-partition-key"]
+      },
+      "component": "VideoCard",
+      "priority": "medium",
+      "category": "database-concepts"
+    },
+    {
+      "id": "vector-search-recommendations",
+      "title": "Vector Search for Recommendations",
+      "contentFile": "extracted/vector_search_tooltip.md",
+      "explainerSource": {
+        "file": "docs/explainer/search/GET_search_videos.md",
+        "lines": [57, 145],
+        "sections": ["what-is-vector-search", "vectorize-feature"]
+      },
+      "component": "RelatedVideos",
+      "priority": "high",
+      "category": "recommendations"
+    },
+    {
+      "id": "counter-views",
+      "title": "Distributed Counter Columns",
+      "contentFile": "features/counters.md",
+      "explainerSource": {
+        "file": "docs/explainer/video_catalog/POST_video_view.md",
+        "lines": null,
+        "note": "Explainer pending - to be written"
+      },
+      "component": "VideoCard",
+      "priority": "medium",
+      "category": "counters"
+    },
+    {
+      "id": "counter-ratings",
+      "title": "Rating Aggregation with Counters",
+      "contentFile": "extracted/counter_ratings_tooltip.md",
+      "explainerSource": {
+        "file": "docs/explainer/comments_ratings/POST_video_ratings.md",
+        "lines": null,
+        "note": "Explainer pending - to be written"
+      },
+      "component": "StarRating",
+      "priority": "medium",
+      "category": "counters"
+    },
+    {
+      "id": "user-search-sai",
+      "title": "User Lookup with SAI Indexes",
+      "contentFile": "extracted/user_search_sai_tooltip.md",
+      "explainerSource": {
+        "file": "docs/explainer/account_management/POST_users_register.md",
+        "lines": [147, 200],
+        "sections": ["sai-indexes"]
+      },
+      "component": "UserManagement",
+      "priority": "medium",
+      "category": "database-concepts"
+    },
+    {
+      "id": "comments-timeuuid",
+      "title": "Comment Ordering with TimeUUID",
+      "contentFile": "extracted/comments_timeuuid_tooltip.md",
+      "explainerSource": {
+        "file": "docs/explainer/comments_ratings/POST_videos_comments.md",
+        "lines": null,
+        "note": "Explainer pending - to be written"
+      },
+      "component": "CommentsSection",
+      "priority": "medium",
+      "category": "database-concepts"
+    }
+  ]
+}

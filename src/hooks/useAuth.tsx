@@ -7,18 +7,37 @@ interface AuthContextType {
   user: User | null;
   isLoading: boolean;
   isAuthenticated: boolean;
+  guidedTourEnabled: boolean;
+  toggleGuidedTour: () => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [authVersion, setAuthVersion] = useState(0);
+  const [guidedTourEnabled, setGuidedTourEnabled] = useState(() => {
+    if (typeof window !== 'undefined') {
+      const stored = localStorage.getItem('killrvideo_guided_tour_enabled');
+      return stored === 'true';
+    }
+    return false;
+  });
 
   useEffect(() => {
     const handler = () => setAuthVersion((v) => v + 1);
     window.addEventListener('auth-change', handler);
     return () => window.removeEventListener('auth-change', handler);
   }, []);
+
+  const toggleGuidedTour = () => {
+    setGuidedTourEnabled((prev) => {
+      const newValue = !prev;
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('killrvideo_guided_tour_enabled', String(newValue));
+      }
+      return newValue;
+    });
+  };
 
   const { data: profile, isLoading } = useProfile();
   const token = (typeof window !== 'undefined') ? localStorage.getItem('auth_token') : null;
@@ -29,7 +48,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     if (stored) {
       try {
         initialUser = JSON.parse(stored);
-      } catch {}
+      } catch {
+        // Ignore malformed JSON in localStorage
+      }
     }
   }
 
@@ -37,7 +58,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const isAuthenticated = !!token && !!user;
 
   return (
-    <AuthContext.Provider value={{ user, isLoading, isAuthenticated }}>
+    <AuthContext.Provider value={{ user, isLoading, isAuthenticated, guidedTourEnabled, toggleGuidedTour }}>
       {children}
     </AuthContext.Provider>
   );

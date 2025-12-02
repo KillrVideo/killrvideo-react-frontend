@@ -6,6 +6,7 @@ import { Badge } from '@/components/ui/badge';
 import { components } from '@/types/killrvideo-openapi-types';
 import { useComments, useAddComment } from '@/hooks/useApi';
 import { useAuth } from '@/hooks/useAuth';
+import { EducationalTooltip } from '@/components/educational/EducationalTooltip';
 
 type Comment = components['schemas']['CommentResponse'];
 
@@ -58,6 +59,13 @@ const CommentsSection = ({ videoId }: CommentsSectionProps) => {
 
   return (
     <div>
+      {/* Comments Section Header */}
+      <EducationalTooltip id="comments-timeuuid" showIcon side="right">
+        <h2 className="font-sora text-xl font-semibold text-gray-900 mb-4">
+          Comments
+        </h2>
+      </EducationalTooltip>
+
       {/* Comment form */}
       {isAuthenticated && (
         <div className="mb-6 space-y-2">

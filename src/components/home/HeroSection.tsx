@@ -1,21 +1,8 @@
 
-import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Search, ArrowRight } from 'lucide-react';
+import SearchBar from '@/components/search/SearchBar';
 
 const HeroSection = () => {
-  const [searchQuery, setSearchQuery] = useState('');
-  const navigate = useNavigate();
-
-  const handleSearch = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (searchQuery.trim()) {
-      navigate(`/search?q=${encodeURIComponent(searchQuery.trim())}`);
-    }
-  };
-
   return (
     <section className="relative bg-gradient-to-br from-primary via-purple-800 to-purple-900 text-white overflow-hidden">
       {/* Animated background triangles */}
@@ -28,35 +15,16 @@ const HeroSection = () => {
       <div className="relative container mx-auto px-4 sm:px-6 lg:px-8 py-24 lg:py-32">
         <div className="max-w-4xl mx-auto text-center">
           <h1 className="font-sora text-4xl md:text-6xl font-bold mb-6 animate-fade-in">
-            The Future of 
+            The Future of
             <span className="text-accent"> Video Streaming</span>
           </h1>
           <p className="font-noto text-xl md:text-2xl text-purple-100 mb-8 animate-fade-in" style={{ animationDelay: '0.2s' }}>
-            Discover, share, and explore videos on a platform built for developers and creators. 
+            Discover, share, and explore videos on a platform built for developers and creators.
             Experience scalable architecture in action.
           </p>
-          
+
           <div className="max-w-2xl mx-auto mb-8 animate-fade-in" style={{ animationDelay: '0.4s' }}>
-            <form onSubmit={handleSearch} className="flex flex-col sm:flex-row gap-4">
-              <div className="flex-1 relative">
-                <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
-                <Input
-                  type="text"
-                  placeholder="Search for videos, creators, or topics..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pl-12 pr-4 py-3 h-12 text-gray-900 bg-white border-0 rounded-lg font-noto"
-                />
-              </div>
-              <Button 
-                type="submit" 
-                size="lg" 
-                className="bg-accent text-black hover:bg-accent/90 font-noto h-12 px-8"
-              >
-                Search
-                <ArrowRight className="ml-2 w-4 h-4" />
-              </Button>
-            </form>
+            <SearchBar className="flex-col sm:flex-row" />
           </div>
 
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4 animate-fade-in" style={{ animationDelay: '0.6s' }}>

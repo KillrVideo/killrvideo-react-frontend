@@ -9,13 +9,16 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
+import { Switch } from '@/components/ui/switch';
+import { Label } from '@/components/ui/label';
 import { useAuth } from '@/hooks/useAuth';
 import { apiClient } from '@/lib/api';
-import { User } from 'lucide-react';
+import { User, BookOpen } from 'lucide-react';
 import SearchBar from '@/components/search/SearchBar';
 
 const Header = () => {
-  const { user, isAuthenticated } = useAuth();
+  const { user, isAuthenticated, guidedTourEnabled, toggleGuidedTour } = useAuth();
   const navigate = useNavigate();
   const [isLoggingOut, setIsLoggingOut] = useState(false);
 
@@ -67,6 +70,31 @@ const Header = () => {
         </div>
 
         <div className="flex items-center space-x-4">
+          {/* Guided Tour Toggle */}
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <div className="flex items-center space-x-2 px-3 py-2 rounded-lg hover:bg-accent transition-colors">
+                <BookOpen className="h-4 w-4 text-blue-500" />
+                <Label htmlFor="guided-tour-switch" className="text-sm font-medium cursor-pointer">
+                  Guided Tour
+                </Label>
+                <Switch
+                  id="guided-tour-switch"
+                  checked={guidedTourEnabled}
+                  onCheckedChange={toggleGuidedTour}
+                />
+              </div>
+            </TooltipTrigger>
+            <TooltipContent>
+              <p className="text-sm">
+                {guidedTourEnabled ? 'Tour is active' : 'Enable to see educational tooltips'}
+              </p>
+              <p className="text-xs text-muted-foreground">
+                Learn about Cassandra/Astra features
+              </p>
+            </TooltipContent>
+          </Tooltip>
+
           {isAuthenticated ? (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>

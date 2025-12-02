@@ -17,6 +17,7 @@ import StarRating from '@/components/StarRating';
 import RelatedVideos from '@/components/video/RelatedVideos';
 import { useAuth } from '@/hooks/useAuth';
 import ReportFlagDialog from '@/components/moderation/ReportFlagDialog';
+import { EducationalTooltip } from '@/components/educational/EducationalTooltip';
 
 // Utilities
 const formatNumber = (raw?: number | null) => {
@@ -92,16 +93,20 @@ const Watch = () => {
 
             {/* Video Info */}
             <div className="mb-6">
-              <h1 className="font-sora text-2xl md:text-3xl font-bold text-gray-900 mb-4">
-                {video?.title ?? (videoLoading ? 'Loading…' : 'Video not found')}
-              </h1>
+              <EducationalTooltip id="partition-keys-explained" showIcon side="right">
+                <h1 className="font-sora text-2xl md:text-3xl font-bold text-gray-900 mb-4">
+                  {video?.title ?? (videoLoading ? 'Loading…' : 'Video not found')}
+                </h1>
+              </EducationalTooltip>
               
               <div className="flex flex-wrap items-center justify-between mb-4">
                 <div className="flex items-center space-x-6 text-gray-600 font-noto">
-                  <span className="flex items-center">
-                    <Eye className="w-4 h-4 mr-1" />
-                    {video ? formatNumber((video as any).views ?? (video as any).viewCount) + ' views' : ''}
-                  </span>
+                  <EducationalTooltip id="counter-views" side="top">
+                    <span className="flex items-center">
+                      <Eye className="w-4 h-4 mr-1" />
+                      {video ? formatNumber((video as any).views ?? (video as any).viewCount) + ' views' : ''}
+                    </span>
+                  </EducationalTooltip>
                   <span className="flex items-center">
                     <Clock className="w-4 h-4 mr-1" />
                     {/* Duration not available in API yet */}
@@ -177,10 +182,6 @@ const Watch = () => {
 
           {/* Sidebar */}
           <div>
-            <h3 className="font-sora font-semibold text-xl text-gray-900 mb-4">
-              Related Videos
-            </h3>
-            
             <RelatedVideos videoId={id || ''} />
           </div>
         </div>

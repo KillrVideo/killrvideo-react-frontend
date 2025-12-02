@@ -176,8 +176,10 @@ class ApiClient {
 
   // Search endpoints
   async searchVideos(params: { query: string; page?: number; pageSize?: number }): Promise<components["schemas"]["PaginatedResponse_VideoSummary_"]> {
+    // Default to semantic search to leverage vector embeddings for better results
+    const searchParams = { ...params, mode: 'semantic' };
     const queryString = new URLSearchParams(
-      Object.entries(params).map(([key, value]) => [key, String(value)])
+      Object.entries(searchParams).map(([key, value]) => [key, String(value)])
     ).toString();
     return this.request(`/search/videos?${queryString}`);
   }

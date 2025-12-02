@@ -1,4 +1,5 @@
 import { useRelatedVideos } from '@/hooks/useApi';
+import { EducationalTooltip } from '@/components/educational/EducationalTooltip';
 import VideoCard from './VideoCard';
 
 interface RelatedVideosProps {
@@ -14,6 +15,12 @@ const RelatedVideos = ({ videoId, limit = 5 }: RelatedVideosProps) => {
 
   return (
     <div className="space-y-4">
+      <EducationalTooltip id="vector-search-recommendations" showIcon side="right">
+        <h3 className="font-sora font-semibold text-xl text-gray-900 mb-4">
+          Related Videos
+        </h3>
+      </EducationalTooltip>
+
       {related.map((item) => (
         <VideoCard
           key={item.videoId}

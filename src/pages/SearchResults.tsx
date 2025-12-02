@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Search, Loader2 } from 'lucide-react';
 import { useSearchVideos } from '@/hooks/useApi';
 import SearchBar from '@/components/search/SearchBar';
+import { EducationalTooltip } from '@/components/educational/EducationalTooltip';
 
 const SearchResults = () => {
   const [searchParams] = useSearchParams();
@@ -31,9 +32,11 @@ const SearchResults = () => {
               Search Results for "{query}"
             </h1>
             {searchResults && (
-              <p className="text-gray-600">
-                {searchResults.pagination.totalItems} results found
-              </p>
+              <EducationalTooltip id="search-results-ranking" showIcon side="right">
+                <p className="text-gray-600">
+                  {searchResults.pagination.totalItems} results found
+                </p>
+              </EducationalTooltip>
             )}
           </div>
         )}

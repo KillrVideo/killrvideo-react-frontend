@@ -10,6 +10,7 @@ import { User } from '@/types/api';
 import { Search, Shield, ShieldOff, ArrowLeft } from 'lucide-react';
 import { toast } from 'sonner';
 import Layout from '@/components/layout/Layout';
+import { EducationalTooltip } from '@/components/educational/EducationalTooltip';
 
 export default function UserManagement() {
   const [searchQuery, setSearchQuery] = useState('');
@@ -68,21 +69,23 @@ export default function UserManagement() {
             <CardDescription>Search for users by name or email to manage their accounts</CardDescription>
           </CardHeader>
           <CardContent>
-            <form onSubmit={handleSearch} className="flex space-x-2">
-              <div className="flex-1 relative">
-                <Input
-                  type="text"
-                  placeholder="Search users by name or email..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pl-10"
-                />
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
-              </div>
-              <Button type="submit" disabled={isLoading}>
-                Search
-              </Button>
-            </form>
+            <EducationalTooltip id="user-search-sai" side="bottom">
+              <form onSubmit={handleSearch} className="flex space-x-2">
+                <div className="flex-1 relative">
+                  <Input
+                    type="text"
+                    placeholder="Search users by name or email..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="pl-10"
+                  />
+                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
+                </div>
+                <Button type="submit" disabled={isLoading}>
+                  Search
+                </Button>
+              </form>
+            </EducationalTooltip>
           </CardContent>
         </Card>
 
