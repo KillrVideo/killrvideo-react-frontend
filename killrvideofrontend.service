@@ -1,0 +1,14 @@
+[Unit]
+Description=KillrVideo Lovable frontend application
+After=network.target
+
+[Service]
+User=itzuser
+Group=itzuser
+WorkingDirectory=/home/itzuser/killrvideo-react-frontend
+ExecStart=/usr/bin/npm start
+Restart=always
+RestartSec=10
+
+[Install]
+WantedBy=multi-user.target
