@@ -1,4 +1,7 @@
-import { useRelatedVideos } from '@/hooks/useApi';
+import {
+  useRelatedVideos,
+  useVideoRating 
+} from '@/hooks/useApi';
 import { EducationalTooltip } from '@/components/educational/EducationalTooltip';
 import VideoCard from './VideoCard';
 
@@ -29,10 +32,10 @@ const RelatedVideos = ({ videoId, limit = 5 }: RelatedVideosProps) => {
           creator={''}
           thumbnail={item.thumbnailUrl ?? ''}
           duration={''}
-          views={item.score ?? 0}
-          rating={0}
+          views={item.views ?? 0}
+          rating={item.averageRating ?? 0}
           tags={[]}
-          uploadDate={''}
+          uploadDate={item.uploadDate ?? ''}
         />
       ))}
     </div>

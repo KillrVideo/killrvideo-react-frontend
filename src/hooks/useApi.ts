@@ -30,7 +30,7 @@ export const useLatestVideos = (page: number = 1, pageSize: number = 10) => {
     queryFn: async () => {
       try {
         const response = await apiClient.getLatestVideos(page, pageSize);
-        //console.log('Latest videos response:', response);
+        console.log('Latest videos response:', response);
         return response;
       } catch (error) {
         console.error('Error fetching latest videos:', error);

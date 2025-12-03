@@ -50,6 +50,10 @@ const Watch = () => {
   const averageRatingDisplay =
     ratingSummary?.averageRating ?? aggregateRating?.averageRating ?? video?.averageRating ?? 0;
 
+  //console.log("ratingSummary.averageRating=", ratingSummary?.averageRating);
+  //console.log("aggregateRating.averageRating=", aggregateRating?.averageRating);
+  //console.log("video.averageRating=", video?.averageRating);
+
   const { data: uploader } = useUser(video?.userId ?? '');
 
   // ---------------------------------------------------------------
@@ -104,7 +108,7 @@ const Watch = () => {
                   <EducationalTooltip id="counter-views" side="top">
                     <span className="flex items-center">
                       <Eye className="w-4 h-4 mr-1" />
-                      {video ? formatNumber(video.viewCount) + ' views' : ''}
+                      {video ? formatNumber(video.views) + ' views' : ''}
                     </span>
                   </EducationalTooltip>
                   <span className="flex items-center">
@@ -114,7 +118,7 @@ const Watch = () => {
                   </span>
                   <span className="flex items-center">
                     <Star className="w-4 h-4 mr-1 fill-accent text-accent" />
-                    {averageRatingDisplay.toFixed(1)} rating
+                    {averageRatingDisplay} rating
                   </span>
                 </div>
                 

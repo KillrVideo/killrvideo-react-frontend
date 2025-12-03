@@ -37,10 +37,11 @@ class ApiClient {
     const url = `${this.baseUrl}${endpoint}`;
     const headers: Record<string, string> = {
       'Content-Type': 'application/json',
-      ...(options.headers as Record<string, string>),
+      //...(options.headers as Record<string, string>),
     };
 
     if (this.token) {
+      //console.log('Setting token == ', this.token);
       headers['Authorization'] = `Bearer ${this.token}`;
     }
 
@@ -87,7 +88,8 @@ class ApiClient {
   }
 
   async getProfile(): Promise<components["schemas"]["User"]> {
-    return this.request('/users/me');
+    //return this.request(`/users/${this.userId}`);
+    return this.request(`/users/me`);
   }
 
   async updateProfile(data: components["schemas"]["UserProfileUpdateRequest"]): Promise<components["schemas"]["User"]> {
@@ -127,7 +129,7 @@ class ApiClient {
   }
 
   async getLatestVideos(page: number = 1, pageSize: number = 10): Promise<components["schemas"]["PaginatedResponse_VideoSummary_"]> {
-    return this.request(`/videos/latest?page=${page}&pageSize=${pageSize}`);
+    return this.request(`/videos/latest?page=${page}&page_size=${pageSize}`);
   }
 
   async getTrendingVideos(days: number = 1, limit: number = 10): Promise<Array<components["schemas"]["VideoSummary"]>> {
@@ -257,7 +259,7 @@ class ApiClient {
 
   // User endpoints
   async getUser(userId: string): Promise<components["schemas"]["User"]> {
-    return this.request(`/users/${userId}`);
+      return this.request(`/users/${userId}`);
   }
 }
 
