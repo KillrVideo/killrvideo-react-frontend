@@ -819,6 +819,8 @@ export interface components {
             videoId: string;
             /** Title */
             title: string;
+            /** uploadDate */
+            uploadDate: string | null;
             /** Thumbnailurl */
             thumbnailUrl?: string | null;
             /**
@@ -826,6 +828,8 @@ export interface components {
              * @description Relevance score where 1 is most relevant.
              */
             score?: number | null;
+            views: number;
+            averageRating: number;
         };
         /** TagSuggestion */
         TagSuggestion: {
