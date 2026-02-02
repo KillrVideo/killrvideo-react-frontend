@@ -10,7 +10,7 @@ interface TooltipMarkdownContentProps {
   className?: string;
 }
 
-export const TooltipMarkdownContent = ({
+const TooltipMarkdownContent = ({
   content,
   title,
   className,
@@ -105,3 +105,5 @@ export const TooltipMarkdownContent = ({
     </div>
   );
 };
+
+export default TooltipMarkdownContent;

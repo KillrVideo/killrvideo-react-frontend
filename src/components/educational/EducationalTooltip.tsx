@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { useAuth } from '@/hooks/useAuth';
 import { useTooltipContent } from '@/hooks/useTooltipContent';
 import { TooltipIcon } from './TooltipIcon';
-import { TooltipMarkdownContent } from './TooltipMarkdownContent';
+import { LazyMarkdownRenderer } from './LazyMarkdownRenderer';
 import { ExplainerModal } from './ExplainerModal';
 import { Loader2, BookOpen } from 'lucide-react';
 
@@ -67,7 +67,7 @@ export const EducationalTooltip = ({
               </div>
             ) : (
               <>
-                <TooltipMarkdownContent
+                <LazyMarkdownRenderer
                   content={content}
                   title={metadata.title}
                 />

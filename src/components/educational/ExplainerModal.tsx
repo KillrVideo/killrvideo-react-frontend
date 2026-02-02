@@ -8,7 +8,7 @@ import {
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Button } from '@/components/ui/button';
 import { X, ExternalLink } from 'lucide-react';
-import { TooltipMarkdownContent } from './TooltipMarkdownContent';
+import { LazyMarkdownRenderer } from './LazyMarkdownRenderer';
 
 interface ExplainerModalProps {
   isOpen: boolean;
@@ -90,7 +90,7 @@ export const ExplainerModal = ({
 
           {!isLoading && !error && content && (
             <div className="prose prose-sm dark:prose-invert max-w-none">
-              <TooltipMarkdownContent content={content} />
+              <LazyMarkdownRenderer content={content} />
             </div>
           )}
         </ScrollArea>
