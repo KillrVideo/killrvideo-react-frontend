@@ -1,4 +1,4 @@
-
+import { Suspense, lazy } from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -7,16 +7,17 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/hooks/useAuth";
 import { WelcomeModal } from "@/components/educational/WelcomeModal";
 import Index from "./pages/Index";
-import Watch from "./pages/Watch";
-import Auth from "./pages/Auth";
-import Creator from "./pages/Creator";
-import Trending from "./pages/Trending";
-import Profile from "./pages/Profile";
-import SearchResults from "./pages/SearchResults";
-import Moderation from "./pages/Moderation";
-import FlagDetail from "./pages/FlagDetail";
-import UserManagement from "./pages/UserManagement";
-import NotFound from "./pages/NotFound";
+
+const Watch = lazy(() => import("./pages/Watch"));
+const Auth = lazy(() => import("./pages/Auth"));
+const Creator = lazy(() => import("./pages/Creator"));
+const Trending = lazy(() => import("./pages/Trending"));
+const Profile = lazy(() => import("./pages/Profile"));
+const SearchResults = lazy(() => import("./pages/SearchResults"));
+const Moderation = lazy(() => import("./pages/Moderation"));
+const FlagDetail = lazy(() => import("./pages/FlagDetail"));
+const UserManagement = lazy(() => import("./pages/UserManagement"));
+const NotFound = lazy(() => import("./pages/NotFound"));
 
 const queryClient = new QueryClient();
 
@@ -28,20 +29,26 @@ const App = () => (
         <Sonner />
         <WelcomeModal />
         <BrowserRouter>
-          <Routes>
-            <Route path="/" element={<Index />} />
-            <Route path="/watch/:id" element={<Watch />} />
-            <Route path="/auth" element={<Auth />} />
-            <Route path="/creator" element={<Creator />} />
-            <Route path="/trending" element={<Trending />} />
-            <Route path="/profile" element={<Profile />} />
-            <Route path="/search" element={<SearchResults />} />
-            <Route path="/moderation" element={<Moderation />} />
-            <Route path="/moderation/flags/:flagId" element={<FlagDetail />} />
-            <Route path="/moderation/users" element={<UserManagement />} />
-            {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-            <Route path="*" element={<NotFound />} />
-          </Routes>
+          <Suspense fallback={
+            <div className="flex items-center justify-center min-h-screen">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" />
+            </div>
+          }>
+            <Routes>
+              <Route path="/" element={<Index />} />
+              <Route path="/watch/:id" element={<Watch />} />
+              <Route path="/auth" element={<Auth />} />
+              <Route path="/creator" element={<Creator />} />
+              <Route path="/trending" element={<Trending />} />
+              <Route path="/profile" element={<Profile />} />
+              <Route path="/search" element={<SearchResults />} />
+              <Route path="/moderation" element={<Moderation />} />
+              <Route path="/moderation/flags/:flagId" element={<FlagDetail />} />
+              <Route path="/moderation/users" element={<UserManagement />} />
+              {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+              <Route path="*" element={<NotFound />} />
+            </Routes>
+          </Suspense>
         </BrowserRouter>
       </TooltipProvider>
     </AuthProvider>
