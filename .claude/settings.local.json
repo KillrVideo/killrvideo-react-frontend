@@ -1,0 +1,14 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(xargs cat:*)",
+      "Read(//Users/patrick/local_projects/killrvideo/**)",
+      "Bash(npm install:*)",
+      "Bash(npm run dev:*)",
+      "Bash(tree:*)",
+      "Read(//Users/patrick/**)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}
