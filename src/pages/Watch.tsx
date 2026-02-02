@@ -5,7 +5,6 @@ import {
   useRecordView,
   useAggregateRating,
   useRateVideo,
-  useVideoRating,
   useUser,
 } from '@/hooks/useApi';
 import Layout from '@/components/layout/Layout';
@@ -41,19 +40,17 @@ const Watch = () => {
 
   const recordView = useRecordView();
 
-  // Rating queries / mutations
+  // Rating queries / mutations - consolidated to single endpoint
   const { data: aggregateRating } = useAggregateRating(id || '');
   const rateVideo = useRateVideo(id || '');
-  const { data: ratingSummary } = useVideoRating(id || '');
 
   const userRating = aggregateRating?.currentUserRating ?? 0;
-  const averageRatingDisplay =
-    ratingSummary?.averageRating ?? aggregateRating?.averageRating ?? video?.averageRating ?? 0;
+  const averageRatingDisplay = aggregateRating?.averageRating ?? video?.averageRating ?? 0;
 
-  //console.log("ratingSummary.averageRating=", ratingSummary?.averageRating);
-  //console.log("aggregateRating.averageRating=", aggregateRating?.averageRating);
-  //console.log("video.averageRating=", video?.averageRating);
-
+  // Note: This creates a sequential waterfall - user fetch waits for video.
+  // This is a data dependency (we need video.userId) that can only be eliminated
+  // by having the backend embed uploader info in the video response.
+  // Caching (CACHE_STRATEGY.USER_PUBLIC = 1hr) mitigates repeat visit latency.
   const { data: uploader } = useUser(video?.userId ?? '');
 
   // ---------------------------------------------------------------

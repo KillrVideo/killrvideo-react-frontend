@@ -1,7 +1,4 @@
-import {
-  useRelatedVideos,
-  useVideoRating 
-} from '@/hooks/useApi';
+import { useRelatedVideos } from '@/hooks/useApi';
 import { EducationalTooltip } from '@/components/educational/EducationalTooltip';
 import VideoCard from './VideoCard';
 

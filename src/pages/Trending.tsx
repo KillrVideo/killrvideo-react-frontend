@@ -4,7 +4,7 @@ import VideoCard from '@/components/video/VideoCard';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { TrendingUp } from 'lucide-react';
-import { useTrendingVideos } from '@/hooks/useApi';
+import { useTrendingVideos, useUserNames } from '@/hooks/useApi';
 
 type TimePeriod = '1' | '7' | '30';
 
@@ -12,6 +12,10 @@ const Trending = () => {
   const [timePeriod, setTimePeriod] = useState<TimePeriod>('1');
 
   const { data: trendingData, isLoading, error } = useTrendingVideos(parseInt(timePeriod), 10);
+
+  // Prefetch user names to avoid N+1 queries in VideoCard
+  const userIds = trendingData?.map(v => v.userId) || [];
+  const { userMap } = useUserNames(userIds);
 
   const getTimePeriodLabel = (period: TimePeriod) => {
     switch (period) {
@@ -83,6 +87,7 @@ const Trending = () => {
                       id={video.videoId}
                       title={video.title}
                       creator={video.userId}
+                      creatorName={userMap[video.userId]}
                       thumbnail={video.thumbnailUrl}
                       duration="0:00"
                       views={video.viewCount}

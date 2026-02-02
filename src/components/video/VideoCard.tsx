@@ -16,31 +16,37 @@ interface VideoCardProps {
   rating?: number | null;
   tags: string[];
   uploadDate: string;
+  /** Pre-resolved creator name to avoid N+1 user lookups */
+  creatorName?: string;
 }
 
-const VideoCard = ({ 
-  id, 
-  title, 
-  creator, 
-  thumbnail, 
-  duration, 
-  views, 
-  rating, 
-  tags, 
-  uploadDate 
+const VideoCard = ({
+  id,
+  title,
+  creator,
+  thumbnail,
+  duration,
+  views,
+  rating,
+  tags,
+  uploadDate,
+  creatorName,
 }: VideoCardProps) => {
   const [imageLoaded, setImageLoaded] = useState(false);
 
-  // Resolve creator name via user endpoint when uuid detected
+  // Use pre-resolved name if provided, otherwise fetch (for backwards compatibility)
   const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-  const shouldLookup = uuidRegex.test(creator);
+  const isUuid = uuidRegex.test(creator);
+  const shouldLookup = !creatorName && isUuid;
   const { data: uploader } = useUser(shouldLookup ? creator : '');
 
-  const displayCreator = uploader
-    ? `${uploader.firstName} ${uploader.lastName}`.trim()
-    : shouldLookup
-      ? creator.substring(0, 8)
-      : creator;
+  const displayCreator = creatorName
+    ? creatorName
+    : uploader
+      ? `${uploader.firstName} ${uploader.lastName}`.trim()
+      : isUuid
+        ? creator.substring(0, 8)
+        : creator;
 
   const formatViews = (raw?: number | null) => {
     //console.log('raw views:', raw);

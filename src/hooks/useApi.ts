@@ -1,5 +1,6 @@
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient, useQueries } from '@tanstack/react-query';
 import { apiClient } from '@/lib/api';
+import { CACHE_STRATEGY } from '@/lib/constants';
 import {
   VideoDetailResponse,
   VideoSummary,
@@ -52,6 +53,7 @@ export const useVideo = (videoId: string) => {
     queryKey: ['videos', videoId],
     queryFn: () => apiClient.getVideo(videoId),
     enabled: !!videoId,
+    staleTime: CACHE_STRATEGY.VIDEO,
   });
 };
 
@@ -132,6 +134,7 @@ export const useComments = (videoId: string, page: number = 1, pageSize: number 
     queryKey: ['comments', videoId, page, pageSize],
     queryFn: () => apiClient.getComments(videoId, page, pageSize),
     enabled: !!videoId,
+    staleTime: CACHE_STRATEGY.COMMENTS,
   });
 };
 
@@ -167,6 +170,7 @@ export const useAggregateRating = (videoId: string) => {
     queryKey: ['aggregate-rating', videoId],
     queryFn: () => apiClient.getRatings(videoId),
     enabled: !!videoId,
+    staleTime: CACHE_STRATEGY.RATINGS,
   });
 };
 
@@ -230,6 +234,7 @@ export const useSearchVideos = (params: SearchParams) => {
     queryKey: ['search', 'videos', params],
     queryFn: () => apiClient.searchVideos(params),
     enabled: !!params.query,
+    staleTime: CACHE_STRATEGY.SEARCH,
   });
 };
 
@@ -238,6 +243,7 @@ export const useTagSuggestions = (query: string, limit: number = 10) => {
     queryKey: ['tags', 'suggestions', query, limit],
     queryFn: () => apiClient.getTagSuggestions(query, limit),
     enabled: !!query && query.length > 0,
+    staleTime: CACHE_STRATEGY.TAGS,
   });
 };
 
@@ -247,6 +253,7 @@ export const useRelatedVideos = (videoId: string, limit: number = 5) => {
     queryKey: ['recommendations', 'related', videoId, limit],
     queryFn: () => apiClient.getRelatedVideos(videoId, limit),
     enabled: !!videoId,
+    staleTime: CACHE_STRATEGY.RECOMMENDATIONS,
   });
 };
 
@@ -271,8 +278,8 @@ export const useProfile = () => {
     queryKey: ['user', 'profile'],
     queryFn: () => apiClient.getProfile(),
     enabled: hasToken,
-    staleTime: Infinity,       // never become stale automatically
-    gcTime: Infinity,          // keep in cache for the entire session
+    staleTime: CACHE_STRATEGY.USER_PROFILE,
+    gcTime: CACHE_STRATEGY.USER_PROFILE,
     refetchOnWindowFocus: false,
     refetchOnReconnect: false,
   });
@@ -325,6 +332,7 @@ export const useGetModerationFlags = (status: "open" | "under_review" | "approve
   return useQuery({
     queryKey: ['flags', status, page, pageSize],
     queryFn: () => apiClient.getModerationFlags(status, page, pageSize),
+    staleTime: CACHE_STRATEGY.MODERATION,
   });
 };
 
@@ -333,6 +341,7 @@ export const useGetFlagDetails = (flagId: string) => {
     queryKey: ['moderation', 'flags', flagId],
     queryFn: () => apiClient.getFlagDetails(flagId),
     enabled: !!flagId,
+    staleTime: CACHE_STRATEGY.MODERATION,
   });
 };
 
@@ -343,7 +352,7 @@ export const useActionFlag = (flagId: string) => {
       apiClient.actionFlag(flagId, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['flags'] });
-      queryClient.invalidateQueries({ queryKey: ['flag', flagId] });
+      queryClient.invalidateQueries({ queryKey: ['moderation', 'flags', flagId] });
     },
   });
 };
@@ -390,7 +399,41 @@ export const useUser = (userId: string) => {
     queryKey: ['user', 'public', userId],
     queryFn: () => apiClient.getUser(userId),
     enabled: !!userId,
-    staleTime: 1000 * 60 * 60, // 1 hour
+    staleTime: CACHE_STRATEGY.USER_PUBLIC,
   });
+};
+
+/**
+ * Prefetch multiple users in parallel to avoid N+1 queries in VideoCard.
+ * Returns a map of userId -> display name for easy lookup.
+ * Uses useQueries for proper React Query integration.
+ */
+export const useUserNames = (userIds: string[]) => {
+  const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+  // Filter to unique UUIDs only, sort for stable query key
+  const uniqueIds = [...new Set(userIds.filter(id => id && uuidRegex.test(id)))].sort();
+
+  const results = useQueries({
+    queries: uniqueIds.map(userId => ({
+      queryKey: ['user', 'public', userId],
+      queryFn: () => apiClient.getUser(userId),
+      staleTime: CACHE_STRATEGY.USER_PUBLIC,
+      enabled: !!userId,
+    })),
+  });
+
+  const isLoading = results.some(r => r.isLoading);
+
+  // Build map of userId -> display name
+  const userMap: Record<string, string> = {};
+  results.forEach((result, index) => {
+    if (result.data) {
+      const user = result.data;
+      userMap[uniqueIds[index]] = `${user.firstName} ${user.lastName}`.trim();
+    }
+  });
+
+  return { userMap, isLoading };
 };
 

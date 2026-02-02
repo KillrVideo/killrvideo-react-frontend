@@ -1,5 +1,5 @@
 import VideoCard from '@/components/video/VideoCard';
-import { useLatestVideos } from '@/hooks/useApi';
+import { useLatestVideos, useUserNames } from '@/hooks/useApi';
 import { VideoSummary } from '@/types/api';
 
 const PLACEHOLDER_THUMB = 'https://via.placeholder.com/400x225';
@@ -7,6 +7,10 @@ const PLACEHOLDER_THUMB = 'https://via.placeholder.com/400x225';
 const FeaturedVideos = () => {
   const { data: videosResp, isLoading, error } = useLatestVideos(1, 5);
   const videos: VideoSummary[] = (videosResp?.data as VideoSummary[]) || [];
+
+  // Prefetch user names to avoid N+1 queries in VideoCard
+  const userIds = videos.map(v => v.userId);
+  const { userMap } = useUserNames(userIds);
 
   //console.log('videosResp == ', videosResp);
   //console.log('videos == ', videos);
@@ -86,11 +90,12 @@ const FeaturedVideos = () => {
                 id={video.videoId}
                 title={video.title}
                 creator={video.userId}
+                creatorName={userMap[video.userId]}
                 thumbnail={video.thumbnailUrl || PLACEHOLDER_THUMB}
                 duration=""
                 views={video.views}
                 rating={video.averageRating ?? 0}
-                tags={[]} // Tags not available in summary
+                tags={[]}
                 uploadDate={video.submittedAt}
               />
             ))}

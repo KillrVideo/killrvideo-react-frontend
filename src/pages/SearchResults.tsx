@@ -3,7 +3,7 @@ import Layout from '@/components/layout/Layout';
 import VideoCard from '@/components/video/VideoCard';
 import { Button } from '@/components/ui/button';
 import { Search, Loader2 } from 'lucide-react';
-import { useSearchVideos } from '@/hooks/useApi';
+import { useSearchVideos, useUserNames } from '@/hooks/useApi';
 import SearchBar from '@/components/search/SearchBar';
 import { EducationalTooltip } from '@/components/educational/EducationalTooltip';
 
@@ -16,6 +16,10 @@ const SearchResults = () => {
     page: 1,
     pageSize: 20,
   });
+
+  // Prefetch user names to avoid N+1 queries in VideoCard
+  const userIds = searchResults?.data?.map(v => v.userId) || [];
+  const { userMap } = useUserNames(userIds);
 
   return (
     <Layout>
@@ -71,6 +75,7 @@ const SearchResults = () => {
                 id={video.videoId}
                 title={video.title}
                 creator={video.userId}
+                creatorName={userMap[video.userId]}
                 thumbnail={video.thumbnailUrl || '/placeholder.svg'}
                 duration="5:32"
                 views={video.viewCount}
