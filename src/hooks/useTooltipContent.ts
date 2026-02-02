@@ -51,11 +51,13 @@ export const useTooltipContent = (tooltipId: string): TooltipContent => {
       return;
     }
 
+    const abortController = new AbortController();
+
     // Load markdown file
     setIsLoading(true);
     setError(null);
 
-    fetch(`/educational/${metadata.contentFile}`)
+    fetch(`/educational/${metadata.contentFile}`, { signal: abortController.signal })
       .then((response) => {
         if (!response.ok) {
           throw new Error(`Failed to load ${metadata.contentFile}: ${response.statusText}`);
@@ -76,10 +78,17 @@ export const useTooltipContent = (tooltipId: string): TooltipContent => {
         setIsLoading(false);
       })
       .catch((err) => {
+        if (err.name === 'AbortError') {
+          return; // Ignore aborted requests
+        }
         console.error('Error loading tooltip content:', err);
         setError(err);
         setIsLoading(false);
       });
+
+    return () => {
+      abortController.abort();
+    };
   }, [tooltipId, metadata]);
 
   return {
