@@ -32,11 +32,13 @@ export const ExplainerModal = ({
       return;
     }
 
+    const abortController = new AbortController();
+
     setIsLoading(true);
     setError(null);
 
     // Load the full explainer markdown
-    fetch(`/${explainerPath}`)
+    fetch(`/${explainerPath}`, { signal: abortController.signal })
       .then((response) => {
         if (!response.ok) {
           throw new Error(`Failed to load explainer: ${response.statusText}`);
@@ -48,10 +50,17 @@ export const ExplainerModal = ({
         setIsLoading(false);
       })
       .catch((err) => {
+        if (err.name === 'AbortError') {
+          return; // Ignore aborted requests
+        }
         console.error('Error loading explainer:', err);
         setError(err);
         setIsLoading(false);
       });
+
+    return () => {
+      abortController.abort();
+    };
   }, [isOpen, explainerPath]);
 
   return (
