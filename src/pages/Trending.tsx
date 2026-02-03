@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import Layout from '@/components/layout/Layout';
 import VideoCard from '@/components/video/VideoCard';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -14,7 +14,10 @@ const Trending = () => {
   const { data: trendingData, isLoading, error } = useTrendingVideos(parseInt(timePeriod), 10);
 
   // Prefetch user names to avoid N+1 queries in VideoCard
-  const userIds = trendingData?.map(v => v.userId) || [];
+  const userIds = useMemo(
+    () => trendingData?.map(v => v.userId) || [],
+    [trendingData]
+  );
   const { userMap } = useUserNames(userIds);
 
   const getTimePeriodLabel = (period: TimePeriod) => {

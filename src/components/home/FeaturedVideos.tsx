@@ -1,3 +1,4 @@
+import { useMemo } from 'react';
 import VideoCard from '@/components/video/VideoCard';
 import { useLatestVideos, useUserNames } from '@/hooks/useApi';
 import { VideoSummary } from '@/types/api';
@@ -6,14 +7,14 @@ const PLACEHOLDER_THUMB = 'https://via.placeholder.com/400x225';
 
 const FeaturedVideos = () => {
   const { data: videosResp, isLoading, error } = useLatestVideos(1, 5);
-  const videos: VideoSummary[] = (videosResp?.data as VideoSummary[]) || [];
+  const videos: VideoSummary[] = useMemo(
+    () => (videosResp?.data as VideoSummary[]) || [],
+    [videosResp?.data]
+  );
 
   // Prefetch user names to avoid N+1 queries in VideoCard
-  const userIds = videos.map(v => v.userId);
+  const userIds = useMemo(() => videos.map(v => v.userId), [videos]);
   const { userMap } = useUserNames(userIds);
-
-  //console.log('videosResp == ', videosResp);
-  //console.log('videos == ', videos);
 
   if (isLoading) {
     return (
@@ -76,31 +77,23 @@ const FeaturedVideos = () => {
           </p>
         </div>
 
-        {isLoading ? (
-          <p className="text-center">Loading...</p>
-        ) : error ? (
-          <p className="text-center text-red-500">Failed to load videos.</p>
-        ) : videos.length === 0 ? (
-          <p className="text-center text-muted-foreground">No videos available.</p>
-        ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {videos.map((video) => (
-              <VideoCard
-                key={video.key}
-                id={video.videoId}
-                title={video.title}
-                creator={video.userId}
-                creatorName={userMap[video.userId]}
-                thumbnail={video.thumbnailUrl || PLACEHOLDER_THUMB}
-                duration=""
-                views={video.views}
-                rating={video.averageRating ?? 0}
-                tags={[]}
-                uploadDate={video.submittedAt}
-              />
-            ))}
-          </div>
-        )}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {videos.map((video) => (
+            <VideoCard
+              key={video.key}
+              id={video.videoId}
+              title={video.title}
+              creator={video.userId}
+              creatorName={userMap[video.userId]}
+              thumbnail={video.thumbnailUrl || PLACEHOLDER_THUMB}
+              duration=""
+              views={video.views}
+              rating={video.averageRating ?? 0}
+              tags={[]}
+              uploadDate={video.submittedAt}
+            />
+          ))}
+        </div>
       </div>
     </section>
   );

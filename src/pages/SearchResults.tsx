@@ -1,3 +1,4 @@
+import { useMemo } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import Layout from '@/components/layout/Layout';
 import VideoCard from '@/components/video/VideoCard';
@@ -18,7 +19,10 @@ const SearchResults = () => {
   });
 
   // Prefetch user names to avoid N+1 queries in VideoCard
-  const userIds = searchResults?.data?.map(v => v.userId) || [];
+  const userIds = useMemo(
+    () => searchResults?.data?.map(v => v.userId) || [],
+    [searchResults?.data]
+  );
   const { userMap } = useUserNames(userIds);
 
   return (

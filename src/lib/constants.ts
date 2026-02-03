@@ -27,8 +27,8 @@ export const CACHE_TIME = {
  * Maps semantic data categories to appropriate cache durations.
  */
 export const CACHE_STRATEGY = {
-  /** User profile - rarely changes, cache indefinitely until logout */
-  USER_PROFILE: CACHE_TIME.INFINITE,
+  /** User profile - rarely changes, cache for session length (24h max to prevent memory leaks) */
+  USER_PROFILE: CACHE_TIME.VERY_LONG,
 
   /** Public user info - changes infrequently */
   USER_PUBLIC: CACHE_TIME.LONG,

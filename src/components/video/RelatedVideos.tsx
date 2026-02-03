@@ -21,14 +21,15 @@ const RelatedVideos = ({ videoId, limit = 5 }: RelatedVideosProps) => {
         </h3>
       </EducationalTooltip>
 
+      {/* Note: RecommendationItem API doesn't include userId, so creator display is unavailable */}
       {related.map((item) => (
         <VideoCard
           key={item.videoId}
           id={item.videoId}
           title={item.title}
-          creator={''}
+          creator=""
           thumbnail={item.thumbnailUrl ?? ''}
-          duration={''}
+          duration=""
           views={item.views ?? 0}
           rating={item.averageRating ?? 0}
           tags={[]}

@@ -1,3 +1,4 @@
+import { useMemo } from 'react';
 import { useQuery, useMutation, useQueryClient, useQueries } from '@tanstack/react-query';
 import { apiClient } from '@/lib/api';
 import { CACHE_STRATEGY } from '@/lib/constants';
@@ -28,16 +29,8 @@ import { components } from '@/types/killrvideo-openapi-types';
 export const useLatestVideos = (page: number = 1, pageSize: number = 10) => {
   return useQuery({
     queryKey: ['videos', 'latest', page, pageSize],
-    queryFn: async () => {
-      try {
-        const response = await apiClient.getLatestVideos(page, pageSize);
-        console.log('Latest videos response:', response);
-        return response;
-      } catch (error) {
-        console.error('Error fetching latest videos:', error);
-        throw error;
-      }
-    },
+    queryFn: () => apiClient.getLatestVideos(page, pageSize),
+    staleTime: CACHE_STRATEGY.VIDEO,
   });
 };
 
@@ -45,6 +38,7 @@ export const useTrendingVideos = (days: number = 1, limit: number = 10) => {
   return useQuery({
     queryKey: ['videos', 'trending', days, limit],
     queryFn: () => apiClient.getTrendingVideos(days, limit),
+    staleTime: CACHE_STRATEGY.VIDEO,
   });
 };
 
@@ -62,6 +56,7 @@ export const useVideosByUser = (userId: string, page: number = 1, pageSize: numb
     queryKey: ['videos', 'user', userId, page, pageSize],
     queryFn: () => apiClient.getVideosByUser(userId, page, pageSize),
     enabled: !!userId,
+    staleTime: CACHE_STRATEGY.VIDEO,
   });
 };
 
@@ -70,6 +65,7 @@ export const useVideoStatus = (videoId: string) => {
     queryKey: ['videos', videoId, 'status'],
     queryFn: () => apiClient.getVideoStatus(videoId),
     enabled: !!videoId,
+    staleTime: CACHE_STRATEGY.SHORT,
   });
 };
 
@@ -187,14 +183,27 @@ export const useRateVideo = (videoId: string) => {
       const previousVideo = queryClient.getQueryData<VideoDetailResponse>(['videos', videoId]);
 
       // Build a new optimistic aggregate rating object
+      const isFirstTimeRater = !previousAgg?.currentUserRating;
       const totalCount = previousAgg?.totalRatingsCount ?? 0;
+      const newTotalCount = isFirstTimeRater ? totalCount + 1 : totalCount;
+
+      let newAverage: number;
+      if (!previousAgg?.averageRating) {
+        newAverage = rating;
+      } else if (isFirstTimeRater) {
+        // First time rating: add to the pool
+        newAverage = (previousAgg.averageRating * totalCount + rating) / newTotalCount;
+      } else {
+        // Updating existing rating: replace old with new
+        newAverage = (previousAgg.averageRating * totalCount - (previousAgg.currentUserRating || 0) + rating) / totalCount;
+      }
+
       const newAgg = previousAgg
         ? {
             ...previousAgg,
             currentUserRating: rating,
-            averageRating: previousAgg.averageRating
-              ? ((previousAgg.averageRating * totalCount - (previousAgg.currentUserRating || 0) + rating) / totalCount)
-              : rating,
+            averageRating: newAverage,
+            totalRatingsCount: newTotalCount,
           }
         : {
             videoId,
@@ -330,7 +339,7 @@ export const useRegister = () => {
 // Moderation hooks
 export const useGetModerationFlags = (status: "open" | "under_review" | "approved" | "rejected", page: number, pageSize: number) => {
   return useQuery({
-    queryKey: ['flags', status, page, pageSize],
+    queryKey: ['moderation', 'flags', 'list', status, page, pageSize],
     queryFn: () => apiClient.getModerationFlags(status, page, pageSize),
     staleTime: CACHE_STRATEGY.MODERATION,
   });
@@ -351,8 +360,7 @@ export const useActionFlag = (flagId: string) => {
     mutationFn: (data: { status: "open" | "under_review" | "approved" | "rejected"; moderatorNotes?: string }) =>
       apiClient.actionFlag(flagId, data),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['flags'] });
-      queryClient.invalidateQueries({ queryKey: ['moderation', 'flags', flagId] });
+      queryClient.invalidateQueries({ queryKey: ['moderation', 'flags'] });
     },
   });
 };
@@ -411,29 +419,34 @@ export const useUser = (userId: string) => {
 export const useUserNames = (userIds: string[]) => {
   const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
-  // Filter to unique UUIDs only, sort for stable query key
-  const uniqueIds = [...new Set(userIds.filter(id => id && uuidRegex.test(id)))].sort();
+  // Memoize unique IDs to prevent unnecessary re-renders
+  const uniqueIds = useMemo(() => {
+    return [...new Set(userIds.filter(id => id && uuidRegex.test(id)))];
+  }, [userIds]);
 
   const results = useQueries({
     queries: uniqueIds.map(userId => ({
       queryKey: ['user', 'public', userId],
       queryFn: () => apiClient.getUser(userId),
       staleTime: CACHE_STRATEGY.USER_PUBLIC,
-      enabled: !!userId,
     })),
   });
 
   const isLoading = results.some(r => r.isLoading);
+  const isError = results.some(r => r.isError);
 
-  // Build map of userId -> display name
-  const userMap: Record<string, string> = {};
-  results.forEach((result, index) => {
-    if (result.data) {
-      const user = result.data;
-      userMap[uniqueIds[index]] = `${user.firstName} ${user.lastName}`.trim();
-    }
-  });
+  // Memoize the user map to prevent unnecessary re-renders
+  const userMap = useMemo(() => {
+    const map: Record<string, string> = {};
+    results.forEach((result, index) => {
+      if (result.data) {
+        const user = result.data;
+        map[uniqueIds[index]] = `${user.firstName} ${user.lastName}`.trim();
+      }
+    });
+    return map;
+  }, [results, uniqueIds]);
 
-  return { userMap, isLoading };
+  return { userMap, isLoading, isError };
 };
 
