@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { useCommentsByUser } from '@/hooks/useApi';
@@ -13,6 +12,7 @@ import { User, MessageSquare } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 import { apiClient } from '@/lib/api';
 import { CommentResponse } from '@/types/api';
+import { PAGINATION } from '@/lib/constants';
 
 const Profile = () => {
   const { user, isLoading } = useAuth();
@@ -23,7 +23,7 @@ const Profile = () => {
 
   // Fetch user's comments
   const { data: commentsData, isLoading: commentsLoading } = useCommentsByUser(
-    user?.userId || '', 1, 20
+    user?.userId || '', PAGINATION.DEFAULT_PAGE, PAGINATION.LARGE
   );
 
   const handleSave = async () => {

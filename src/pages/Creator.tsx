@@ -9,9 +9,9 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Upload, Video, BarChart3, Clock, Eye, Star } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
-import { 
-  useSubmitVideo, 
-  useVideosByUser, 
+import {
+  useSubmitVideo,
+  useVideosByUser,
   useProfile,
   useVideo,
   useUpdateVideo
@@ -19,6 +19,7 @@ import {
 import { VideoDetailResponse, PaginatedResponse } from '@/types/api';
 import { toast } from 'sonner';
 import { Navigate } from 'react-router-dom';
+import { PAGINATION, VIDEO_STATUS } from '@/lib/constants';
 
 export default function Creator() {
   const { user } = useAuth();
@@ -35,7 +36,7 @@ export default function Creator() {
   });
 
   const { data: profile } = useProfile();
-  const { data: videosData, isLoading } = useVideosByUser(user?.userId || '', 1, 20);
+  const { data: videosData, isLoading } = useVideosByUser(user?.userId || '', PAGINATION.DEFAULT_PAGE, PAGINATION.LARGE);
   const submitVideoMutation = useSubmitVideo();
   const updateVideoMutation = useUpdateVideo();
 
@@ -109,10 +110,10 @@ export default function Creator() {
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'READY': return 'bg-green-500';
-      case 'PROCESSING': return 'bg-yellow-500';
-      case 'PENDING': return 'bg-blue-500';
-      case 'ERROR': return 'bg-red-500';
+      case VIDEO_STATUS.READY: return 'bg-green-500';
+      case VIDEO_STATUS.PROCESSING: return 'bg-yellow-500';
+      case VIDEO_STATUS.PENDING: return 'bg-blue-500';
+      case VIDEO_STATUS.ERROR: return 'bg-red-500';
       default: return 'bg-gray-500';
     }
   };
@@ -172,7 +173,7 @@ export default function Creator() {
                 <BarChart3 className="h-4 w-4 text-muted-foreground" />
                 <div className="ml-2">
                   <p className="text-2xl font-bold">
-                    {videos.filter(v => v.status === 'READY').length}
+                    {videos.filter(v => v.status === VIDEO_STATUS.READY).length}
                   </p>
                   <p className="text-xs text-muted-foreground">Published</p>
                 </div>

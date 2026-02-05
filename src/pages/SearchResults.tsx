@@ -7,6 +7,7 @@ import { Search, Loader2 } from 'lucide-react';
 import { useSearchVideos, useUserNames } from '@/hooks/useApi';
 import SearchBar from '@/components/search/SearchBar';
 import { EducationalTooltip } from '@/components/educational/EducationalTooltip';
+import { PAGINATION } from '@/lib/constants';
 
 const EMPTY_TAGS: string[] = [];
 
@@ -16,8 +17,8 @@ const SearchResults = () => {
 
   const { data: searchResults, isLoading, error } = useSearchVideos({
     query,
-    page: 1,
-    pageSize: 20,
+    page: PAGINATION.DEFAULT_PAGE,
+    pageSize: PAGINATION.LARGE,
   });
 
   // Prefetch user names to avoid N+1 queries in VideoCard

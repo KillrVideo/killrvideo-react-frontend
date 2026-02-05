@@ -10,10 +10,11 @@ import { FlagResponse, VideoDetailResponse } from '@/types/api';
 import { Flag, AlertTriangle, CheckCircle, XCircle, Clock } from 'lucide-react';
 import { toast } from 'sonner';
 import Layout from '@/components/layout/Layout';
+import { PAGINATION, FLAG_STATUS, CONTENT_TYPE } from '@/lib/constants';
 
 export default function Moderation() {
   const [statusFilter, setStatusFilter] = useState<"all" | "open" | "under_review" | "approved" | "rejected">('all');
-  const { data: flagsData, isLoading } = useGetModerationFlags(statusFilter === 'all' ? undefined : statusFilter, 1, 100);
+  const { data: flagsData, isLoading } = useGetModerationFlags(statusFilter === 'all' ? undefined : statusFilter, PAGINATION.DEFAULT_PAGE, PAGINATION.MAX);
 
   const ActionFlagWrapper = ({ flag, children }: { flag: FlagResponse, children: React.ReactNode }) => {
     const actionFlagMutation = useActionFlag(flag.flagId);
@@ -30,11 +31,11 @@ export default function Moderation() {
 
     return (
       <>
-        {flag.status === 'open' && (
+        {flag.status === FLAG_STATUS.OPEN && (
           <div className="flex space-x-2">
             <Button
               size="sm"
-              onClick={() => handleFlagAction('under_review')}
+              onClick={() => handleFlagAction(FLAG_STATUS.UNDER_REVIEW)}
               disabled={actionFlagMutation.isPending}
             >
               Review
@@ -42,7 +43,7 @@ export default function Moderation() {
             <Button
               size="sm"
               variant="destructive"
-              onClick={() => handleFlagAction('approved', 'Content removed for policy violation')}
+              onClick={() => handleFlagAction(FLAG_STATUS.APPROVED, 'Content removed for policy violation')}
               disabled={actionFlagMutation.isPending}
             >
               Approve & Remove
@@ -50,7 +51,7 @@ export default function Moderation() {
             <Button
               size="sm"
               variant="outline"
-              onClick={() => handleFlagAction('rejected', 'No policy violation found')}
+              onClick={() => handleFlagAction(FLAG_STATUS.REJECTED, 'No policy violation found')}
               disabled={actionFlagMutation.isPending}
             >
               Reject
@@ -64,13 +65,13 @@ export default function Moderation() {
 
   const getStatusIcon = (status: string) => {
     switch (status) {
-      case 'open':
+      case FLAG_STATUS.OPEN:
         return <AlertTriangle className="h-4 w-4 text-yellow-500" />;
-      case 'under_review':
+      case FLAG_STATUS.UNDER_REVIEW:
         return <Clock className="h-4 w-4 text-blue-500" />;
-      case 'approved':
+      case FLAG_STATUS.APPROVED:
         return <CheckCircle className="h-4 w-4 text-green-500" />;
-      case 'rejected':
+      case FLAG_STATUS.REJECTED:
         return <XCircle className="h-4 w-4 text-red-500" />;
       default:
         return <Flag className="h-4 w-4" />;
@@ -79,13 +80,13 @@ export default function Moderation() {
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'open':
+      case FLAG_STATUS.OPEN:
         return 'bg-yellow-100 text-yellow-800 border-yellow-200';
-      case 'under_review':
+      case FLAG_STATUS.UNDER_REVIEW:
         return 'bg-blue-100 text-blue-800 border-blue-200';
-      case 'approved':
+      case FLAG_STATUS.APPROVED:
         return 'bg-green-100 text-green-800 border-green-200';
-      case 'rejected':
+      case FLAG_STATUS.REJECTED:
         return 'bg-red-100 text-red-800 border-red-200';
       default:
         return 'bg-gray-100 text-gray-800 border-gray-200';
@@ -172,7 +173,7 @@ export default function Moderation() {
                   </CardHeader>
                   <CardContent className="space-y-4">
                     <div>
-                      {flag.contentType === 'video' ? (
+                      {flag.contentType === CONTENT_TYPE.VIDEO ? (
                         <p className="text-sm font-medium">Video: <VideoTitle videoId={flag.contentId} /></p>
                       ) : (
                         <p className="text-sm font-medium">Content ID: {flag.contentId}</p>
