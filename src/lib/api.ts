@@ -1,5 +1,6 @@
 import { ApiError } from '@/types/api';
 import { components } from '@/types/killrvideo-openapi-types';
+import { STORAGE_KEYS, EVENTS, PAGINATION } from '@/lib/constants';
 
 const API_BASE_URL = '/api/v1';
 
@@ -10,24 +11,24 @@ class ApiClient {
 
   constructor(baseUrl: string) {
     this.baseUrl = baseUrl;
-    this.token = localStorage.getItem('auth_token');
+    this.token = localStorage.getItem(STORAGE_KEYS.AUTH_TOKEN);
   }
 
   setUserId(userId: string) {
     this.userId = userId;
-    localStorage.setItem('user_id', userId);
+    localStorage.setItem(STORAGE_KEYS.USER_ID, userId);
   }
 
   setToken(token: string) {
     this.token = token;
-    localStorage.setItem('auth_token', token);
-    window.dispatchEvent(new Event('auth-change'));
+    localStorage.setItem(STORAGE_KEYS.AUTH_TOKEN, token);
+    window.dispatchEvent(new Event(EVENTS.AUTH_CHANGE));
   }
 
   clearToken() {
     this.token = null;
-    localStorage.removeItem('auth_token');
-    window.dispatchEvent(new Event('auth-change'));
+    localStorage.removeItem(STORAGE_KEYS.AUTH_TOKEN);
+    window.dispatchEvent(new Event(EVENTS.AUTH_CHANGE));
   }
 
   private async request<T>(
@@ -128,19 +129,19 @@ class ApiClient {
     });
   }
 
-  async getLatestVideos(page: number = 1, pageSize: number = 10): Promise<components["schemas"]["PaginatedResponse_VideoSummary_"]> {
+  async getLatestVideos(page: number = PAGINATION.DEFAULT_PAGE, pageSize: number = PAGINATION.DEFAULT_PAGE_SIZE): Promise<components["schemas"]["PaginatedResponse_VideoSummary_"]> {
     return this.request(`/videos/latest?page=${page}&page_size=${pageSize}`);
   }
 
-  async getTrendingVideos(days: number = 1, limit: number = 10): Promise<Array<components["schemas"]["VideoSummary"]>> {
+  async getTrendingVideos(days: number = 1, limit: number = PAGINATION.DEFAULT_PAGE_SIZE): Promise<Array<components["schemas"]["VideoSummary"]>> {
     return this.request(`/videos/trending?intervalDays=${days}&limit=${limit}`);
   }
 
-  async getVideosByTag(tag: string, page: number = 1, pageSize: number = 10): Promise<components["schemas"]["PaginatedResponse_VideoSummary_"]> {
+  async getVideosByTag(tag: string, page: number = PAGINATION.DEFAULT_PAGE, pageSize: number = PAGINATION.DEFAULT_PAGE_SIZE): Promise<components["schemas"]["PaginatedResponse_VideoSummary_"]> {
     return this.request(`/videos/by-tag/${tag}?page=${page}&pageSize=${pageSize}`);
   }
 
-  async getVideosByUser(userId: string, page: number = 1, pageSize: number = 10): Promise<components["schemas"]["PaginatedResponse_VideoSummary_"]> {
+  async getVideosByUser(userId: string, page: number = PAGINATION.DEFAULT_PAGE, pageSize: number = PAGINATION.DEFAULT_PAGE_SIZE): Promise<components["schemas"]["PaginatedResponse_VideoSummary_"]> {
     return this.request(`/videos/by-uploader/${userId}?page=${page}&pageSize=${pageSize}`);
   }
 
@@ -152,11 +153,11 @@ class ApiClient {
     });
   }
 
-  async getComments(videoId: string, page: number = 1, pageSize: number = 10): Promise<components["schemas"]["PaginatedResponse"]> {
+  async getComments(videoId: string, page: number = PAGINATION.DEFAULT_PAGE, pageSize: number = PAGINATION.DEFAULT_PAGE_SIZE): Promise<components["schemas"]["PaginatedResponse"]> {
     return this.request(`/videos/${videoId}/comments?page=${page}&pageSize=${pageSize}`);
   }
 
-  async getCommentsByUser(userId: string, page: number = 1, pageSize: number = 10): Promise<components["schemas"]["PaginatedResponse"]> {
+  async getCommentsByUser(userId: string, page: number = PAGINATION.DEFAULT_PAGE, pageSize: number = PAGINATION.DEFAULT_PAGE_SIZE): Promise<components["schemas"]["PaginatedResponse"]> {
     return this.request(`/users/${userId}/comments?page=${page}&pageSize=${pageSize}`);
   }
 
@@ -186,16 +187,16 @@ class ApiClient {
     return this.request(`/search/videos?${queryString}`);
   }
 
-  async getTagSuggestions(query: string, limit: number = 10): Promise<Array<components["schemas"]["TagSuggestion"]>> {
+  async getTagSuggestions(query: string, limit: number = PAGINATION.DEFAULT_PAGE_SIZE): Promise<Array<components["schemas"]["TagSuggestion"]>> {
     return this.request(`/search/tags/suggest?query=${query}&limit=${limit}`);
   }
 
   // Recommendation endpoints
-  async getRelatedVideos(videoId: string, limit: number = 5): Promise<Array<components["schemas"]["RecommendationItem"]>> {
+  async getRelatedVideos(videoId: string, limit: number = PAGINATION.SMALL): Promise<Array<components["schemas"]["RecommendationItem"]>> {
     return this.request(`/videos/id/${videoId}/related?limit=${limit}`);
   }
 
-  async getPersonalizedRecommendations(page: number = 1, pageSize: number = 10): Promise<components["schemas"]["PaginatedResponse_VideoSummary_"]> {
+  async getPersonalizedRecommendations(page: number = PAGINATION.DEFAULT_PAGE, pageSize: number = PAGINATION.DEFAULT_PAGE_SIZE): Promise<components["schemas"]["PaginatedResponse_VideoSummary_"]> {
     return this.request(`/recommendations/foryou?page=${page}&pageSize=${pageSize}`);
   }
 
@@ -209,8 +210,8 @@ class ApiClient {
 
   async getModerationFlags(
     status?: components["schemas"]["FlagStatusEnum"],
-    page: number = 1,
-    pageSize: number = 10
+    page: number = PAGINATION.DEFAULT_PAGE,
+    pageSize: number = PAGINATION.DEFAULT_PAGE_SIZE
   ): Promise<components["schemas"]["PaginatedResponse_FlagResponse_"]> {
     const params = new URLSearchParams({ page: page.toString(), pageSize: pageSize.toString() });
     if (status) params.append('status', status);

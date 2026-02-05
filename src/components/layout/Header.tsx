@@ -14,6 +14,7 @@ import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 import { useAuth } from '@/hooks/useAuth';
 import { apiClient } from '@/lib/api';
+import { STORAGE_KEYS, EVENTS } from '@/lib/constants';
 import { User, BookOpen } from 'lucide-react';
 import SearchBar from '@/components/search/SearchBar';
 
@@ -26,8 +27,8 @@ const Header = () => {
     setIsLoggingOut(true);
     try {
       apiClient.clearToken();
-      localStorage.removeItem('auth_user');
-      window.dispatchEvent(new Event('auth-change'));
+      localStorage.removeItem(STORAGE_KEYS.AUTH_USER);
+      window.dispatchEvent(new Event(EVENTS.AUTH_CHANGE));
       navigate('/');
     } finally {
       setIsLoggingOut(false);

@@ -1,6 +1,7 @@
 import { createContext, useContext, ReactNode, useState, useEffect, useMemo, useCallback } from 'react';
 import { useProfile } from './useApi';
 import { User } from '@/types/api';
+import { STORAGE_KEYS, EVENTS } from '@/lib/constants';
 
 interface AuthContextType {
   user: User | null;
@@ -16,7 +17,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [authVersion, setAuthVersion] = useState(0);
   const [guidedTourEnabled, setGuidedTourEnabled] = useState(() => {
     if (typeof window !== 'undefined') {
-      const stored = localStorage.getItem('killrvideo_guided_tour_enabled');
+      const stored = localStorage.getItem(STORAGE_KEYS.GUIDED_TOUR_ENABLED);
       return stored === 'true';
     }
     return false;
@@ -24,27 +25,27 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   useEffect(() => {
     const handler = () => setAuthVersion((v) => v + 1);
-    window.addEventListener('auth-change', handler);
-    return () => window.removeEventListener('auth-change', handler);
+    window.addEventListener(EVENTS.AUTH_CHANGE, handler);
+    return () => window.removeEventListener(EVENTS.AUTH_CHANGE, handler);
   }, []);
 
   const toggleGuidedTour = useCallback(() => {
     setGuidedTourEnabled((prev) => {
       const newValue = !prev;
       if (typeof window !== 'undefined') {
-        localStorage.setItem('killrvideo_guided_tour_enabled', String(newValue));
+        localStorage.setItem(STORAGE_KEYS.GUIDED_TOUR_ENABLED, String(newValue));
       }
       return newValue;
     });
   }, []);
 
   const { data: profile, isLoading } = useProfile();
-  const token = (typeof window !== 'undefined') ? localStorage.getItem('auth_token') : null;
+  const token = (typeof window !== 'undefined') ? localStorage.getItem(STORAGE_KEYS.AUTH_TOKEN) : null;
 
   // Cache initial user from localStorage with stable reference (lazy init runs once)
   const [cachedInitialUser] = useState<User | null>(() => {
     if (typeof window !== 'undefined') {
-      const stored = localStorage.getItem('auth_user');
+      const stored = localStorage.getItem(STORAGE_KEYS.AUTH_USER);
       if (stored) {
         try {
           return JSON.parse(stored);

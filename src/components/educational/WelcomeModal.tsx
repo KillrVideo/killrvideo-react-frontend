@@ -11,6 +11,7 @@ import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { BookOpen, Database, Search, Sparkles, TrendingUp } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
+import { STORAGE_KEYS } from '@/lib/constants';
 
 export const WelcomeModal = () => {
   const [open, setOpen] = useState(false);
@@ -19,7 +20,7 @@ export const WelcomeModal = () => {
 
   useEffect(() => {
     // Check if user has been welcomed before
-    const hasBeenWelcomed = localStorage.getItem('killrvideo_tour_welcomed');
+    const hasBeenWelcomed = localStorage.getItem(STORAGE_KEYS.TOUR_WELCOMED);
 
     // Show modal if not welcomed and tour is not already enabled
     if (!hasBeenWelcomed && !guidedTourEnabled) {
@@ -31,12 +32,12 @@ export const WelcomeModal = () => {
     if (enableTour && !guidedTourEnabled) {
       toggleGuidedTour();
     }
-    localStorage.setItem('killrvideo_tour_welcomed', 'true');
+    localStorage.setItem(STORAGE_KEYS.TOUR_WELCOMED, 'true');
     setOpen(false);
   };
 
   const handleMaybeLater = () => {
-    localStorage.setItem('killrvideo_tour_welcomed', 'true');
+    localStorage.setItem(STORAGE_KEYS.TOUR_WELCOMED, 'true');
     setOpen(false);
   };
 

@@ -1,7 +1,7 @@
 import { useMemo } from 'react';
 import { useQuery, useMutation, useQueryClient, useQueries } from '@tanstack/react-query';
 import { apiClient } from '@/lib/api';
-import { CACHE_STRATEGY } from '@/lib/constants';
+import { CACHE_STRATEGY, STORAGE_KEYS, PAGINATION } from '@/lib/constants';
 import {
   VideoDetailResponse,
   VideoSummary,
@@ -26,7 +26,7 @@ import { components } from '@/types/killrvideo-openapi-types';
 //};
 
 // Video hooks
-export const useLatestVideos = (page: number = 1, pageSize: number = 10) => {
+export const useLatestVideos = (page: number = PAGINATION.DEFAULT_PAGE, pageSize: number = PAGINATION.DEFAULT_PAGE_SIZE) => {
   return useQuery({
     queryKey: ['videos', 'latest', page, pageSize],
     queryFn: () => apiClient.getLatestVideos(page, pageSize),
@@ -34,7 +34,7 @@ export const useLatestVideos = (page: number = 1, pageSize: number = 10) => {
   });
 };
 
-export const useTrendingVideos = (days: number = 1, limit: number = 10) => {
+export const useTrendingVideos = (days: number = 1, limit: number = PAGINATION.DEFAULT_PAGE_SIZE) => {
   return useQuery({
     queryKey: ['videos', 'trending', days, limit],
     queryFn: () => apiClient.getTrendingVideos(days, limit),
@@ -51,7 +51,7 @@ export const useVideo = (videoId: string) => {
   });
 };
 
-export const useVideosByUser = (userId: string, page: number = 1, pageSize: number = 10) => {
+export const useVideosByUser = (userId: string, page: number = PAGINATION.DEFAULT_PAGE, pageSize: number = PAGINATION.DEFAULT_PAGE_SIZE) => {
   return useQuery({
     queryKey: ['videos', 'user', userId, page, pageSize],
     queryFn: () => apiClient.getVideosByUser(userId, page, pageSize),
@@ -125,7 +125,7 @@ export const useRecordView = () => {
 };
 
 // Comment hooks
-export const useComments = (videoId: string, page: number = 1, pageSize: number = 10) => {
+export const useComments = (videoId: string, page: number = PAGINATION.DEFAULT_PAGE, pageSize: number = PAGINATION.DEFAULT_PAGE_SIZE) => {
   return useQuery({
     queryKey: ['comments', videoId, page, pageSize],
     queryFn: () => apiClient.getComments(videoId, page, pageSize),
@@ -134,7 +134,7 @@ export const useComments = (videoId: string, page: number = 1, pageSize: number 
   });
 };
 
-export const useCommentsByUser = (userId: string, page: number = 1, pageSize: number = 10) => {
+export const useCommentsByUser = (userId: string, page: number = PAGINATION.DEFAULT_PAGE, pageSize: number = PAGINATION.DEFAULT_PAGE_SIZE) => {
   return useQuery({
     queryKey: ['comments', 'user', userId, page, pageSize],
     queryFn: () => apiClient.getCommentsByUser(userId, page, pageSize),
@@ -247,7 +247,7 @@ export const useSearchVideos = (params: SearchParams) => {
   });
 };
 
-export const useTagSuggestions = (query: string, limit: number = 10) => {
+export const useTagSuggestions = (query: string, limit: number = PAGINATION.DEFAULT_PAGE_SIZE) => {
   return useQuery({
     queryKey: ['tags', 'suggestions', query, limit],
     queryFn: () => apiClient.getTagSuggestions(query, limit),
@@ -257,7 +257,7 @@ export const useTagSuggestions = (query: string, limit: number = 10) => {
 };
 
 // Recommendation hooks
-export const useRelatedVideos = (videoId: string, limit: number = 5) => {
+export const useRelatedVideos = (videoId: string, limit: number = PAGINATION.SMALL) => {
   return useQuery({
     queryKey: ['recommendations', 'related', videoId, limit],
     queryFn: () => apiClient.getRelatedVideos(videoId, limit),
@@ -266,7 +266,7 @@ export const useRelatedVideos = (videoId: string, limit: number = 5) => {
   });
 };
 
-export const usePersonalizedRecommendations = (page: number = 1, pageSize: number = 10) => {
+export const usePersonalizedRecommendations = (page: number = PAGINATION.DEFAULT_PAGE, pageSize: number = PAGINATION.DEFAULT_PAGE_SIZE) => {
   return useQuery({
     queryKey: ['recommendations', 'foryou', page, pageSize],
     queryFn: () => apiClient.getPersonalizedRecommendations(page, pageSize),
@@ -281,7 +281,7 @@ export const useProfile = () => {
   // /users/me requests while still keeping the data available in cache for the
   // lifetime of the session. The query will be refreshed manually after
   // login / logout via queryClient.invalidateQueries.
-  const hasToken = typeof window !== 'undefined' && !!localStorage.getItem('auth_token');
+  const hasToken = typeof window !== 'undefined' && !!localStorage.getItem(STORAGE_KEYS.AUTH_TOKEN);
 
   return useQuery({
     queryKey: ['user', 'profile'],
@@ -305,7 +305,7 @@ export const useLogin = () => {
         apiClient.setToken(data.token);
         // Prime cache and localStorage with the new user
         if (data.user) {
-          localStorage.setItem('auth_user', JSON.stringify(data.user));
+          localStorage.setItem(STORAGE_KEYS.AUTH_USER, JSON.stringify(data.user));
           queryClient.setQueryData(['user', 'profile'], data.user);
         } else {
           queryClient.invalidateQueries({ queryKey: ['user', 'profile'] });
@@ -326,7 +326,7 @@ export const useRegister = () => {
       if (data.token) {
         apiClient.setToken(data.token);
         if (data.user) {
-          localStorage.setItem('auth_user', JSON.stringify(data.user));
+          localStorage.setItem(STORAGE_KEYS.AUTH_USER, JSON.stringify(data.user));
           queryClient.setQueryData(['user', 'profile'], data.user);
         } else {
           queryClient.invalidateQueries({ queryKey: ['user', 'profile'] });
