@@ -93,7 +93,7 @@ const Trending = () => {
                       creator={video.userId}
                       creatorName={userMap[video.userId]}
                       thumbnail={video.thumbnailUrl}
-                      duration="0:00"
+                      duration="--:--"
                       views={video.viewCount}
                       rating={video.averageRating}
                       tags={EMPTY_TAGS}

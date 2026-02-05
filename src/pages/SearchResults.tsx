@@ -84,7 +84,7 @@ const SearchResults = () => {
                 creator={video.userId}
                 creatorName={userMap[video.userId]}
                 thumbnail={video.thumbnailUrl || '/placeholder.svg'}
-                duration="5:32"
+                duration="--:--"
                 views={video.viewCount}
                 rating={video.averageRating}
                 tags={EMPTY_TAGS}

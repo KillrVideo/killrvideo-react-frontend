@@ -31,7 +31,6 @@ const RelatedVideos = ({ videoId, limit = 5 }: RelatedVideosProps) => {
           title={item.title}
           creator=""
           thumbnail={item.thumbnailUrl ?? ''}
-          duration=""
           views={item.views ?? 0}
           rating={item.averageRating ?? 0}
           tags={EMPTY_TAGS}

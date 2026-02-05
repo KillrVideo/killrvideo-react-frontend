@@ -87,7 +87,6 @@ const FeaturedVideos = () => {
               creator={video.userId}
               creatorName={userMap[video.userId]}
               thumbnail={video.thumbnailUrl || PLACEHOLDER_THUMB}
-              duration=""
               views={video.views}
               rating={video.averageRating ?? 0}
               tags={EMPTY_TAGS}

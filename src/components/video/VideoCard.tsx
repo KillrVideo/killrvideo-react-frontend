@@ -11,7 +11,7 @@ interface VideoCardProps {
   title: string;
   creator: string;
   thumbnail: string;
-  duration: string;
+  duration?: string;
   views?: number | null;
   rating?: number | null;
   tags: string[];
@@ -88,10 +88,12 @@ const VideoCard = memo(({
               <div className="w-12 h-12 border-4 border-primary/20 border-t-primary rounded-full animate-spin"></div>
             </div>
           )}
-          <div className="absolute bottom-2 right-2 bg-black/80 text-white text-xs px-2 py-1 rounded font-noto">
-            <Clock className="w-3 h-3 inline mr-1" />
-            {duration}
-          </div>
+          {duration && (
+            <div className="absolute bottom-2 right-2 bg-black/80 text-white text-xs px-2 py-1 rounded font-noto">
+              <Clock className="w-3 h-3 inline mr-1" />
+              {duration}
+            </div>
+          )}
         </div>
       </Link>
       

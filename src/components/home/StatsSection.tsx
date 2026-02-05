@@ -4,27 +4,27 @@ import { Eye, User, Star, Clock } from 'lucide-react';
 const stats = [
   {
     icon: Eye,
-    value: '2.5M+',
+    value: '—',
     label: 'Total Views',
-    description: 'Videos watched by our community'
+    description: 'Coming soon'
   },
   {
     icon: User,
-    value: '50K+',
+    value: '—',
     label: 'Active Creators',
-    description: 'Contributing quality content'
+    description: 'Coming soon'
   },
   {
     icon: Star,
-    value: '4.8',
+    value: '—',
     label: 'Average Rating',
-    description: 'Quality content you can trust'
+    description: 'Coming soon'
   },
   {
     icon: Clock,
-    value: '100K+',
+    value: '—',
     label: 'Hours Streamed',
-    description: 'Of educational content'
+    description: 'Coming soon'
   }
 ];
 
@@ -37,7 +37,7 @@ const StatsSection = () => {
             Platform Statistics
           </h2>
           <p className="font-noto text-lg text-gray-600 max-w-2xl mx-auto">
-            See how our community is growing and engaging with content
+            Platform statistics coming soon
           </p>
         </div>
 
