@@ -7,6 +7,7 @@ import { components } from '@/types/killrvideo-openapi-types';
 import { useComments, useAddComment } from '@/hooks/useApi';
 import { useAuth } from '@/hooks/useAuth';
 import { EducationalTooltip } from '@/components/educational/EducationalTooltip';
+import { SENTIMENT } from '@/lib/constants';
 
 type Comment = components['schemas']['CommentResponse'];
 
@@ -15,8 +16,8 @@ interface CommentsSectionProps {
 }
 
 const getSentimentBadgeClasses = (sentiment?: number | null) => {
-  if (sentiment && sentiment > 0.1) return 'bg-green-100 text-green-800';
-  if (sentiment && sentiment < -0.1) return 'bg-red-100 text-red-800';
+  if (sentiment && sentiment > SENTIMENT.POSITIVE_THRESHOLD) return 'bg-green-100 text-green-800';
+  if (sentiment && sentiment < SENTIMENT.NEGATIVE_THRESHOLD) return 'bg-red-100 text-red-800';
   return 'bg-gray-100 text-gray-800';
 };
 
