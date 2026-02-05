@@ -57,3 +57,72 @@ export const CACHE_STRATEGY = {
   /** Moderation flags - need relatively fresh data */
   MODERATION: CACHE_TIME.SHORT,
 } as const;
+
+// Issue #28: localStorage Keys
+export const STORAGE_KEYS = {
+  AUTH_TOKEN: 'auth_token',
+  AUTH_USER: 'auth_user',
+  USER_ID: 'user_id',
+  GUIDED_TOUR_ENABLED: 'killrvideo_guided_tour_enabled',
+  TOUR_WELCOMED: 'killrvideo_tour_welcomed',
+} as const;
+
+// Issue #30: Pagination Defaults
+export const PAGINATION = {
+  DEFAULT_PAGE: 1,
+  DEFAULT_PAGE_SIZE: 10,
+  SMALL: 5,
+  MEDIUM: 10,
+  LARGE: 20,
+  MAX: 100,
+} as const;
+
+// Issue #31: Custom Events
+export const EVENTS = {
+  AUTH_CHANGE: 'auth-change',
+} as const;
+
+// Issue #32: Sentiment Thresholds
+export const SENTIMENT = {
+  POSITIVE_THRESHOLD: 0.1,
+  NEGATIVE_THRESHOLD: -0.1,
+} as const;
+
+// Issue #34: Video Status
+export const VIDEO_STATUS = {
+  PENDING: 'PENDING',
+  PROCESSING: 'PROCESSING',
+  READY: 'READY',
+  ERROR: 'ERROR',
+} as const;
+
+// Issue #34: Flag Status
+export const FLAG_STATUS = {
+  OPEN: 'open',
+  UNDER_REVIEW: 'under_review',
+  APPROVED: 'approved',
+  REJECTED: 'rejected',
+} as const;
+
+// Issue #34: Flag Reasons
+export const FLAG_REASON = {
+  SPAM: 'spam',
+  INAPPROPRIATE: 'inappropriate',
+  HARASSMENT: 'harassment',
+  COPYRIGHT: 'copyright',
+  OTHER: 'other',
+} as const;
+
+export const FLAG_REASON_LABELS: Record<string, string> = {
+  [FLAG_REASON.SPAM]: 'Spam or misleading',
+  [FLAG_REASON.INAPPROPRIATE]: 'Inappropriate',
+  [FLAG_REASON.HARASSMENT]: 'Harassment or hate',
+  [FLAG_REASON.COPYRIGHT]: 'Copyright violation',
+  [FLAG_REASON.OTHER]: 'Other',
+};
+
+// Issue #34: Content Types
+export const CONTENT_TYPE = {
+  VIDEO: 'video',
+  COMMENT: 'comment',
+} as const;
