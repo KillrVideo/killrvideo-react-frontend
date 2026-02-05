@@ -14,6 +14,7 @@ import { Label } from "@/components/ui/label";
 import { useFlagContent } from "@/hooks/useApi";
 import { toast } from "@/components/ui/use-toast";
 import { FlagCreateRequest } from "@/types/api";
+import { FLAG_REASON, FLAG_REASON_LABELS, CONTENT_TYPE } from "@/lib/constants";
 
 interface ReportFlagDialogProps {
   videoId: string;
@@ -21,16 +22,13 @@ interface ReportFlagDialogProps {
   onOpenChange: (open: boolean) => void;
 }
 
-// Possible reason codes matched to spec enum values
-const REASONS = [
-  { value: "spam", label: "Spam or misleading" },
-  { value: "inappropriate", label: "Inappropriate" },
-  { value: "harassment", label: "Harassment or hate" },
-  { value: "copyright", label: "Copyright violation" },
-  { value: "other", label: "Other" },
-] as const;
+// Build REASONS from constants
+const REASONS = Object.entries(FLAG_REASON_LABELS).map(([value, label]) => ({
+  value: value as keyof typeof FLAG_REASON,
+  label,
+}));
 
-type ReasonValue = (typeof REASONS)[number]["value"];
+type ReasonValue = keyof typeof FLAG_REASON;
 
 export default function ReportFlagDialog({
   videoId,
@@ -48,10 +46,10 @@ export default function ReportFlagDialog({
     if (!reasonCode) return;
     try {
       await flagMutation.mutateAsync({
-        contentType: "video",
+        contentType: CONTENT_TYPE.VIDEO,
         contentId: videoId,
         reasonCode: reasonCode as FlagCreateRequest["reasonCode"],
-        reasonText: reasonCode === "other" && reasonText ? reasonText : undefined,
+        reasonText: reasonCode === FLAG_REASON.OTHER && reasonText ? reasonText : undefined,
       });
       toast({
         title: "Report submitted",
@@ -93,7 +91,7 @@ export default function ReportFlagDialog({
             ))}
           </RadioGroup>
 
-          {reasonCode === "other" && (
+          {reasonCode === FLAG_REASON.OTHER && (
             <div className="space-y-2">
               <Label htmlFor="reasonText">Additional details (optional)</Label>
               <Textarea

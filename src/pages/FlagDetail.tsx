@@ -10,6 +10,7 @@ import { FlagResponse } from '@/types/api';
 import { AlertTriangle, CheckCircle, XCircle, Clock, ArrowLeft } from 'lucide-react';
 import { toast } from 'sonner';
 import Layout from '@/components/layout/Layout';
+import { FLAG_STATUS } from '@/lib/constants';
 
 export default function FlagDetail() {
   const { flagId } = useParams<{ flagId: string }>();
@@ -40,13 +41,13 @@ export default function FlagDetail() {
 
   const getStatusIcon = (status: string) => {
     switch (status) {
-      case 'open':
+      case FLAG_STATUS.OPEN:
         return <AlertTriangle className="h-5 w-5 text-yellow-500" />;
-      case 'under_review':
+      case FLAG_STATUS.UNDER_REVIEW:
         return <Clock className="h-5 w-5 text-blue-500" />;
-      case 'approved':
+      case FLAG_STATUS.APPROVED:
         return <CheckCircle className="h-5 w-5 text-green-500" />;
-      case 'rejected':
+      case FLAG_STATUS.REJECTED:
         return <XCircle className="h-5 w-5 text-red-500" />;
       default:
         return <AlertTriangle className="h-5 w-5" />;
@@ -55,13 +56,13 @@ export default function FlagDetail() {
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'open':
+      case FLAG_STATUS.OPEN:
         return 'bg-yellow-100 text-yellow-800 border-yellow-200';
-      case 'under_review':
+      case FLAG_STATUS.UNDER_REVIEW:
         return 'bg-blue-100 text-blue-800 border-blue-200';
-      case 'approved':
+      case FLAG_STATUS.APPROVED:
         return 'bg-green-100 text-green-800 border-green-200';
-      case 'rejected':
+      case FLAG_STATUS.REJECTED:
         return 'bg-red-100 text-red-800 border-red-200';
       default:
         return 'bg-gray-100 text-gray-800 border-gray-200';
@@ -158,7 +159,7 @@ export default function FlagDetail() {
             </CardContent>
           </Card>
 
-          {flag.status !== 'approved' && flag.status !== 'rejected' && (
+          {flag.status !== FLAG_STATUS.APPROVED && flag.status !== FLAG_STATUS.REJECTED && (
             <Card>
               <CardHeader>
                 <CardTitle>Take Action</CardTitle>
@@ -178,21 +179,21 @@ export default function FlagDetail() {
 
                 <div className="flex space-x-2">
                   <Button
-                    onClick={() => handleFlagAction('under_review')}
+                    onClick={() => handleFlagAction(FLAG_STATUS.UNDER_REVIEW)}
                     disabled={actionFlagMutation.isPending}
                     variant="outline"
                   >
                     Mark Under Review
                   </Button>
                   <Button
-                    onClick={() => handleFlagAction('approved')}
+                    onClick={() => handleFlagAction(FLAG_STATUS.APPROVED)}
                     disabled={actionFlagMutation.isPending}
                     variant="destructive"
                   >
                     Approve Flag & Remove Content
                   </Button>
                   <Button
-                    onClick={() => handleFlagAction('rejected')}
+                    onClick={() => handleFlagAction(FLAG_STATUS.REJECTED)}
                     disabled={actionFlagMutation.isPending}
                     variant="outline"
                   >
