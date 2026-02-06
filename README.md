@@ -1,73 +1,78 @@
-# Welcome to your Lovable project
+# KillrVideo React Frontend
 
-## Project info
+A modern video platform showcasing scalable application architectures, built with React 19, TypeScript, and Tailwind CSS.
 
-**URL**: https://lovable.dev/projects/453b51f6-5dc9-44c0-ade4-12cec782638d
+## About KillrVideo
 
-## How can I edit this code?
+KillrVideo is a reference application that demonstrates best practices for building modern, scalable web applications. It features video sharing, user authentication, comments, and real-time interactions.
 
-There are several ways of editing your application.
+## Tech Stack
 
-**Use Lovable**
+- **React 19** - Modern React with latest features
+- **TypeScript** - Type-safe development
+- **Vite** - Fast build tool and dev server
+- **Tailwind CSS** - Utility-first styling
+- **shadcn/ui** - High-quality UI components (Radix primitives)
+- **React Query** - Server state management
+- **React Router** - Client-side routing
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/453b51f6-5dc9-44c0-ade4-12cec782638d) and start prompting.
+## Getting Started
 
-Changes made via Lovable will be committed automatically to this repo.
+### Prerequisites
 
-**Use your preferred IDE**
+- Node.js (install via [nvm](https://github.com/nvm-sh/nvm#installing-and-updating))
+- npm
 
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
-
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
-
-Follow these steps:
+### Installation
 
 ```sh
-# Step 1: Clone the repository using the project's Git URL.
+# Clone the repository
 git clone <YOUR_GIT_URL>
 
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
+# Navigate to the project directory
+cd killrvideo-react-frontend
 
-# Step 3: Install the necessary dependencies.
-npm i
+# Install dependencies
+npm install
 
-# Step 4: Start the development server with auto-reloading and an instant preview.
+# Start the development server
 npm run dev
 ```
 
-**Edit a file directly in GitHub**
+The application will be available at `http://localhost:8080`.
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+## Development Commands
 
-**Use GitHub Codespaces**
+```bash
+npm run dev       # Start dev server (proxies /api to https://localhost:8443)
+npm run build     # Production build
+npm run build:dev # Development build (unoptimized)
+npm run lint      # Run ESLint
+npm run preview   # Preview production build
+```
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
+## Project Structure
 
-## What technologies are used for this project?
+- `src/pages/` - Route-level components
+- `src/components/` - Reusable components organized by feature
+- `src/components/ui/` - shadcn/ui primitives
+- `src/hooks/` - Custom React hooks
+- `src/lib/` - Utilities and API client
+- `src/types/` - TypeScript type definitions
 
-This project is built with:
+## API Integration
 
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
+The frontend connects to the KillrVideo backend API:
 
-## How can I deploy this project?
+- **Base URL**: `/api/v1` (proxied to backend in development)
+- **Authentication**: JWT tokens stored in localStorage
+- **API Client**: Class-based client in `src/lib/api.ts`
+- **OpenAPI Spec**: `docs/killrvideo_openapi.yaml`
 
-Simply open [Lovable](https://lovable.dev/projects/453b51f6-5dc9-44c0-ade4-12cec782638d) and click on Share -> Publish.
+## Contributing
 
-## Can I connect a custom domain to my Lovable project?
+Please see `CLAUDE.md` for detailed development guidelines and conventions.
 
-Yes, you can!
+## License
 
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
-
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/tips-tricks/custom-domain#step-by-step-guide)
+This project is provided as a reference application for educational purposes.

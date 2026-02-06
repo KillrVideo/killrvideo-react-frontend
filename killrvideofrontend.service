@@ -1,5 +1,5 @@
 [Unit]
-Description=KillrVideo Lovable frontend application
+Description=KillrVideo React frontend application
 After=network.target
 
 [Service]
