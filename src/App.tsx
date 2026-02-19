@@ -7,7 +7,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/hooks/useAuth";
 import { WelcomeModal } from "@/components/educational/WelcomeModal";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
-import Index from "./pages/Index";
+import Home from "./pages/Home";
 import Auth from "./pages/Auth";
 import NotFound from "./pages/NotFound";
 
@@ -45,7 +45,7 @@ const App = () => (
         <WelcomeModal />
         <BrowserRouter>
           <Routes>
-            <Route path="/" element={<Index />} />
+            <Route path="/" element={<Home />} />
             <Route path="/watch/:id" element={<LazyRoute><Watch /></LazyRoute>} />
             <Route path="/auth" element={<Auth />} />
             <Route path="/creator" element={<LazyRoute><Creator /></LazyRoute>} />
