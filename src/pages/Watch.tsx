@@ -113,10 +113,12 @@ const Watch = () => {
                     {/* Duration not available in API yet */}
                     {video && <span>-</span>}
                   </span>
-                  <span className="flex items-center">
-                    <Star className="w-4 h-4 mr-1 fill-accent text-accent" />
-                    {averageRatingDisplay} rating
-                  </span>
+                  <EducationalTooltip id="ratings-data-model" side="top">
+                    <span className="flex items-center">
+                      <Star className="w-4 h-4 mr-1 fill-accent text-accent" />
+                      {averageRatingDisplay} rating
+                    </span>
+                  </EducationalTooltip>
                 </div>
                 
                 <div className="flex items-center space-x-2">

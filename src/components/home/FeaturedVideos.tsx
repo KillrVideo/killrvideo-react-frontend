@@ -2,6 +2,7 @@ import { useMemo } from 'react';
 import VideoCard from '@/components/video/VideoCard';
 import { useLatestVideos, useUserNames } from '@/hooks/useApi';
 import { VideoSummary } from '@/types/api';
+import { EducationalTooltip } from '@/components/educational/EducationalTooltip';
 
 const PLACEHOLDER_THUMB = 'https://via.placeholder.com/400x225';
 const EMPTY_TAGS: string[] = [];
@@ -70,9 +71,11 @@ const FeaturedVideos = () => {
     <section className="py-16 bg-white">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center mb-12">
-          <h2 className="font-sora text-3xl md:text-4xl font-bold text-gray-900 mb-4">
-            Featured Videos
-          </h2>
+          <EducationalTooltip id="latest-videos-timeseries" showIcon side="bottom">
+            <h2 className="font-sora text-3xl md:text-4xl font-bold text-gray-900 mb-4">
+              Featured Videos
+            </h2>
+          </EducationalTooltip>
           <p className="font-noto text-lg text-gray-600 max-w-2xl mx-auto">
             Discover the latest and most popular content from our community of developers and creators
           </p>
