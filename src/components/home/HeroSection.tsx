@@ -35,12 +35,15 @@ const HeroSection = () => {
             >
               Explore Videos
             </Button>
-            <Button 
-              size="lg" 
-              variant="ghost" 
+            <Button
+              size="lg"
+              variant="ghost"
               className="text-white hover:bg-white/10 font-noto"
+              asChild
             >
-              Developer Docs
+              <a href="https://docs.datastax.com/en/astra-db-serverless/index.html" target="_blank" rel="noopener noreferrer">
+                Developer Docs
+              </a>
             </Button>
           </div>
         </div>
