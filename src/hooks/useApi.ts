@@ -1,5 +1,5 @@
 import { useMemo } from 'react';
-import { useQuery, useMutation, useQueryClient, useQueries } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient, useQueries, keepPreviousData } from '@tanstack/react-query';
 import { apiClient } from '@/lib/api';
 import { CACHE_STRATEGY, STORAGE_KEYS, PAGINATION } from '@/lib/constants';
 import {
@@ -31,6 +31,7 @@ export const useLatestVideos = (page: number = PAGINATION.DEFAULT_PAGE, pageSize
     queryKey: ['videos', 'latest', page, pageSize],
     queryFn: () => apiClient.getLatestVideos(page, pageSize),
     staleTime: CACHE_STRATEGY.VIDEO,
+    placeholderData: keepPreviousData,
   });
 };
 

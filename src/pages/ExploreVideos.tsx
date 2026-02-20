@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import Layout from '@/components/layout/Layout';
 import VideoCard from '@/components/video/VideoCard';
 import { Card, CardContent } from '@/components/ui/card';
@@ -23,6 +23,8 @@ const ExploreVideos = () => {
 
   const userIds = useMemo(() => videos.map(v => v.userId), [videos]);
   const { userMap } = useUserNames(userIds);
+
+  useEffect(() => { window.scrollTo(0, 0); }, [page]);
 
   const totalPages = pagination?.totalPages ?? 1;
   const totalItems = pagination?.totalItems ?? 0;
@@ -100,7 +102,7 @@ const ExploreVideos = () => {
                   creator={video.userId}
                   creatorName={userMap[video.userId]}
                   thumbnail={video.thumbnailUrl || PLACEHOLDER_THUMB}
-                  views={video.views}
+                  views={video.viewCount}
                   rating={video.averageRating ?? 0}
                   tags={EMPTY_TAGS}
                   uploadDate={video.submittedAt}
