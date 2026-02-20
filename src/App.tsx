@@ -16,6 +16,7 @@ const Creator = lazy(() => import("./pages/Creator"));
 const Trending = lazy(() => import("./pages/Trending"));
 const Profile = lazy(() => import("./pages/Profile"));
 const SearchResults = lazy(() => import("./pages/SearchResults"));
+const ExploreVideos = lazy(() => import("./pages/ExploreVideos"));
 const Moderation = lazy(() => import("./pages/Moderation"));
 const FlagDetail = lazy(() => import("./pages/FlagDetail"));
 const UserManagement = lazy(() => import("./pages/UserManagement"));
@@ -50,6 +51,7 @@ const App = () => (
             <Route path="/auth" element={<Auth />} />
             <Route path="/creator" element={<LazyRoute><Creator /></LazyRoute>} />
             <Route path="/trending" element={<LazyRoute><Trending /></LazyRoute>} />
+            <Route path="/explore" element={<LazyRoute><ExploreVideos /></LazyRoute>} />
             <Route path="/profile" element={<LazyRoute><Profile /></LazyRoute>} />
             <Route path="/search" element={<LazyRoute><SearchResults /></LazyRoute>} />
             <Route path="/moderation" element={<LazyRoute><Moderation /></LazyRoute>} />

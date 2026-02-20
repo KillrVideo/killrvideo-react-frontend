@@ -56,6 +56,9 @@ const Header = () => {
           <Link to="/trending" className="text-foreground/60 hover:text-foreground transition-colors">
             Trending
           </Link>
+          <Link to="/explore" className="text-foreground/60 hover:text-foreground transition-colors">
+            Explore
+          </Link>
           {isAuthenticated && (
             <Link to="/creator" className="text-foreground/60 hover:text-foreground transition-colors">
               Creator Studio
