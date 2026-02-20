@@ -62,11 +62,16 @@ const CommentsSection = ({ videoId }: CommentsSectionProps) => {
   return (
     <div>
       {/* Comments Section Header */}
-      <EducationalTooltip id="comments-timeuuid" showIcon side="right">
-        <h2 className="font-sora text-xl font-semibold text-gray-900 mb-4">
-          Comments
-        </h2>
-      </EducationalTooltip>
+      <div className="flex items-center gap-4 mb-4">
+        <EducationalTooltip id="comments-timeuuid" showIcon side="right">
+          <h2 className="font-sora text-xl font-semibold text-gray-900">
+            Comments
+          </h2>
+        </EducationalTooltip>
+        <EducationalTooltip id="comments-denormalization" showIcon side="right">
+          <span className="text-xs text-muted-foreground">Denormalized Tables</span>
+        </EducationalTooltip>
+      </div>
 
       {/* Comment form */}
       {isAuthenticated && (

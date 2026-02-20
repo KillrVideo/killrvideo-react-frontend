@@ -9,6 +9,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Upload, Video, BarChart3, Clock, Eye, Star } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
+import { EducationalTooltip } from '@/components/educational/EducationalTooltip';
 import {
   useSubmitVideo,
   useVideosByUser,
@@ -130,6 +131,9 @@ export default function Creator() {
         <h1 className="text-3xl font-bold mb-8">Creator Dashboard</h1>
 
         {/* Stats Cards */}
+        <EducationalTooltip id="playback-stats-counters" showIcon side="bottom">
+          <h2 className="text-lg font-semibold text-gray-700 mb-2">Channel Stats</h2>
+        </EducationalTooltip>
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
           <Card>
             <CardContent className="pt-6">

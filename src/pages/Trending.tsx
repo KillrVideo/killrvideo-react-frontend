@@ -5,6 +5,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { TrendingUp } from 'lucide-react';
 import { useTrendingVideos, useUserNames } from '@/hooks/useApi';
+import { EducationalTooltip } from '@/components/educational/EducationalTooltip';
 
 type TimePeriod = '1' | '7' | '30';
 const EMPTY_TAGS: string[] = [];
@@ -36,10 +37,12 @@ const Trending = () => {
         <div className="flex items-center justify-between mb-8">
           <div className="flex items-center space-x-3">
             <TrendingUp className="h-8 w-8 text-primary" />
-            <div>
-              <h1 className="text-3xl font-bold text-gray-900">Trending Videos</h1>
-              <p className="text-gray-600 mt-1">Most viewed videos {getTimePeriodLabel(timePeriod).toLowerCase()}</p>
-            </div>
+            <EducationalTooltip id="trending-video-activity" showIcon side="bottom">
+              <div>
+                <h1 className="text-3xl font-bold text-gray-900">Trending Videos</h1>
+                <p className="text-gray-600 mt-1">Most viewed videos {getTimePeriodLabel(timePeriod).toLowerCase()}</p>
+              </div>
+            </EducationalTooltip>
           </div>
           
           <Select value={timePeriod} onValueChange={(value: TimePeriod) => setTimePeriod(value)}>

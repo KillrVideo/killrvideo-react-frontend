@@ -1,4 +1,5 @@
 
+import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import SearchBar from '@/components/search/SearchBar';
 
@@ -28,19 +29,23 @@ const HeroSection = () => {
           </div>
 
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4 animate-fade-in" style={{ animationDelay: '0.6s' }}>
-            <Button 
-              size="lg" 
-              variant="outline" 
+            <Button
+              size="lg"
+              variant="outline"
               className="bg-white/10 border-white/20 text-white hover:bg-white/20 font-noto"
+              asChild
             >
-              Explore Videos
+              <Link to="/explore">Explore Videos</Link>
             </Button>
-            <Button 
-              size="lg" 
-              variant="ghost" 
+            <Button
+              size="lg"
+              variant="ghost"
               className="text-white hover:bg-white/10 font-noto"
+              asChild
             >
-              Developer Docs
+              <a href="https://docs.datastax.com/en/astra-db-serverless/index.html" target="_blank" rel="noopener noreferrer">
+                Developer Docs
+              </a>
             </Button>
           </div>
         </div>

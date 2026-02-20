@@ -45,9 +45,7 @@ const Header = () => {
       <div className="container mx-auto px-4 h-16 flex items-center justify-between">
 
       <Link to="/" className="flex items-center space-x-2">
-            <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
-              <span className="text-primary-foreground font-bold text-sm">KV</span>
-            </div>
+            <img src="/killrvideo-logo.png" alt="KillrVideo" className="h-8 w-8" />
             <span className="font-bold text-xl">KillrVideo</span>
         </Link>
         
@@ -57,6 +55,9 @@ const Header = () => {
           </Link>
           <Link to="/trending" className="text-foreground/60 hover:text-foreground transition-colors">
             Trending
+          </Link>
+          <Link to="/explore" className="text-foreground/60 hover:text-foreground transition-colors">
+            Explore
           </Link>
           {isAuthenticated && (
             <Link to="/creator" className="text-foreground/60 hover:text-foreground transition-colors">

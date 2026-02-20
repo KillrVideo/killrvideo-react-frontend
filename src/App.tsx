@@ -7,7 +7,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/hooks/useAuth";
 import { WelcomeModal } from "@/components/educational/WelcomeModal";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
-import Index from "./pages/Index";
+import Home from "./pages/Home";
 import Auth from "./pages/Auth";
 import NotFound from "./pages/NotFound";
 
@@ -16,6 +16,7 @@ const Creator = lazy(() => import("./pages/Creator"));
 const Trending = lazy(() => import("./pages/Trending"));
 const Profile = lazy(() => import("./pages/Profile"));
 const SearchResults = lazy(() => import("./pages/SearchResults"));
+const ExploreVideos = lazy(() => import("./pages/ExploreVideos"));
 const Moderation = lazy(() => import("./pages/Moderation"));
 const FlagDetail = lazy(() => import("./pages/FlagDetail"));
 const UserManagement = lazy(() => import("./pages/UserManagement"));
@@ -45,11 +46,12 @@ const App = () => (
         <WelcomeModal />
         <BrowserRouter>
           <Routes>
-            <Route path="/" element={<Index />} />
+            <Route path="/" element={<Home />} />
             <Route path="/watch/:id" element={<LazyRoute><Watch /></LazyRoute>} />
             <Route path="/auth" element={<Auth />} />
             <Route path="/creator" element={<LazyRoute><Creator /></LazyRoute>} />
             <Route path="/trending" element={<LazyRoute><Trending /></LazyRoute>} />
+            <Route path="/explore" element={<LazyRoute><ExploreVideos /></LazyRoute>} />
             <Route path="/profile" element={<LazyRoute><Profile /></LazyRoute>} />
             <Route path="/search" element={<LazyRoute><SearchResults /></LazyRoute>} />
             <Route path="/moderation" element={<LazyRoute><Moderation /></LazyRoute>} />

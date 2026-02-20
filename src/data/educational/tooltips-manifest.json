@@ -118,6 +118,97 @@
       "component": "CommentsSection",
       "priority": "medium",
       "category": "database-concepts"
+    },
+    {
+      "id": "latest-videos-timeseries",
+      "title": "Time-Series Bucketing for Latest Videos",
+      "contentFile": "extracted/latest_videos_timeseries_tooltip.md",
+      "explainerSource": {
+        "file": "docs/explainer/video_catalog/GET_videos_latest.md",
+        "lines": null,
+        "note": "Explainer pending - to be written"
+      },
+      "component": "FeaturedVideos",
+      "priority": "high",
+      "category": "data-modeling"
+    },
+    {
+      "id": "registration-dual-table",
+      "title": "Dual-Table Writes for Registration",
+      "contentFile": "extracted/registration_dual_table_tooltip.md",
+      "explainerSource": {
+        "file": "docs/explainer/account_management/POST_users_register.md",
+        "lines": [59, 69],
+        "sections": ["why-two-tables"]
+      },
+      "component": "Auth",
+      "priority": "high",
+      "category": "data-modeling"
+    },
+    {
+      "id": "login-credential-lookup",
+      "title": "Credential Lookup & Login Counters",
+      "contentFile": "extracted/login_credential_lookup_tooltip.md",
+      "explainerSource": {
+        "file": "docs/explainer/account_management/POST_users_login.md",
+        "lines": null,
+        "sections": ["credential-lookup"]
+      },
+      "component": "Auth",
+      "priority": "medium",
+      "category": "data-modeling"
+    },
+    {
+      "id": "comments-denormalization",
+      "title": "Denormalization: Same Data, Different Key",
+      "contentFile": "extracted/comments_denormalization_tooltip.md",
+      "explainerSource": {
+        "file": "docs/explainer/comments_ratings/POST_videos_comments.md",
+        "lines": null,
+        "note": "Explainer pending - to be written"
+      },
+      "component": "CommentsSection",
+      "priority": "high",
+      "category": "data-modeling"
+    },
+    {
+      "id": "trending-video-activity",
+      "title": "Time-Series Data for Trending",
+      "contentFile": "extracted/trending_video_activity_tooltip.md",
+      "explainerSource": {
+        "file": "docs/explainer/video_catalog/GET_videos_trending.md",
+        "lines": null,
+        "note": "Explainer pending - to be written"
+      },
+      "component": "Trending",
+      "priority": "high",
+      "category": "data-modeling"
+    },
+    {
+      "id": "playback-stats-counters",
+      "title": "Video Playback Stats: Multi-Counter Table",
+      "contentFile": "extracted/playback_stats_counters_tooltip.md",
+      "explainerSource": {
+        "file": "docs/explainer/video_catalog/POST_video_view.md",
+        "lines": null,
+        "note": "Explainer pending - to be written"
+      },
+      "component": "Creator",
+      "priority": "medium",
+      "category": "counters"
+    },
+    {
+      "id": "ratings-data-model",
+      "title": "Ratings: Counters + Individual Records",
+      "contentFile": "extracted/ratings_data_model_tooltip.md",
+      "explainerSource": {
+        "file": "docs/explainer/comments_ratings/POST_videos_ratings.md",
+        "lines": null,
+        "note": "Explainer pending - to be written"
+      },
+      "component": "StarRating",
+      "priority": "medium",
+      "category": "data-modeling"
     }
   ]
 }
