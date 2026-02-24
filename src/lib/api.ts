@@ -129,6 +129,13 @@ class ApiClient {
     });
   }
 
+  async recordWatchTime(videoId: string, watchDurationSeconds: number): Promise<void> {
+    return this.request(`/videos/id/${videoId}/watch-time`, {
+      method: 'POST',
+      body: JSON.stringify({ watch_duration_seconds: watchDurationSeconds }),
+    });
+  }
+
   async getLatestVideos(page: number = PAGINATION.DEFAULT_PAGE, pageSize: number = PAGINATION.DEFAULT_PAGE_SIZE): Promise<components["schemas"]["PaginatedResponse_VideoSummary_"]> {
     return this.request(`/videos/latest?page=${page}&page_size=${pageSize}`);
   }

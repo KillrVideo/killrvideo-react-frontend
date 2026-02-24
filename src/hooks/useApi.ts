@@ -125,6 +125,14 @@ export const useRecordView = () => {
   });
 };
 
+export const useRecordWatchTime = () => {
+  return useMutation({
+    mutationFn: ({ videoId, durationSeconds }: { videoId: string; durationSeconds: number }) =>
+      apiClient.recordWatchTime(videoId, durationSeconds),
+    retry: false, // do not retry on failure to avoid spamming the backend
+  });
+};
+
 // Comment hooks
 export const useComments = (videoId: string, page: number = PAGINATION.DEFAULT_PAGE, pageSize: number = PAGINATION.DEFAULT_PAGE_SIZE) => {
   return useQuery({
