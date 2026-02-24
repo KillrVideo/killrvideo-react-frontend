@@ -262,7 +262,11 @@ paths:
         \ Authenticated *viewer*-level callers receive 403.\n    \u2013 The owner\
         \ (*creator*) or any *moderator* can still access \u2192 404 to\n      remain\
         \ consistent with current spec (not explicitly tested yet).\n\u2022 A READY\
-        \ video is public: anyone can record a view (204)."
+        \ video is public: anyone can record a view (204).\n\nActivity logging: When\
+        \ an authenticated user records a view, the backend **must** write a row to\
+        \ the `user_activity` table with `activity_type = 'view'`, including the caller's\
+        \ `userid`, the `videoid`, and an `activity_timestamp` (timeuuid). Unauthenticated\
+        \ views increment the counter only and do not produce an activity row."
       operationId: record_view_api_v1_videos_id__video_id_path__view_post
       security:
       - OAuth2PasswordBearer: []
@@ -714,7 +718,10 @@ paths:
       tags:
       - Comments & Ratings
       summary: Add comment to video
-      description: Endpoint for viewers to add a comment to a READY video.
+      description: "Endpoint for viewers to add a comment to a READY video.\n\nActivity\
+        \ logging: On success the backend **must** write a row to the `user_activity`\
+        \ table with `activity_type = 'comment'`, including the caller's `userid`,\
+        \ the `videoid`, and an `activity_timestamp` (timeuuid)."
       operationId: post_comment_to_video_api_v1_videos__video_id_path__comments_post
       security:
       - OAuth2PasswordBearer: []
@@ -845,7 +852,11 @@ paths:
       tags:
       - Comments & Ratings
       summary: Rate a video (create or update)
-      description: Upsert a rating (1-5) for the specified video by the current viewer.
+      description: "Upsert a rating (1-5) for the specified video by the current viewer.\n\
+        \nActivity logging: On success the backend **must** write a row to the `user_activity`\
+        \ table with `activity_type = 'rate'`, including the caller's `userid`, the\
+        \ `videoid`, and an `activity_timestamp` (timeuuid). This row is written for\
+        \ both new ratings and updates to an existing rating."
       operationId: post_rating_video_api_v1_videos__video_id_path__ratings_post
       security:
       - OAuth2PasswordBearer: []
@@ -1271,6 +1282,66 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/HTTPValidationError'
+  /api/v1/users/{user_id_path}/activity:
+    get:
+      tags:
+      - User Activity
+      summary: Get user activity timeline
+      description: Return a paginated timeline of a user's activity over the last
+        30 days.
+      operationId: get_user_activity_api_v1_users__user_id_path__activity_get
+      parameters:
+      - name: user_id_path
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+          title: User Id Path
+      - name: activity_type
+        in: query
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+          description: Filter by activity type (view, comment, rate)
+          title: Activity Type
+        description: Filter by activity type (view, comment, rate)
+      - name: page
+        in: query
+        required: false
+        schema:
+          type: integer
+          minimum: 1
+          description: Page number
+          default: 1
+          title: Page
+        description: Page number
+      - name: pageSize
+        in: query
+        required: false
+        schema:
+          type: integer
+          maximum: 100
+          minimum: 1
+          description: Items per page
+          default: 10
+          title: Pagesize
+        description: Items per page
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedResponse_UserActivityResponse_'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
   /:
     get:
       summary: Health check
@@ -1579,6 +1650,20 @@ components:
       - data
       - pagination
       title: PaginatedResponse[FlagResponse]
+    PaginatedResponse_UserActivityResponse_:
+      properties:
+        data:
+          items:
+            $ref: '#/components/schemas/UserActivityResponse'
+          type: array
+          title: Data
+        pagination:
+          $ref: '#/components/schemas/Pagination'
+      type: object
+      required:
+      - data
+      - pagination
+      title: PaginatedResponse[UserActivityResponse]
     PaginatedResponse_VideoSummary_:
       properties:
         data:
@@ -1743,6 +1828,40 @@ components:
       - email
       - userId
       title: User
+    UserActivityResponse:
+      properties:
+        userid:
+          type: string
+          format: uuid
+          title: Userid
+        activity_type:
+          type: string
+          enum:
+          - view
+          - comment
+          - rate
+          title: Activity Type
+        activity_id:
+          type: string
+          format: uuid
+          title: Activity Id
+        activity_timestamp:
+          type: string
+          format: date-time
+          title: Activity Timestamp
+        videoid:
+          type: string
+          format: uuid
+          title: Videoid
+      type: object
+      required:
+      - userid
+      - activity_type
+      - activity_id
+      - activity_timestamp
+      - videoid
+      title: UserActivityResponse
+      description: API response representation for a single user activity item.
     UserCreateRequest:
       properties:
         firstName:
@@ -1873,7 +1992,7 @@ components:
         description:
           anyOf:
           - type: string
-            maxLength: 1000
+            maxLength: 2000
           - type: 'null'
           title: Description
         tags:
@@ -2127,7 +2246,7 @@ components:
         description:
           anyOf:
           - type: string
-            maxLength: 1000
+            maxLength: 2000
           - type: 'null'
           title: Description
         tags:
