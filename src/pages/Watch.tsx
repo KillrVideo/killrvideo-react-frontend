@@ -1,8 +1,9 @@
 import { useParams, useNavigate } from 'react-router-dom';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, useCallback } from 'react';
 import {
   useVideo,
   useRecordView,
+  useRecordWatchTime,
   useAggregateRating,
   useRateVideo,
   useUser,
@@ -17,6 +18,9 @@ import RelatedVideos from '@/components/video/RelatedVideos';
 import { useAuth } from '@/hooks/useAuth';
 import ReportFlagDialog from '@/components/moderation/ReportFlagDialog';
 import { EducationalTooltip } from '@/components/educational/EducationalTooltip';
+import { STORAGE_KEYS } from '@/lib/constants';
+
+const WATCH_TIME_HEARTBEAT_INTERVAL_MS = 30_000; // 30 seconds
 
 // Utilities
 const formatNumber = (raw?: number | null) => {
@@ -39,6 +43,7 @@ const Watch = () => {
   } = useVideo(id || '');
 
   const recordView = useRecordView();
+  const recordWatchTime = useRecordWatchTime();
 
   // Rating queries / mutations - consolidated to single endpoint
   const { data: aggregateRating } = useAggregateRating(id || '');
@@ -65,6 +70,119 @@ const Watch = () => {
       recordViewMutate(id);
     }
   }, [video, id, recordViewMutate]);
+
+  // Watch-time tracking -----------------------------------------------
+  // Tracks elapsed seconds while the page is visible and the video is
+  // available. Timer pauses when the tab is hidden. Reports every 30 s
+  // (heartbeat), on visibility-hidden, and on page unload.
+
+  // Accumulated seconds not yet sent to the server
+  const elapsedSecondsRef = useRef(0);
+  // Timestamp of the last "tick" start; null when the timer is paused
+  const tickStartRef = useRef<number | null>(null);
+  const recordWatchTimeMutate = recordWatchTime.mutate;
+
+  // Flush accumulated watch time to the API. Resets the counter on success.
+  // keepalive=true is used on unload so the request survives tab/window close.
+  const flushWatchTime = useCallback(
+    (videoId: string, keepalive: boolean = false) => {
+      // Accumulate any in-progress tick before flushing
+      if (tickStartRef.current !== null) {
+        const now = Date.now();
+        elapsedSecondsRef.current += Math.floor((now - tickStartRef.current) / 1000);
+        tickStartRef.current = now; // keep ticking after flush
+      }
+
+      const seconds = elapsedSecondsRef.current;
+      if (seconds <= 0) return;
+
+      // Reset immediately so a second flush (e.g. heartbeat racing unload) doesn't double-count
+      elapsedSecondsRef.current = 0;
+
+      if (keepalive) {
+        // On unload we use fetch with keepalive + auth header so the request
+        // is not dropped when the page is being torn down. sendBeacon cannot
+        // carry auth headers so we prefer keepalive fetch.
+        const token = localStorage.getItem(STORAGE_KEYS.AUTH_TOKEN);
+        const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+        if (token) headers['Authorization'] = `Bearer ${token}`;
+
+        fetch(`/api/v1/videos/id/${videoId}/watch-time`, {
+          method: 'POST',
+          headers,
+          body: JSON.stringify({ watch_duration_seconds: seconds }),
+          keepalive: true,
+        }).catch(() => {
+          // best-effort; ignore errors on unload
+        });
+      } else {
+        recordWatchTimeMutate({ videoId, durationSeconds: seconds });
+      }
+    },
+    [recordWatchTimeMutate],
+  );
+
+  // Start / resume the elapsed-time accumulation tick
+  const startTick = useCallback(() => {
+    if (tickStartRef.current === null) {
+      tickStartRef.current = Date.now();
+    }
+  }, []);
+
+  // Pause the tick, accumulating elapsed seconds into the ref
+  const pauseTick = useCallback(() => {
+    if (tickStartRef.current !== null) {
+      elapsedSecondsRef.current += Math.floor((Date.now() - tickStartRef.current) / 1000);
+      tickStartRef.current = null;
+    }
+  }, []);
+
+  useEffect(() => {
+    // Only track once the video data is loaded and we have a valid video ID
+    if (!video || !id) return;
+
+    const videoId = id;
+
+    // Start tracking as soon as the video is available and tab is visible
+    if (document.visibilityState === 'visible') {
+      startTick();
+    }
+
+    // Heartbeat: flush every 30 s of accumulated active time
+    const heartbeatInterval = setInterval(() => {
+      flushWatchTime(videoId, false);
+    }, WATCH_TIME_HEARTBEAT_INTERVAL_MS);
+
+    // Visibility change: pause when hidden, resume when visible
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'hidden') {
+        pauseTick();
+        flushWatchTime(videoId, false);
+      } else {
+        startTick();
+      }
+    };
+
+    // Page unload: best-effort keepalive flush
+    const handleBeforeUnload = () => {
+      pauseTick();
+      flushWatchTime(videoId, true);
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    window.addEventListener('beforeunload', handleBeforeUnload);
+
+    return () => {
+      // Component unmount: flush remaining time and clean up
+      pauseTick();
+      flushWatchTime(videoId, false);
+      clearInterval(heartbeatInterval);
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+      window.removeEventListener('beforeunload', handleBeforeUnload);
+    };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [video, id]);
+  // ---------------------------------------------------------------
 
   return (
     <Layout>
