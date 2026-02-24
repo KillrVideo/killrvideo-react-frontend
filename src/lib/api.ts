@@ -269,6 +269,20 @@ class ApiClient {
   async getUser(userId: string): Promise<components["schemas"]["User"]> {
       return this.request(`/users/${userId}`);
   }
+
+  async getUserActivity(
+    userId: string,
+    activityType?: string,
+    page?: number,
+    pageSize?: number
+  ): Promise<import('../types/api').UserActivityResponse> {
+    const params = new URLSearchParams();
+    if (activityType) params.set('activity_type', activityType);
+    if (page) params.set('page', String(page));
+    if (pageSize) params.set('pageSize', String(pageSize));
+    const query = params.toString() ? `?${params.toString()}` : '';
+    return this.request(`/users/${userId}/activity${query}`);
+  }
 }
 
 export const apiClient = new ApiClient(API_BASE_URL);

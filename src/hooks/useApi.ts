@@ -15,6 +15,7 @@ import {
   AggregateRatingResponse,
   SearchParams,
   FlagCreateRequest,
+  UserActivityResponse,
 } from '@/types/api';
 import { components } from '@/types/killrvideo-openapi-types';
 
@@ -407,6 +408,21 @@ export const useRevokeModerator = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['moderation', 'users'] });
     },
+  });
+};
+
+// User activity timeline hook
+export const useUserActivity = (
+  userId: string | undefined,
+  activityType?: string,
+  page?: number,
+  pageSize?: number
+) => {
+  return useQuery({
+    queryKey: ['userActivity', userId, activityType, page, pageSize],
+    queryFn: () => apiClient.getUserActivity(userId!, activityType, page, pageSize),
+    enabled: !!userId,
+    staleTime: CACHE_STRATEGY.SHORT,
   });
 };
 

@@ -183,3 +183,13 @@ export interface ApiError {
   detail?: string;
   instance?: string;
 }
+
+export interface UserActivity {
+  userid: string;
+  activity_type: 'view' | 'comment' | 'rate';
+  activity_id: string;
+  activity_timestamp: string;
+  videoid: string;
+}
+
+export type UserActivityResponse = PaginatedResponse<UserActivity>;
