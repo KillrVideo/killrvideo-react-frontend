@@ -47,6 +47,7 @@ export default function Creator() {
   // When full video arrives, initialize edit form
   useEffect(() => {
     if (fullVideo) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setEditingVideo(fullVideo as VideoDetailResponse);
       setEditForm({
         title: fullVideo.title,

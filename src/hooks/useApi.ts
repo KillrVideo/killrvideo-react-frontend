@@ -435,13 +435,14 @@ export const useUser = (userId: string) => {
   });
 };
 
+const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
 /**
  * Prefetch multiple users in parallel to avoid N+1 queries in VideoCard.
  * Returns a map of userId -> display name for easy lookup.
  * Uses useQueries for proper React Query integration.
  */
 export const useUserNames = (userIds: string[]) => {
-  const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
   // Memoize unique IDs to prevent unnecessary re-renders
   const uniqueIds = useMemo(() => {
