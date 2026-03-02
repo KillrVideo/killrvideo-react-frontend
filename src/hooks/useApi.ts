@@ -16,6 +16,7 @@ import {
   SearchParams,
   FlagCreateRequest,
   UserActivityResponse,
+  VideoPreviewResponse,
 } from '@/types/api';
 import { components } from '@/types/killrvideo-openapi-types';
 
@@ -73,13 +74,19 @@ export const useVideoStatus = (videoId: string) => {
 
 export const useSubmitVideo = () => {
   const queryClient = useQueryClient();
-  
+
   return useMutation({
     mutationFn: (data: VideoSubmitRequest) =>
       apiClient.submitVideo(data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['videos'] });
     },
+  });
+};
+
+export const usePreviewVideo = () => {
+  return useMutation<VideoPreviewResponse, Error, string>({
+    mutationFn: (youtubeUrl: string) => apiClient.previewYoutubeVideo(youtubeUrl),
   });
 };
 
@@ -123,14 +130,6 @@ export const useRecordView = () => {
       // Ensure fresh data after the optimistic update
       queryClient.invalidateQueries({ queryKey: ['videos', videoId] });
     },
-  });
-};
-
-export const useRecordWatchTime = () => {
-  return useMutation({
-    mutationFn: ({ videoId, durationSeconds }: { videoId: string; durationSeconds: number }) =>
-      apiClient.recordWatchTime(videoId, durationSeconds),
-    retry: false, // do not retry on failure to avoid spamming the backend
   });
 };
 

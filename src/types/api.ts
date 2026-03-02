@@ -154,8 +154,8 @@ export interface RatingCreateOrUpdateRequest {
   rating: number;
 }
 
-export interface RecordWatchTimeRequest {
-  watch_duration_seconds: number;
+export interface VideoPreviewResponse {
+  title: string;
 }
 
 export interface FlagCreateRequest {
