@@ -34,6 +34,7 @@ export const ExplainerModal = ({
 
     const abortController = new AbortController();
 
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setIsLoading(true);
     setError(null);
 

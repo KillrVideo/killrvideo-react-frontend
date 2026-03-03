@@ -34,6 +34,7 @@ const CommentsSection = ({ videoId }: CommentsSectionProps) => {
   // Append new comments when page data arrives
   useEffect(() => {
     if (commentPage) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setComments((prev) =>
         page === 1 ? (commentPage.data as Comment[]) : [...prev, ...(commentPage.data as Comment[])]
       );

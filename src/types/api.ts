@@ -154,6 +154,10 @@ export interface RatingCreateOrUpdateRequest {
   rating: number;
 }
 
+export interface VideoPreviewResponse {
+  title: string;
+}
+
 export interface FlagCreateRequest {
   contentType: 'video' | 'comment';
   contentId: string;
@@ -179,3 +183,13 @@ export interface ApiError {
   detail?: string;
   instance?: string;
 }
+
+export interface UserActivity {
+  userid: string;
+  activity_type: 'view' | 'comment' | 'rate';
+  activity_id: string;
+  activity_timestamp: string;
+  videoid: string;
+}
+
+export type UserActivityResponse = PaginatedResponse<UserActivity>;

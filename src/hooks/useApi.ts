@@ -15,6 +15,8 @@ import {
   AggregateRatingResponse,
   SearchParams,
   FlagCreateRequest,
+  UserActivityResponse,
+  VideoPreviewResponse,
 } from '@/types/api';
 import { components } from '@/types/killrvideo-openapi-types';
 
@@ -72,13 +74,19 @@ export const useVideoStatus = (videoId: string) => {
 
 export const useSubmitVideo = () => {
   const queryClient = useQueryClient();
-  
+
   return useMutation({
     mutationFn: (data: VideoSubmitRequest) =>
       apiClient.submitVideo(data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['videos'] });
     },
+  });
+};
+
+export const usePreviewVideo = () => {
+  return useMutation<VideoPreviewResponse, Error, string>({
+    mutationFn: (youtubeUrl: string) => apiClient.previewYoutubeVideo(youtubeUrl),
   });
 };
 
@@ -402,6 +410,21 @@ export const useRevokeModerator = () => {
   });
 };
 
+// User activity timeline hook
+export const useUserActivity = (
+  userId: string | undefined,
+  activityType?: string,
+  page?: number,
+  pageSize?: number
+) => {
+  return useQuery({
+    queryKey: ['userActivity', userId, activityType, page, pageSize],
+    queryFn: () => apiClient.getUserActivity(userId!, activityType, page, pageSize),
+    enabled: !!userId,
+    staleTime: CACHE_STRATEGY.SHORT,
+  });
+};
+
 // Public user fetch by ID (new endpoint)
 export const useUser = (userId: string) => {
   return useQuery({
@@ -412,13 +435,14 @@ export const useUser = (userId: string) => {
   });
 };
 
+const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
 /**
  * Prefetch multiple users in parallel to avoid N+1 queries in VideoCard.
  * Returns a map of userId -> display name for easy lookup.
  * Uses useQueries for proper React Query integration.
  */
 export const useUserNames = (userIds: string[]) => {
-  const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
   // Memoize unique IDs to prevent unnecessary re-renders
   const uniqueIds = useMemo(() => {
