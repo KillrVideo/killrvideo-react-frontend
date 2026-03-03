@@ -9,7 +9,7 @@ export default defineConfig(() => ({
     port: 8080,
     proxy: {
       '/api': {
-        target: 'https://localhost:8443',
+        target: process.env.VITE_BACKEND_URL,
         changeOrigin: true,
         secure: false,
         rewrite: (path) => path,
@@ -19,6 +19,7 @@ export default defineConfig(() => ({
           });
           proxy.on('proxyReq', (proxyReq, req, _res) => {
             console.log('Sending Request to the Target:', req.method, req.url);
+            console.log('Target = ', process.env.VITE_BACKEND_URL);
           });
           proxy.on('proxyRes', (proxyRes, req, _res) => {
             console.log('Received Response from the Target:', proxyRes.statusCode, req.url);

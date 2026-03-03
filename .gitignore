@@ -12,6 +12,8 @@ node_modules
 dist
 dist-ssr
 *.local
+docker*
+Dockerfile
 
 # Editor directories and files
 .vscode/*
@@ -23,6 +25,5 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
-
 .claude/*
 .cursor/*
