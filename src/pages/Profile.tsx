@@ -8,11 +8,12 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Separator } from '@/components/ui/separator';
-import { User, MessageSquare } from 'lucide-react';
+import { User, MessageSquare, Activity } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 import { apiClient } from '@/lib/api';
 import { CommentResponse } from '@/types/api';
 import { PAGINATION } from '@/lib/constants';
+import ActivityTimeline from '@/components/profile/ActivityTimeline';
 
 const Profile = () => {
   const { user, isLoading } = useAuth();
@@ -105,6 +106,10 @@ const Profile = () => {
             <TabsTrigger value="comments" className="flex items-center gap-2">
               <MessageSquare className="h-4 w-4" />
               My Comments
+            </TabsTrigger>
+            <TabsTrigger value="activity" className="flex items-center gap-2">
+              <Activity className="h-4 w-4" />
+              Activity
             </TabsTrigger>
           </TabsList>
 
@@ -257,6 +262,10 @@ const Profile = () => {
                 )}
               </CardContent>
             </Card>
+          </TabsContent>
+
+          <TabsContent value="activity">
+            <ActivityTimeline userId={user.userId} />
           </TabsContent>
         </Tabs>
       </div>

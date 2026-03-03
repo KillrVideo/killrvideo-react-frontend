@@ -17,7 +17,6 @@ import RelatedVideos from '@/components/video/RelatedVideos';
 import { useAuth } from '@/hooks/useAuth';
 import ReportFlagDialog from '@/components/moderation/ReportFlagDialog';
 import { EducationalTooltip } from '@/components/educational/EducationalTooltip';
-
 // Utilities
 const formatNumber = (raw?: number | null) => {
   const num = raw ?? 0;
@@ -65,6 +64,7 @@ const Watch = () => {
       recordViewMutate(id);
     }
   }, [video, id, recordViewMutate]);
+
 
   return (
     <Layout>

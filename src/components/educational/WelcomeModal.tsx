@@ -24,6 +24,7 @@ export const WelcomeModal = () => {
 
     // Show modal if not welcomed and tour is not already enabled
     if (!hasBeenWelcomed && !guidedTourEnabled) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setOpen(true);
     }
   }, [guidedTourEnabled]);

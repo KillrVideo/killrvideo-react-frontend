@@ -39,6 +39,7 @@ export const useTooltipContent = (tooltipId: string): TooltipContent => {
 
   useEffect(() => {
     if (!metadata) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setError(new Error(`Tooltip ID "${tooltipId}" not found in manifest`));
       return;
     }
