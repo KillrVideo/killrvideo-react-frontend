@@ -97,7 +97,7 @@ const Trending = () => {
                       creatorName={userMap[video.userId]}
                       thumbnail={video.thumbnailUrl}
                       duration="--:--"
-                      views={video.viewCount}
+                      views={video.views}
                       rating={video.averageRating}
                       tags={EMPTY_TAGS}
                       uploadDate={video.submittedAt}

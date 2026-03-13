@@ -55,6 +55,17 @@ KillrVideo is a reference application that demonstrates best practices for build
 - Node.js (install via [nvm](https://github.com/nvm-sh/nvm#installing-and-updating))
 - npm
 
+### Environment Variables
+
+- `VITE_API_URL` - The base URL for the KillrVideo backend API.
+
+By default, the backends run on the following URL/port combinations:
+Java: https://localhost:8443
+Python: http://localhost:8080
+C#: https://localhost:7264
+
+_Note: This variable makes it easier to deploy the frontend via Docker or Podman._
+
 ### Installation
 
 ```sh
