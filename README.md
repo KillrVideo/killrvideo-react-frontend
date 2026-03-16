@@ -57,7 +57,7 @@ KillrVideo is a reference application that demonstrates best practices for build
 
 ### Environment Variables
 
-- `VITE_API_URL` - The base URL for the KillrVideo backend API.
+- `VITE_BACKEND_URL` - The base URL for the KillrVideo backend API.
 
 By default, the backends run on the following URL/port combinations:
 Java: https://localhost:8443
