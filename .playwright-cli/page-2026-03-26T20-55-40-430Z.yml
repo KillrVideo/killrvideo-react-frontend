@@ -1,0 +1,464 @@
+- generic [ref=e2]:
+  - region "Notifications (F8)":
+    - list
+  - region "Notifications alt+T"
+  - generic [ref=e5]:
+    - banner [ref=e6]:
+      - generic [ref=e7]:
+        - link "KillrVideo KillrVideo" [ref=e8] [cursor=pointer]:
+          - /url: /
+          - img "KillrVideo" [ref=e9]
+          - generic [ref=e10]: KillrVideo
+        - navigation [ref=e11]:
+          - link "Home" [ref=e12] [cursor=pointer]:
+            - /url: /
+          - link "Trending" [ref=e13] [cursor=pointer]:
+            - /url: /trending
+          - link "Explore" [ref=e14] [cursor=pointer]:
+            - /url: /explore
+        - generic [ref=e17]:
+          - img [ref=e18]
+          - textbox "Search for videos, creators, or topics..." [ref=e21]
+        - generic [ref=e22]:
+          - generic [ref=e23]:
+            - img [ref=e24]
+            - generic [ref=e28] [cursor=pointer]: Dev Panel
+            - switch "Dev Panel" [checked] [ref=e29] [cursor=pointer]
+          - link "Sign In" [ref=e30] [cursor=pointer]:
+            - /url: /auth
+            - button "Sign In" [ref=e31]
+    - generic [ref=e32]:
+      - main [ref=e33]:
+        - generic [ref=e35]:
+          - generic [ref=e36]:
+            - iframe [ref=e38]:
+              - generic [active] [ref=f1e1]:
+                - generic "YouTube Video Player" [ref=f1e3]
+                - generic [ref=f1e5]:
+                  - generic:
+                    - generic:
+                      - button "Play video" [ref=f1e10] [cursor=pointer]:
+                        - generic [ref=f1e13]:
+                          - img
+                      - button "Hide player controls" [ref=f1e14] [cursor=pointer]
+                      - generic [ref=f1e16]:
+                        - generic [ref=f1e21]:
+                          - generic [ref=f1e22]:
+                            - link "Build AI-Powered Apps Faster with Langflow" [ref=f1e23] [cursor=pointer]:
+                              - /url: https://www.youtube.com/watch?v=L7V_woT8mbQ
+                            - link "DataStax Developers" [ref=f1e24] [cursor=pointer]:
+                              - /url: /channel/UCAIQY251avaMv7bBv5PCo-A
+                              - generic [ref=f1e25]: DataStax Developers
+                          - generic [ref=f1e26]:
+                            - button "thumbnail-image" [ref=f1e27] [cursor=pointer]:
+                              - img "thumbnail-image" [ref=f1e28]
+                            - generic [ref=f1e30]:
+                              - generic: DataStax Developers
+                              - generic: 37.9K subscribers
+                        - generic [ref=f1e31]:
+                          - button "Share" [ref=f1e34] [cursor=pointer]:
+                            - generic [ref=f1e38]:
+                              - img
+                          - link "Watch on YouTube" [ref=f1e45] [cursor=pointer]:
+                            - /url: https://www.youtube.com/watch?v=L7V_woT8mbQ
+                            - generic [ref=f1e48]:
+                              - text: Watch on
+                              - img [ref=f1e50]:
+                                - generic [ref=f1e52]:
+                                  - img
+            - generic [ref=e39]:
+              - heading "Build AI-Powered Apps Faster with Langflow" [level=1] [ref=e40]
+              - generic [ref=e41]:
+                - generic [ref=e42]:
+                  - generic [ref=e43]:
+                    - img [ref=e44]
+                    - text: 44 views
+                  - generic [ref=e47]:
+                    - img [ref=e48]
+                    - generic [ref=e51]: "-"
+                  - generic [ref=e52]:
+                    - img [ref=e53]
+                    - text: 0 rating
+                - button "Report" [ref=e56] [cursor=pointer]:
+                  - img [ref=e57]
+                  - text: Report
+              - generic [ref=e59]:
+                - generic [ref=e60]:
+                  - 'heading "Uploaded by: Joshua Schultz" [level=3] [ref=e61]'
+                  - paragraph [ref=e62]: Uploaded on 8/27/2025
+                - generic [ref=e63]:
+                  - button "Rate 1 star" [ref=e64] [cursor=pointer]:
+                    - img [ref=e65]
+                  - button "Rate 2 stars" [ref=e67] [cursor=pointer]:
+                    - img [ref=e68]
+                  - button "Rate 3 stars" [ref=e70] [cursor=pointer]:
+                    - img [ref=e71]
+                  - button "Rate 4 stars" [ref=e73] [cursor=pointer]:
+                    - img [ref=e74]
+                  - button "Rate 5 stars" [ref=e76] [cursor=pointer]:
+                    - img [ref=e77]
+              - generic [ref=e79]:
+                - generic [ref=e80]: astra
+                - generic [ref=e81]: datastax
+              - generic [ref=e82]:
+                - heading "Description" [level=3] [ref=e83]
+                - paragraph [ref=e84]: "You’ve seen the headlines: AI is transforming industries, creating new opportunities, and disrupting the status quo. The real question is, how will you harness it? Your moment to innovate is here, and with Langflow, you can turn ideas into AI-powered applications faster than ever. In this livestream, we’ll show you how Langflow’s intuitive, visual environment empowers you to design, connect, and deploy complex AI workflows, no advanced coding required. You’ll see how to combine LLMs, retrieval-augmented generation (RAG), APIs, and custom logic into solutions that can drive real change in your organization or project. You’ll learn: --How to rapidly prototype and iterate AI-powered workflows --Ways to integrate data, APIs, and custom logic into your AI apps --Best practices for going from proof of concept to production with Langflow Whether you’re a developer, product innovator, or business leader, this is your chance to lead the change. Additional Resources: - DataStax Developer Hub: https://dtsx.io/devhub - DataStax Blog: https://dtsx.io/howto - Try Langflow: https://dtsx.io/trylangflow - Try Astra DB: https://dtsx.io/40kQpI6 ____________________ Stay in touch: - Join our Discord Community: https://discord.gg/datastax - Follow us on X: https://x.com/DataStaxDevs"
+            - generic [ref=e85]:
+              - generic [ref=e86]:
+                - heading "Comments" [level=2] [ref=e87]
+                - generic [ref=e88]: Denormalized Tables
+              - generic [ref=e91]:
+                - generic [ref=e93]:
+                  - heading "Patrick McFadin" [level=4] [ref=e94]
+                  - generic [ref=e95]: "0.90"
+                - paragraph [ref=e96]: Great video
+          - generic [ref=e98]:
+            - heading "Related Videos" [level=3] [ref=e99]
+            - generic [ref=e100]:
+              - link "Optimizing Trucking Routes w/ Vector Search and Apache Cassandra" [ref=e101] [cursor=pointer]:
+                - /url: /watch/a059e84b-cfd9-42e8-902e-8170fd777e00
+                - img "Optimizing Trucking Routes w/ Vector Search and Apache Cassandra" [ref=e103]
+              - generic [ref=e104]:
+                - link "Optimizing Trucking Routes w/ Vector Search and Apache Cassandra" [ref=e105] [cursor=pointer]:
+                  - /url: /watch/a059e84b-cfd9-42e8-902e-8170fd777e00
+                  - heading "Optimizing Trucking Routes w/ Vector Search and Apache Cassandra" [level=3] [ref=e106]
+                - paragraph
+                - generic [ref=e108]:
+                  - generic [ref=e109]:
+                    - img [ref=e110]
+                    - text: "0"
+                  - generic [ref=e113]:
+                    - img [ref=e114]
+                    - text: "0.0"
+            - generic [ref=e116]:
+              - 'link "MCP for Developers: Visual AI with MCP, Langflow & IBM Tools" [ref=e117] [cursor=pointer]':
+                - /url: /watch/b2f64758-46dd-4976-8099-3d51ed6c82fc
+                - 'img "MCP for Developers: Visual AI with MCP, Langflow & IBM Tools" [ref=e119]'
+              - generic [ref=e120]:
+                - 'link "MCP for Developers: Visual AI with MCP, Langflow & IBM Tools" [ref=e121] [cursor=pointer]':
+                  - /url: /watch/b2f64758-46dd-4976-8099-3d51ed6c82fc
+                  - 'heading "MCP for Developers: Visual AI with MCP, Langflow & IBM Tools" [level=3] [ref=e122]'
+                - paragraph
+                - generic [ref=e124]:
+                  - generic [ref=e125]:
+                    - img [ref=e126]
+                    - text: "0"
+                  - generic [ref=e129]:
+                    - img [ref=e130]
+                    - text: "0.0"
+            - generic [ref=e132]:
+              - link "Build Real-Time GenAI Product Recs that Boost Cart Size" [ref=e133] [cursor=pointer]:
+                - /url: /watch/8926e6d1-c09d-4f96-92a7-415b5a887233
+                - img "Build Real-Time GenAI Product Recs that Boost Cart Size" [ref=e135]
+              - generic [ref=e136]:
+                - link "Build Real-Time GenAI Product Recs that Boost Cart Size" [ref=e137] [cursor=pointer]:
+                  - /url: /watch/8926e6d1-c09d-4f96-92a7-415b5a887233
+                  - heading "Build Real-Time GenAI Product Recs that Boost Cart Size" [level=3] [ref=e138]
+                - paragraph
+                - generic [ref=e140]:
+                  - generic [ref=e141]:
+                    - img [ref=e142]
+                    - text: "0"
+                  - generic [ref=e145]:
+                    - img [ref=e146]
+                    - text: "0.0"
+            - generic [ref=e148]:
+              - 'link "Vibe Coding Tip: Let Your AI Agent Manage Your To-Do List! #vibecoding" [ref=e149] [cursor=pointer]':
+                - /url: /watch/9ab33abf-b3cd-45be-8ee3-1efe324372dc
+                - 'img "Vibe Coding Tip: Let Your AI Agent Manage Your To-Do List! #vibecoding" [ref=e151]'
+              - generic [ref=e152]:
+                - 'link "Vibe Coding Tip: Let Your AI Agent Manage Your To-Do List! #vibecoding" [ref=e153] [cursor=pointer]':
+                  - /url: /watch/9ab33abf-b3cd-45be-8ee3-1efe324372dc
+                  - 'heading "Vibe Coding Tip: Let Your AI Agent Manage Your To-Do List! #vibecoding" [level=3] [ref=e154]'
+                - paragraph
+                - generic [ref=e156]:
+                  - generic [ref=e157]:
+                    - img [ref=e158]
+                    - text: "0"
+                  - generic [ref=e161]:
+                    - img [ref=e162]
+                    - text: "0.0"
+            - generic [ref=e164]:
+              - link "Connect the Dots in Your RAG Pipeline with Graph RAG and GraphRetriever" [ref=e165] [cursor=pointer]:
+                - /url: /watch/6643310e-d373-4304-b7ae-20bb87c94b7b
+                - img "Connect the Dots in Your RAG Pipeline with Graph RAG and GraphRetriever" [ref=e167]
+              - generic [ref=e168]:
+                - link "Connect the Dots in Your RAG Pipeline with Graph RAG and GraphRetriever" [ref=e169] [cursor=pointer]:
+                  - /url: /watch/6643310e-d373-4304-b7ae-20bb87c94b7b
+                  - heading "Connect the Dots in Your RAG Pipeline with Graph RAG and GraphRetriever" [level=3] [ref=e170]
+                - paragraph
+                - generic [ref=e172]:
+                  - generic [ref=e173]:
+                    - img [ref=e174]
+                    - text: "0"
+                  - generic [ref=e177]:
+                    - img [ref=e178]
+                    - text: "0.0"
+      - generic [ref=e183]:
+        - heading "Developer Panel" [level=2] [ref=e186]
+        - generic [ref=e187]:
+          - button "C Create 2" [ref=e188] [cursor=pointer]:
+            - generic [ref=e189]: C
+            - text: Create
+            - generic [ref=e190]: "2"
+          - button "R Read 3" [ref=e191] [cursor=pointer]:
+            - generic [ref=e192]: R
+            - text: Read
+            - generic [ref=e193]: "3"
+          - button "U Update" [disabled] [ref=e194]:
+            - generic [ref=e195]: U
+            - text: Update
+          - button "D Delete" [disabled] [ref=e196]:
+            - generic [ref=e197]: D
+            - text: Delete
+        - generic [ref=e198]:
+          - generic [ref=e199]:
+            - heading "Video Fetch" [level=3] [ref=e200]
+            - generic [ref=e201]:
+              - button "READ" [ref=e202] [cursor=pointer]:
+                - generic [ref=e203]:
+                  - text: READ
+                  - img [ref=e204]
+              - code [ref=e206]: "GET /api/v1/videos/id/{video_id}"
+              - link "src/hooks/useApi.ts:42" [ref=e207] [cursor=pointer]:
+                - /url: https://github.com/KillrVideo/killrvideo-react-frontend/blob/main/src/hooks/useApi.ts#L42
+                - text: src/hooks/useApi.ts:42
+                - img [ref=e208]
+            - generic [ref=e212]:
+              - generic [ref=e213]:
+                - generic [ref=e214]:
+                  - button "CQL" [ref=e215] [cursor=pointer]
+                  - button "Data API" [ref=e216] [cursor=pointer]
+                  - button "Table API" [ref=e217] [cursor=pointer]
+                - button "Copy code" [ref=e218] [cursor=pointer]:
+                  - img [ref=e219]
+              - code [ref=e223]: SELECT videoid, name, description, userid, tags, preview_image_location, added_date FROM videos WHERE videoid = ?
+            - generic [ref=e224]:
+              - 'heading "Schema: videos" [level=4] [ref=e225]'
+              - generic [ref=e226]:
+                - generic [ref=e227]:
+                  - generic [ref=e228]: videoid
+                  - generic [ref=e229]: UUID
+                  - generic [ref=e230]: PK
+                - generic [ref=e231]:
+                  - generic [ref=e232]: added_date
+                  - generic [ref=e233]: TIMESTAMP
+                - generic [ref=e234]:
+                  - generic [ref=e235]: name
+                  - generic [ref=e236]: TEXT
+                - generic [ref=e237]:
+                  - generic [ref=e238]: description
+                  - generic [ref=e239]: TEXT
+                - generic [ref=e240]:
+                  - generic [ref=e241]: userid
+                  - generic [ref=e242]: UUID
+                - generic [ref=e243]:
+                  - generic [ref=e244]: tags
+                  - generic [ref=e245]: SET<TEXT>
+                - generic [ref=e246]:
+                  - generic [ref=e247]: preview_image_location
+                  - generic [ref=e248]: TEXT
+              - paragraph [ref=e249]: Single-partition lookup by videoid. All video metadata denormalized into one table for single-read access. SAI indexes on tags, userid, and added_date enable flexible querying.
+            - generic [ref=e250]:
+              - heading "Driver Examples" [level=4] [ref=e251]
+              - generic [ref=e252]:
+                - tablist [ref=e253]:
+                  - tab "Python" [selected] [ref=e254] [cursor=pointer]
+                  - tab "Java" [ref=e255] [cursor=pointer]
+                  - tab "Node.js" [ref=e256] [cursor=pointer]
+                  - tab "C#" [ref=e257] [cursor=pointer]
+                  - tab "Go" [ref=e258] [cursor=pointer]
+                - tabpanel "Python" [ref=e259]:
+                  - code [ref=e261]: "from cassandra.cluster import Cluster session = cluster.connect(\"killrvideo\") prepared = session.prepare( \"SELECT * FROM videos WHERE videoid = ?\" ) row = session.execute(prepared, [video_id]).one() if row: print(row.name, row.description)"
+          - generic [ref=e262]:
+            - heading "Comments by Video" [level=3] [ref=e263]
+            - generic [ref=e264]:
+              - button "READ" [ref=e265] [cursor=pointer]:
+                - generic [ref=e266]:
+                  - text: READ
+                  - img [ref=e267]
+              - code [ref=e269]: "GET /api/v1/videos/{video_id}/comments"
+              - link "src/hooks/useApi.ts:124" [ref=e270] [cursor=pointer]:
+                - /url: https://github.com/KillrVideo/killrvideo-react-frontend/blob/main/src/hooks/useApi.ts#L124
+                - text: src/hooks/useApi.ts:124
+                - img [ref=e271]
+            - generic [ref=e275]:
+              - generic [ref=e276]:
+                - generic [ref=e277]:
+                  - button "CQL" [ref=e278] [cursor=pointer]
+                  - button "Data API" [ref=e279] [cursor=pointer]
+                  - button "Table API" [ref=e280] [cursor=pointer]
+                - button "Copy code" [ref=e281] [cursor=pointer]:
+                  - img [ref=e282]
+              - code [ref=e286]: SELECT commentid, userid, comment, sentiment_score FROM comments WHERE videoid = ? ORDER BY commentid DESC
+            - generic [ref=e287]:
+              - 'heading "Schema: comments" [level=4] [ref=e288]'
+              - generic [ref=e289]:
+                - generic [ref=e290]:
+                  - generic [ref=e291]: videoid
+                  - generic [ref=e292]: UUID
+                  - generic [ref=e293]: PK
+                - generic [ref=e294]:
+                  - generic [ref=e295]: commentid
+                  - generic [ref=e296]: TIMEUUID
+                  - generic [ref=e297]: CK ↓
+                - generic [ref=e298]:
+                  - generic [ref=e299]: userid
+                  - generic [ref=e300]: UUID
+                - generic [ref=e301]:
+                  - generic [ref=e302]: comment
+                  - generic [ref=e303]: TEXT
+                - generic [ref=e304]:
+                  - generic [ref=e305]: sentiment_score
+                  - generic [ref=e306]: FLOAT
+              - paragraph [ref=e307]: TIMEUUID clustering column encodes both time and uniqueness, enabling time-ordered retrieval. Comments are denormalized per-video for single-partition reads. A parallel comments_by_user table enables user-centric queries.
+            - generic [ref=e308]:
+              - heading "Driver Examples" [level=4] [ref=e309]
+              - generic [ref=e310]:
+                - tablist [ref=e311]:
+                  - tab "Python" [selected] [ref=e312] [cursor=pointer]
+                  - tab "Java" [ref=e313] [cursor=pointer]
+                  - tab "Node.js" [ref=e314] [cursor=pointer]
+                  - tab "C#" [ref=e315] [cursor=pointer]
+                  - tab "Go" [ref=e316] [cursor=pointer]
+                - tabpanel "Python" [ref=e317]:
+                  - code [ref=e319]: "from cassandra.cluster import Cluster session = cluster.connect(\"killrvideo\") prepared = session.prepare( \"SELECT * FROM comments \" \"WHERE videoid = ? ORDER BY commentid DESC\" ) rows = session.execute(prepared, [video_id]) for row in rows: print(row.userid, row.comment)"
+          - generic [ref=e320]:
+            - heading "Rating Submit" [level=3] [ref=e321]
+            - generic [ref=e322]:
+              - button "WRITE" [ref=e323] [cursor=pointer]:
+                - generic [ref=e324]:
+                  - text: WRITE
+                  - img [ref=e325]
+              - code [ref=e327]: "POST /api/v1/videos/{video_id}/ratings"
+              - link "src/hooks/useApi.ts:198" [ref=e328] [cursor=pointer]:
+                - /url: https://github.com/KillrVideo/killrvideo-react-frontend/blob/main/src/hooks/useApi.ts#L198
+                - text: src/hooks/useApi.ts:198
+                - img [ref=e329]
+            - generic [ref=e333]:
+              - generic [ref=e334]:
+                - generic [ref=e335]:
+                  - button "CQL" [ref=e336] [cursor=pointer]
+                  - button "Data API" [ref=e337] [cursor=pointer]
+                  - button "Table API" [ref=e338] [cursor=pointer]
+                - button "Copy code" [ref=e339] [cursor=pointer]:
+                  - img [ref=e340]
+              - code [ref=e344]: "INSERT INTO video_ratings_by_user (videoid, userid, rating, rating_date) VALUES (?, ?, ?, ?) -- Then update summary counters: UPDATE video_ratings SET rating_counter = rating_counter + 1, rating_total = rating_total + ? WHERE videoid = ?"
+            - generic [ref=e345]:
+              - 'heading "Schema: video_ratings_by_user" [level=4] [ref=e346]'
+              - generic [ref=e347]:
+                - generic [ref=e348]:
+                  - generic [ref=e349]: videoid
+                  - generic [ref=e350]: UUID
+                  - generic [ref=e351]: PK
+                - generic [ref=e352]:
+                  - generic [ref=e353]: userid
+                  - generic [ref=e354]: UUID
+                  - generic [ref=e355]: CK ↑
+                - generic [ref=e356]:
+                  - generic [ref=e357]: rating
+                  - generic [ref=e358]: INT
+                - generic [ref=e359]:
+                  - generic [ref=e360]: rating_date
+                  - generic [ref=e361]: TIMESTAMP
+              - paragraph [ref=e362]: Individual user ratings with composite primary key (videoid, userid) enabling upsert semantics. A separate video_ratings counter table tracks aggregate totals for average calculation.
+            - generic [ref=e363]:
+              - heading "Driver Examples" [level=4] [ref=e364]
+              - generic [ref=e365]:
+                - tablist [ref=e366]:
+                  - tab "Python" [selected] [ref=e367] [cursor=pointer]
+                  - tab "Java" [ref=e368] [cursor=pointer]
+                  - tab "Node.js" [ref=e369] [cursor=pointer]
+                  - tab "C#" [ref=e370] [cursor=pointer]
+                  - tab "Go" [ref=e371] [cursor=pointer]
+                - tabpanel "Python" [ref=e372]:
+                  - code [ref=e374]: "from cassandra.cluster import Cluster session = cluster.connect(\"killrvideo\") # Upsert individual rating prepared = session.prepare( \"INSERT INTO video_ratings_by_user \" \"(videoid, userid, rating, rating_date) \" \"VALUES (?, ?, ?, ?)\" ) session.execute(prepared, [video_id, user_id, rating, now]) # Update counter summary counter_stmt = session.prepare( \"UPDATE video_ratings \" \"SET rating_counter = rating_counter + 1, \" \"rating_total = rating_total + ? \" \"WHERE videoid = ?\" ) session.execute(counter_stmt, [rating, video_id])"
+          - generic [ref=e375]:
+            - heading "Rating Summary" [level=3] [ref=e376]
+            - generic [ref=e377]:
+              - button "READ" [ref=e378] [cursor=pointer]:
+                - generic [ref=e379]:
+                  - text: READ
+                  - img [ref=e380]
+              - code [ref=e382]: "GET /api/v1/videos/{video_id}/ratings"
+              - link "src/hooks/useApi.ts:205" [ref=e383] [cursor=pointer]:
+                - /url: https://github.com/KillrVideo/killrvideo-react-frontend/blob/main/src/hooks/useApi.ts#L205
+                - text: src/hooks/useApi.ts:205
+                - img [ref=e384]
+            - generic [ref=e388]:
+              - generic [ref=e389]:
+                - generic [ref=e390]:
+                  - button "CQL" [ref=e391] [cursor=pointer]
+                  - button "Data API" [ref=e392] [cursor=pointer]
+                  - button "Table API" [ref=e393] [cursor=pointer]
+                - button "Copy code" [ref=e394] [cursor=pointer]:
+                  - img [ref=e395]
+              - code [ref=e399]: "-- Get aggregate counters SELECT rating_counter, rating_total FROM video_ratings WHERE videoid = ? -- Get current user's individual rating (optional) SELECT rating FROM video_ratings_by_user WHERE videoid = ? AND userid = ?"
+            - generic [ref=e400]:
+              - 'heading "Schema: video_ratings" [level=4] [ref=e401]'
+              - generic [ref=e402]:
+                - generic [ref=e403]:
+                  - generic [ref=e404]: videoid
+                  - generic [ref=e405]: UUID
+                  - generic [ref=e406]: PK
+                - generic [ref=e407]:
+                  - generic [ref=e408]: rating_counter
+                  - generic [ref=e409]: COUNTER
+                - generic [ref=e410]:
+                  - generic [ref=e411]: rating_total
+                  - generic [ref=e412]: COUNTER
+              - paragraph [ref=e413]: COUNTER columns support atomic increment/decrement without read-before-write. Counter tables cannot contain non-counter, non-key columns. Average is computed as rating_total / rating_counter.
+            - generic [ref=e414]:
+              - heading "Driver Examples" [level=4] [ref=e415]
+              - generic [ref=e416]:
+                - tablist [ref=e417]:
+                  - tab "Python" [selected] [ref=e418] [cursor=pointer]
+                  - tab "Java" [ref=e419] [cursor=pointer]
+                  - tab "Node.js" [ref=e420] [cursor=pointer]
+                  - tab "C#" [ref=e421] [cursor=pointer]
+                  - tab "Go" [ref=e422] [cursor=pointer]
+                - tabpanel "Python" [ref=e423]:
+                  - code [ref=e425]: "prepared = session.prepare( \"SELECT rating_counter, rating_total \" \"FROM video_ratings WHERE videoid = ?\" ) row = session.execute(prepared, [video_id]).one() if row and row.rating_counter > 0: avg = row.rating_total / row.rating_counter print(f\"Average: {avg:.1f} ({row.rating_counter} ratings)\")"
+          - generic [ref=e426]:
+            - heading "Record Video View" [level=3] [ref=e427]
+            - generic [ref=e428]:
+              - button "WRITE" [ref=e429] [cursor=pointer]:
+                - generic [ref=e430]:
+                  - text: WRITE
+                  - img [ref=e431]
+              - code [ref=e433]: "POST /api/v1/videos/id/{video_id}/view"
+              - link "src/hooks/useApi.ts:155" [ref=e434] [cursor=pointer]:
+                - /url: https://github.com/KillrVideo/killrvideo-react-frontend/blob/main/src/hooks/useApi.ts#L155
+                - text: src/hooks/useApi.ts:155
+                - img [ref=e435]
+            - generic [ref=e439]:
+              - generic [ref=e440]:
+                - generic [ref=e441]:
+                  - button "CQL" [ref=e442] [cursor=pointer]
+                  - button "Data API" [ref=e443] [cursor=pointer]
+                  - button "Table API" [ref=e444] [cursor=pointer]
+                - button "Copy code" [ref=e445] [cursor=pointer]:
+                  - img [ref=e446]
+              - code [ref=e450]: "-- Read-modify-write for view count SELECT views FROM videos WHERE videoid = ? UPDATE videos SET views = ? WHERE videoid = ? -- Log activity event INSERT INTO video_activity (day, watch_time, videoid) VALUES (?, ?, ?)"
+            - generic [ref=e451]:
+              - 'heading "Schema: videos" [level=4] [ref=e452]'
+              - generic [ref=e453]:
+                - generic [ref=e454]:
+                  - generic [ref=e455]: videoid
+                  - generic [ref=e456]: UUID
+                  - generic [ref=e457]: PK
+                - generic [ref=e458]:
+                  - generic [ref=e459]: views
+                  - generic [ref=e460]: INT
+              - paragraph [ref=e461]: View counts stored directly in the videos table. The Table API does not support $inc, so a read-modify-write cycle is used. A video_activity time-series table logs each view event for trending calculation.
+            - generic [ref=e462]:
+              - heading "Driver Examples" [level=4] [ref=e463]
+              - generic [ref=e464]:
+                - tablist [ref=e465]:
+                  - tab "Python" [selected] [ref=e466] [cursor=pointer]
+                  - tab "Java" [ref=e467] [cursor=pointer]
+                  - tab "Node.js" [ref=e468] [cursor=pointer]
+                  - tab "C#" [ref=e469] [cursor=pointer]
+                  - tab "Go" [ref=e470] [cursor=pointer]
+                - tabpanel "Python" [ref=e471]:
+                  - code [ref=e473]: "# Atomic counter increment with CQL prepared = session.prepare( \"UPDATE video_playback_stats \" \"SET views = views + 1 \" \"WHERE videoid = ?\" ) session.execute(prepared, [video_id])"

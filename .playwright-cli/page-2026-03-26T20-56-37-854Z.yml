@@ -1,0 +1,307 @@
+- generic [ref=e2]:
+  - region "Notifications (F8)":
+    - list
+  - region "Notifications alt+T"
+  - generic [ref=e5]:
+    - banner [ref=e6]:
+      - generic [ref=e7]:
+        - link "KillrVideo KillrVideo" [ref=e8] [cursor=pointer]:
+          - /url: /
+          - img "KillrVideo" [ref=e9]
+          - generic [ref=e10]: KillrVideo
+        - navigation [ref=e11]:
+          - link "Home" [ref=e12] [cursor=pointer]:
+            - /url: /
+          - link "Trending" [ref=e13] [cursor=pointer]:
+            - /url: /trending
+          - link "Explore" [ref=e14] [cursor=pointer]:
+            - /url: /explore
+        - generic [ref=e17]:
+          - img [ref=e18]
+          - textbox "Search for videos, creators, or topics..." [ref=e21]
+        - generic [ref=e22]:
+          - generic [ref=e23]:
+            - img [ref=e24]
+            - generic [ref=e28] [cursor=pointer]: Dev Panel
+            - switch "Dev Panel" [checked] [ref=e29] [cursor=pointer]
+          - link "Sign In" [ref=e30] [cursor=pointer]:
+            - /url: /auth
+            - button "Sign In" [ref=e31]
+    - generic [ref=e32]:
+      - main [ref=e33]:
+        - generic [ref=e35]:
+          - generic [ref=e36]:
+            - iframe [ref=e38]:
+              - generic [active] [ref=f1e1]:
+                - generic "YouTube Video Player" [ref=f1e3]
+                - generic [ref=f1e5]:
+                  - generic:
+                    - generic:
+                      - button "Play video" [ref=f1e10] [cursor=pointer]:
+                        - generic [ref=f1e13]:
+                          - img
+                      - button "Hide player controls" [ref=f1e14] [cursor=pointer]
+                      - generic [ref=f1e16]:
+                        - generic [ref=f1e21]:
+                          - generic [ref=f1e22]:
+                            - link "Build AI-Powered Apps Faster with Langflow" [ref=f1e23] [cursor=pointer]:
+                              - /url: https://www.youtube.com/watch?v=L7V_woT8mbQ
+                            - link "DataStax Developers" [ref=f1e24] [cursor=pointer]:
+                              - /url: /channel/UCAIQY251avaMv7bBv5PCo-A
+                              - generic [ref=f1e25]: DataStax Developers
+                          - generic [ref=f1e26]:
+                            - button "thumbnail-image" [ref=f1e27] [cursor=pointer]:
+                              - img "thumbnail-image" [ref=f1e28]
+                            - generic [ref=f1e30]:
+                              - generic: DataStax Developers
+                              - generic: 37.9K subscribers
+                        - generic [ref=f1e31]:
+                          - button "Share" [ref=f1e34] [cursor=pointer]:
+                            - generic [ref=f1e38]:
+                              - img
+                          - link "Watch on YouTube" [ref=f1e45] [cursor=pointer]:
+                            - /url: https://www.youtube.com/watch?v=L7V_woT8mbQ
+                            - generic [ref=f1e48]:
+                              - text: Watch on
+                              - img [ref=f1e50]:
+                                - generic [ref=f1e52]:
+                                  - img
+            - generic [ref=e39]:
+              - heading "Build AI-Powered Apps Faster with Langflow" [level=1] [ref=e40]
+              - generic [ref=e41]:
+                - generic [ref=e42]:
+                  - generic [ref=e43]:
+                    - img [ref=e44]
+                    - text: 44 views
+                  - generic [ref=e47]:
+                    - img [ref=e48]
+                    - generic [ref=e51]: "-"
+                  - generic [ref=e52]:
+                    - img [ref=e53]
+                    - text: 0 rating
+                - button "Report" [ref=e56] [cursor=pointer]:
+                  - img [ref=e57]
+                  - text: Report
+              - generic [ref=e59]:
+                - generic [ref=e60]:
+                  - 'heading "Uploaded by: Joshua Schultz" [level=3] [ref=e61]'
+                  - paragraph [ref=e62]: Uploaded on 8/27/2025
+                - generic [ref=e63]:
+                  - button "Rate 1 star" [ref=e64] [cursor=pointer]:
+                    - img [ref=e65]
+                  - button "Rate 2 stars" [ref=e67] [cursor=pointer]:
+                    - img [ref=e68]
+                  - button "Rate 3 stars" [ref=e70] [cursor=pointer]:
+                    - img [ref=e71]
+                  - button "Rate 4 stars" [ref=e73] [cursor=pointer]:
+                    - img [ref=e74]
+                  - button "Rate 5 stars" [ref=e76] [cursor=pointer]:
+                    - img [ref=e77]
+              - generic [ref=e79]:
+                - generic [ref=e80]: astra
+                - generic [ref=e81]: datastax
+              - generic [ref=e82]:
+                - heading "Description" [level=3] [ref=e83]
+                - paragraph [ref=e84]: "You’ve seen the headlines: AI is transforming industries, creating new opportunities, and disrupting the status quo. The real question is, how will you harness it? Your moment to innovate is here, and with Langflow, you can turn ideas into AI-powered applications faster than ever. In this livestream, we’ll show you how Langflow’s intuitive, visual environment empowers you to design, connect, and deploy complex AI workflows, no advanced coding required. You’ll see how to combine LLMs, retrieval-augmented generation (RAG), APIs, and custom logic into solutions that can drive real change in your organization or project. You’ll learn: --How to rapidly prototype and iterate AI-powered workflows --Ways to integrate data, APIs, and custom logic into your AI apps --Best practices for going from proof of concept to production with Langflow Whether you’re a developer, product innovator, or business leader, this is your chance to lead the change. Additional Resources: - DataStax Developer Hub: https://dtsx.io/devhub - DataStax Blog: https://dtsx.io/howto - Try Langflow: https://dtsx.io/trylangflow - Try Astra DB: https://dtsx.io/40kQpI6 ____________________ Stay in touch: - Join our Discord Community: https://discord.gg/datastax - Follow us on X: https://x.com/DataStaxDevs"
+            - generic [ref=e85]:
+              - generic [ref=e86]:
+                - heading "Comments" [level=2] [ref=e87]
+                - generic [ref=e88]: Denormalized Tables
+              - generic [ref=e91]:
+                - generic [ref=e93]:
+                  - heading "Patrick McFadin" [level=4] [ref=e94]
+                  - generic [ref=e95]: "0.90"
+                - paragraph [ref=e96]: Great video
+          - generic [ref=e98]:
+            - heading "Related Videos" [level=3] [ref=e99]
+            - generic [ref=e100]:
+              - link "Optimizing Trucking Routes w/ Vector Search and Apache Cassandra" [ref=e101] [cursor=pointer]:
+                - /url: /watch/a059e84b-cfd9-42e8-902e-8170fd777e00
+                - img "Optimizing Trucking Routes w/ Vector Search and Apache Cassandra" [ref=e103]
+              - generic [ref=e104]:
+                - link "Optimizing Trucking Routes w/ Vector Search and Apache Cassandra" [ref=e105] [cursor=pointer]:
+                  - /url: /watch/a059e84b-cfd9-42e8-902e-8170fd777e00
+                  - heading "Optimizing Trucking Routes w/ Vector Search and Apache Cassandra" [level=3] [ref=e106]
+                - paragraph
+                - generic [ref=e108]:
+                  - generic [ref=e109]:
+                    - img [ref=e110]
+                    - text: "0"
+                  - generic [ref=e113]:
+                    - img [ref=e114]
+                    - text: "0.0"
+            - generic [ref=e116]:
+              - 'link "MCP for Developers: Visual AI with MCP, Langflow & IBM Tools" [ref=e117] [cursor=pointer]':
+                - /url: /watch/b2f64758-46dd-4976-8099-3d51ed6c82fc
+                - 'img "MCP for Developers: Visual AI with MCP, Langflow & IBM Tools" [ref=e119]'
+              - generic [ref=e120]:
+                - 'link "MCP for Developers: Visual AI with MCP, Langflow & IBM Tools" [ref=e121] [cursor=pointer]':
+                  - /url: /watch/b2f64758-46dd-4976-8099-3d51ed6c82fc
+                  - 'heading "MCP for Developers: Visual AI with MCP, Langflow & IBM Tools" [level=3] [ref=e122]'
+                - paragraph
+                - generic [ref=e124]:
+                  - generic [ref=e125]:
+                    - img [ref=e126]
+                    - text: "0"
+                  - generic [ref=e129]:
+                    - img [ref=e130]
+                    - text: "0.0"
+            - generic [ref=e132]:
+              - link "Build Real-Time GenAI Product Recs that Boost Cart Size" [ref=e133] [cursor=pointer]:
+                - /url: /watch/8926e6d1-c09d-4f96-92a7-415b5a887233
+                - img "Build Real-Time GenAI Product Recs that Boost Cart Size" [ref=e135]
+              - generic [ref=e136]:
+                - link "Build Real-Time GenAI Product Recs that Boost Cart Size" [ref=e137] [cursor=pointer]:
+                  - /url: /watch/8926e6d1-c09d-4f96-92a7-415b5a887233
+                  - heading "Build Real-Time GenAI Product Recs that Boost Cart Size" [level=3] [ref=e138]
+                - paragraph
+                - generic [ref=e140]:
+                  - generic [ref=e141]:
+                    - img [ref=e142]
+                    - text: "0"
+                  - generic [ref=e145]:
+                    - img [ref=e146]
+                    - text: "0.0"
+            - generic [ref=e148]:
+              - 'link "Vibe Coding Tip: Let Your AI Agent Manage Your To-Do List! #vibecoding" [ref=e149] [cursor=pointer]':
+                - /url: /watch/9ab33abf-b3cd-45be-8ee3-1efe324372dc
+                - 'img "Vibe Coding Tip: Let Your AI Agent Manage Your To-Do List! #vibecoding" [ref=e151]'
+              - generic [ref=e152]:
+                - 'link "Vibe Coding Tip: Let Your AI Agent Manage Your To-Do List! #vibecoding" [ref=e153] [cursor=pointer]':
+                  - /url: /watch/9ab33abf-b3cd-45be-8ee3-1efe324372dc
+                  - 'heading "Vibe Coding Tip: Let Your AI Agent Manage Your To-Do List! #vibecoding" [level=3] [ref=e154]'
+                - paragraph
+                - generic [ref=e156]:
+                  - generic [ref=e157]:
+                    - img [ref=e158]
+                    - text: "0"
+                  - generic [ref=e161]:
+                    - img [ref=e162]
+                    - text: "0.0"
+            - generic [ref=e164]:
+              - link "Connect the Dots in Your RAG Pipeline with Graph RAG and GraphRetriever" [ref=e165] [cursor=pointer]:
+                - /url: /watch/6643310e-d373-4304-b7ae-20bb87c94b7b
+                - img "Connect the Dots in Your RAG Pipeline with Graph RAG and GraphRetriever" [ref=e167]
+              - generic [ref=e168]:
+                - link "Connect the Dots in Your RAG Pipeline with Graph RAG and GraphRetriever" [ref=e169] [cursor=pointer]:
+                  - /url: /watch/6643310e-d373-4304-b7ae-20bb87c94b7b
+                  - heading "Connect the Dots in Your RAG Pipeline with Graph RAG and GraphRetriever" [level=3] [ref=e170]
+                - paragraph
+                - generic [ref=e172]:
+                  - generic [ref=e173]:
+                    - img [ref=e174]
+                    - text: "0"
+                  - generic [ref=e177]:
+                    - img [ref=e178]
+                    - text: "0.0"
+      - generic [ref=e183]:
+        - heading "Developer Panel" [level=2] [ref=e186]
+        - generic [ref=e187]:
+          - button "C Create 2" [active] [ref=e188] [cursor=pointer]:
+            - generic [ref=e189]: C
+            - text: Create
+            - generic [ref=e190]: "2"
+          - button "R Read 3" [ref=e191] [cursor=pointer]:
+            - generic [ref=e192]: R
+            - text: Read
+            - generic [ref=e193]: "3"
+          - button "U Update" [disabled] [ref=e194]:
+            - generic [ref=e195]: U
+            - text: Update
+          - button "D Delete" [disabled] [ref=e196]:
+            - generic [ref=e197]: D
+            - text: Delete
+        - generic [ref=e198]:
+          - generic [ref=e474]:
+            - heading "Rating Submit" [level=3] [ref=e475]
+            - generic [ref=e476]:
+              - button "WRITE" [ref=e477] [cursor=pointer]:
+                - generic [ref=e478]:
+                  - text: WRITE
+                  - img [ref=e479]
+              - code [ref=e481]: "POST /api/v1/videos/{video_id}/ratings"
+              - link "src/hooks/useApi.ts:198" [ref=e482] [cursor=pointer]:
+                - /url: https://github.com/KillrVideo/killrvideo-react-frontend/blob/main/src/hooks/useApi.ts#L198
+                - text: src/hooks/useApi.ts:198
+                - img [ref=e483]
+            - generic [ref=e487]:
+              - generic [ref=e488]:
+                - generic [ref=e489]:
+                  - button "CQL" [ref=e490] [cursor=pointer]
+                  - button "Data API" [ref=e491] [cursor=pointer]
+                  - button "Table API" [ref=e492] [cursor=pointer]
+                - button "Copy code" [ref=e493] [cursor=pointer]:
+                  - img [ref=e494]
+              - code [ref=e498]: "INSERT INTO video_ratings_by_user (videoid, userid, rating, rating_date) VALUES (?, ?, ?, ?) -- Then update summary counters: UPDATE video_ratings SET rating_counter = rating_counter + 1, rating_total = rating_total + ? WHERE videoid = ?"
+            - generic [ref=e499]:
+              - 'heading "Schema: video_ratings_by_user" [level=4] [ref=e500]'
+              - generic [ref=e501]:
+                - generic [ref=e502]:
+                  - generic [ref=e503]: videoid
+                  - generic [ref=e504]: UUID
+                  - generic [ref=e505]: PK
+                - generic [ref=e506]:
+                  - generic [ref=e507]: userid
+                  - generic [ref=e508]: UUID
+                  - generic [ref=e509]: CK ↑
+                - generic [ref=e510]:
+                  - generic [ref=e511]: rating
+                  - generic [ref=e512]: INT
+                - generic [ref=e513]:
+                  - generic [ref=e514]: rating_date
+                  - generic [ref=e515]: TIMESTAMP
+              - paragraph [ref=e516]: Individual user ratings with composite primary key (videoid, userid) enabling upsert semantics. A separate video_ratings counter table tracks aggregate totals for average calculation.
+            - generic [ref=e517]:
+              - heading "Driver Examples" [level=4] [ref=e518]
+              - generic [ref=e519]:
+                - tablist [ref=e520]:
+                  - tab "Python" [selected] [ref=e521] [cursor=pointer]
+                  - tab "Java" [ref=e522] [cursor=pointer]
+                  - tab "Node.js" [ref=e523] [cursor=pointer]
+                  - tab "C#" [ref=e524] [cursor=pointer]
+                  - tab "Go" [ref=e525] [cursor=pointer]
+                - tabpanel "Python" [ref=e526]:
+                  - code [ref=e528]: "from cassandra.cluster import Cluster session = cluster.connect(\"killrvideo\") # Upsert individual rating prepared = session.prepare( \"INSERT INTO video_ratings_by_user \" \"(videoid, userid, rating, rating_date) \" \"VALUES (?, ?, ?, ?)\" ) session.execute(prepared, [video_id, user_id, rating, now]) # Update counter summary counter_stmt = session.prepare( \"UPDATE video_ratings \" \"SET rating_counter = rating_counter + 1, \" \"rating_total = rating_total + ? \" \"WHERE videoid = ?\" ) session.execute(counter_stmt, [rating, video_id])"
+          - generic [ref=e529]:
+            - heading "Record Video View" [level=3] [ref=e530]
+            - generic [ref=e531]:
+              - button "WRITE" [ref=e532] [cursor=pointer]:
+                - generic [ref=e533]:
+                  - text: WRITE
+                  - img [ref=e534]
+              - code [ref=e536]: "POST /api/v1/videos/id/{video_id}/view"
+              - link "src/hooks/useApi.ts:155" [ref=e537] [cursor=pointer]:
+                - /url: https://github.com/KillrVideo/killrvideo-react-frontend/blob/main/src/hooks/useApi.ts#L155
+                - text: src/hooks/useApi.ts:155
+                - img [ref=e538]
+            - generic [ref=e542]:
+              - generic [ref=e543]:
+                - generic [ref=e544]:
+                  - button "CQL" [ref=e545] [cursor=pointer]
+                  - button "Data API" [ref=e546] [cursor=pointer]
+                  - button "Table API" [ref=e547] [cursor=pointer]
+                - button "Copy code" [ref=e548] [cursor=pointer]:
+                  - img [ref=e549]
+              - code [ref=e553]: "-- Read-modify-write for view count SELECT views FROM videos WHERE videoid = ? UPDATE videos SET views = ? WHERE videoid = ? -- Log activity event INSERT INTO video_activity (day, watch_time, videoid) VALUES (?, ?, ?)"
+            - generic [ref=e554]:
+              - 'heading "Schema: videos" [level=4] [ref=e555]'
+              - generic [ref=e556]:
+                - generic [ref=e557]:
+                  - generic [ref=e558]: videoid
+                  - generic [ref=e559]: UUID
+                  - generic [ref=e560]: PK
+                - generic [ref=e561]:
+                  - generic [ref=e562]: views
+                  - generic [ref=e563]: INT
+              - paragraph [ref=e564]: View counts stored directly in the videos table. The Table API does not support $inc, so a read-modify-write cycle is used. A video_activity time-series table logs each view event for trending calculation.
+            - generic [ref=e565]:
+              - heading "Driver Examples" [level=4] [ref=e566]
+              - generic [ref=e567]:
+                - tablist [ref=e568]:
+                  - tab "Python" [selected] [ref=e569] [cursor=pointer]
+                  - tab "Java" [ref=e570] [cursor=pointer]
+                  - tab "Node.js" [ref=e571] [cursor=pointer]
+                  - tab "C#" [ref=e572] [cursor=pointer]
+                  - tab "Go" [ref=e573] [cursor=pointer]
+                - tabpanel "Python" [ref=e574]:
+                  - code [ref=e576]: "# Atomic counter increment with CQL prepared = session.prepare( \"UPDATE video_playback_stats \" \"SET views = views + 1 \" \"WHERE videoid = ?\" ) session.execute(prepared, [video_id])"

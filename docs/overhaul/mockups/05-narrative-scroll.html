@@ -1,0 +1,1677 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>KillrVideo — Narrative Scroll (Prototype 05)</title>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400;1,700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            'kv-orange':  '#E85B3A',
+            'kv-teal':    '#0DB7C4',
+            'kv-navy':    '#1A1A2E',
+            'kv-cream':   '#FBF8F4',
+            'kv-ink':     '#1A1A2E',
+            'kv-gold':    '#FFCA0B',
+            'kv-surface': '#252538',
+          },
+          fontFamily: {
+            serif:  ['"Playfair Display"', 'Georgia', 'serif'],
+            body:   ['Inter', 'system-ui', 'sans-serif'],
+          },
+        }
+      }
+    }
+  </script>
+  <style>
+    /* ─── Global ─────────────────────────────────────────────── */
+    html { scroll-behavior: smooth; }
+    body {
+      font-family: 'Inter', system-ui, -apple-system, sans-serif;
+      color: #1A1A2E;
+      background: #FBF8F4;
+    }
+
+    /* ─── Playfair Display headings ──────────────────────────── */
+    .editorial-heading {
+      font-family: 'Playfair Display', Georgia, serif;
+    }
+    .editorial-heading-italic {
+      font-family: 'Playfair Display', Georgia, serif;
+      font-style: italic;
+    }
+
+    /* ─── Sticky header ──────────────────────────────────────── */
+    #site-header {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      z-index: 100;
+      transition: background 0.3s, box-shadow 0.3s;
+    }
+    #site-header.scrolled {
+      background: rgba(26,26,46,0.96);
+      backdrop-filter: blur(10px);
+      box-shadow: 0 1px 20px rgba(0,0,0,0.45);
+    }
+
+    /* ─── Learning-mode transition ───────────────────────────── */
+    .dev-band {
+      overflow: hidden;
+      transition: max-height 0.5s cubic-bezier(0.4,0,0.2,1),
+                  opacity    0.4s ease,
+                  padding    0.4s ease;
+      max-height: 3000px;
+      opacity: 1;
+    }
+    .dev-band.hidden-band {
+      max-height: 0;
+      opacity: 0;
+      padding-top: 0 !important;
+      padding-bottom: 0 !important;
+    }
+
+    /* ─── Scrollspy dots ─────────────────────────────────────── */
+    #scrollspy {
+      position: fixed;
+      right: 16px;
+      top: 50%;
+      transform: translateY(-50%);
+      z-index: 90;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .spy-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      cursor: pointer;
+      border: 2px solid transparent;
+      transition: transform 0.2s, border-color 0.2s, opacity 0.2s;
+      opacity: 0.45;
+    }
+    .spy-dot:hover { opacity: 0.85; transform: scale(1.3); }
+    .spy-dot.active {
+      opacity: 1;
+      transform: scale(1.35);
+      border-color: white;
+    }
+    .spy-dot.consumer { background: #E85B3A; }
+    .spy-dot.dev      { background: #0DB7C4; }
+
+    /* ─── Code / query blocks ────────────────────────────────── */
+    .code-block {
+      background: #0e0e1a;
+      border-radius: 8px;
+      padding: 16px 20px;
+      font-family: 'Fira Code', 'Cascadia Code', Consolas, monospace;
+      font-size: 13px;
+      line-height: 1.75;
+      overflow-x: auto;
+      border: 1px solid rgba(13,183,196,0.18);
+    }
+    .kw  { color: #E85B3A; }         /* keywords — orange */
+    .lit { color: #0DB7C4; }         /* literals  — teal  */
+    .id  { color: #E8E6E1; }         /* identifiers */
+    .cm  { color: #6B6B7B; font-style: italic; }
+    .str { color: #7EC89F; }         /* strings — soft green */
+    .num { color: #E85B3A; }         /* numbers — orange */
+    .key { color: #FFCA0B; }         /* JSON keys — gold */
+
+    /* ─── API toggle buttons ─────────────────────────────────── */
+    .api-tab {
+      padding: 5px 16px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 600;
+      font-family: 'Inter', sans-serif;
+      cursor: pointer;
+      transition: background 0.15s, color 0.15s, border-color 0.15s;
+      border: 1px solid rgba(255,255,255,0.15);
+      color: rgba(255,255,255,0.45);
+      background: transparent;
+      letter-spacing: 0.04em;
+    }
+    .api-tab.active {
+      background: rgba(232,91,58,0.2);
+      border-color: #E85B3A;
+      color: #E85B3A;
+    }
+
+    /* ─── Language tabs ──────────────────────────────────────── */
+    .lang-tab {
+      padding: 4px 14px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 600;
+      font-family: 'Inter', sans-serif;
+      cursor: pointer;
+      border: 1px solid rgba(255,255,255,0.12);
+      color: rgba(255,255,255,0.4);
+      background: transparent;
+      transition: all 0.15s;
+    }
+    .lang-tab.active {
+      background: rgba(232,91,58,0.2);
+      border-color: #E85B3A;
+      color: #E85B3A;
+    }
+
+    /* ─── Schema badges ──────────────────────────────────────── */
+    .badge-pk {
+      display: inline-block;
+      background: #E85B3A;
+      color: #fff;
+      font-size: 10px;
+      font-weight: 700;
+      font-family: 'Inter', sans-serif;
+      letter-spacing: 0.06em;
+      padding: 1px 7px;
+      border-radius: 4px;
+    }
+    .badge-ck {
+      display: inline-block;
+      background: #0DB7C4;
+      color: #0e0e1a;
+      font-size: 10px;
+      font-weight: 700;
+      font-family: 'Inter', sans-serif;
+      letter-spacing: 0.06em;
+      padding: 1px 7px;
+      border-radius: 4px;
+    }
+
+    /* ─── Query type badge ───────────────────────────────────── */
+    .badge-read  { background: rgba(13,183,196,0.15); color: #0DB7C4; border: 1px solid rgba(13,183,196,0.4); }
+    .badge-write { background: rgba(232,91,58,0.15); color: #E85B3A; border: 1px solid rgba(232,91,58,0.4); }
+
+    /* ─── Star rating ────────────────────────────────────────── */
+    .star { color: #FFCA0B; font-size: 20px; cursor: pointer; }
+    .star.empty { color: #D4CFC8; }
+
+    /* ─── Learning Mode toggle — pill style ──────────────────── */
+    .toggle-track {
+      position: relative;
+      width: 44px;
+      height: 24px;
+      background: #3A3A5A;
+      border-radius: 12px;
+      cursor: pointer;
+      transition: background 0.2s;
+      flex-shrink: 0;
+    }
+    .toggle-track.on { background: #E85B3A; }
+    .toggle-thumb {
+      position: absolute;
+      top: 3px; left: 3px;
+      width: 18px; height: 18px;
+      background: #fff;
+      border-radius: 50%;
+      transition: transform 0.2s;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.3);
+    }
+    .toggle-track.on .toggle-thumb { transform: translateX(20px); }
+
+    /* ─── Video card ─────────────────────────────────────────── */
+    .video-card {
+      border-radius: 10px;
+      overflow: hidden;
+      background: #fff;
+      box-shadow: 0 2px 12px rgba(26,26,46,0.07);
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+    .video-card:hover { transform: translateY(-3px); box-shadow: 0 8px 24px rgba(26,26,46,0.13); }
+    .thumb {
+      width: 100%;
+      aspect-ratio: 16/9;
+      object-fit: cover;
+      display: block;
+    }
+    .thumb-placeholder {
+      width: 100%;
+      aspect-ratio: 16/9;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 36px;
+    }
+
+    /* ─── Section fade-in on scroll ──────────────────────────── */
+    .fade-section {
+      opacity: 0;
+      transform: translateY(18px);
+      transition: opacity 0.55s ease, transform 0.55s ease;
+    }
+    .fade-section.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    /* ─── Page view sections ─────────────────────────────────── */
+    .page-view { display: none; }
+    .page-view.active { display: block; }
+
+    /* ─── Comments ───────────────────────────────────────────── */
+    .comment-bubble {
+      background: #fff;
+      border-left: 3px solid #0DB7C4;
+      border-radius: 0 8px 8px 0;
+      padding: 14px 16px;
+      box-shadow: 0 1px 6px rgba(26,26,46,0.06);
+    }
+
+    /* ─── Divider rule ───────────────────────────────────────── */
+    .serif-rule {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      color: rgba(232,230,225,0.25);
+      font-family: 'Inter', sans-serif;
+      font-size: 11px;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+    }
+    .serif-rule::before, .serif-rule::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: rgba(232,230,225,0.1);
+    }
+
+    /* ─── Hero gradient ──────────────────────────────────────── */
+    .hero-gradient {
+      background: linear-gradient(160deg, #1A1A2E 0%, #252538 55%, #1A0A2E 100%);
+    }
+  </style>
+</head>
+<body class="antialiased">
+
+<!-- ═══════════════════════════════════════════════════════════════
+     STICKY HEADER
+═══════════════════════════════════════════════════════════════ -->
+<header id="site-header" class="px-6 py-4">
+  <div class="max-w-5xl mx-auto flex items-center justify-between gap-4">
+
+    <!-- Logo + page tabs -->
+    <div class="flex items-center gap-6">
+      <span class="editorial-heading-italic text-xl text-white tracking-tight">
+        <span style="color: #E85B3A;">Killr</span>Video
+      </span>
+
+      <!-- Page toggle -->
+      <div class="flex gap-1 bg-white/10 rounded-full p-1">
+        <button id="tab-home"
+          onclick="switchPage('home')"
+          class="page-tab px-4 py-1.5 rounded-full text-sm font-semibold text-white/70
+                 hover:text-white transition-colors duration-150">
+          Home
+        </button>
+        <button id="tab-watch"
+          onclick="switchPage('watch')"
+          class="page-tab px-4 py-1.5 rounded-full text-sm font-semibold text-white/70
+                 hover:text-white transition-colors duration-150">
+          Watch
+        </button>
+      </div>
+    </div>
+
+    <!-- Learning Mode toggle -->
+    <label class="flex items-center gap-3 cursor-pointer select-none">
+      <span class="text-sm font-semibold text-white/80" style="font-family: 'Inter', sans-serif;">Learning Mode</span>
+      <div class="toggle-track on" id="learning-toggle" onclick="toggleLearning()">
+        <div class="toggle-thumb"></div>
+      </div>
+    </label>
+
+  </div>
+</header>
+
+<!-- ═══════════════════════════════════════════════════════════════
+     SCROLLSPY DOTS (populated by JS)
+═══════════════════════════════════════════════════════════════ -->
+<nav id="scrollspy" aria-label="Section navigation"></nav>
+
+<!-- ═══════════════════════════════════════════════════════════════
+     PAGE: HOME
+═══════════════════════════════════════════════════════════════ -->
+<div id="page-home" class="page-view active">
+
+  <!-- ── Band 1 · Consumer · Hero ──────────────────────────────── -->
+  <section id="h-s1" data-band="consumer"
+    class="fade-section min-h-screen flex items-center justify-center pt-20 pb-24 px-6 hero-gradient">
+    <div class="max-w-3xl text-center">
+      <p class="text-xs font-semibold tracking-widest uppercase mb-5"
+         style="color: #0DB7C4; letter-spacing: 0.2em; font-family: 'Inter', sans-serif;">
+        Apache Cassandra &amp; DataStax Astra DB
+      </p>
+      <h1 class="editorial-heading-italic mb-6 leading-tight"
+          style="font-size: clamp(4rem, 10vw, 7rem); color: #E8E6E1;">
+        <span style="color: #E85B3A;">Killr</span>Video
+      </h1>
+      <p class="text-xl mb-10 mx-auto max-w-xl leading-relaxed"
+         style="color: rgba(232,230,225,0.65); font-family: 'Inter', sans-serif; font-style: italic;">
+        A real video platform built to teach Cassandra —
+        every click reveals a database query, a schema decision,
+        and the reasoning behind it.
+      </p>
+      <div class="flex flex-wrap items-center justify-center gap-4">
+        <button class="px-7 py-3 rounded-full font-semibold text-white text-sm transition-colors"
+          style="background: #E85B3A; font-family: 'Inter', sans-serif;"
+          onmouseover="this.style.background='#D14A2B'" onmouseout="this.style.background='#E85B3A'">
+          Browse Videos
+        </button>
+        <button class="px-7 py-3 rounded-full font-semibold text-sm border border-white/25 hover:bg-white/10 transition-colors"
+          style="color: rgba(232,230,225,0.8); font-family: 'Inter', sans-serif;">
+          Read the Docs
+        </button>
+      </div>
+      <div class="mt-16 flex flex-col items-center gap-2 text-sm animate-bounce"
+           style="color: rgba(232,230,225,0.3); font-family: 'Inter', sans-serif;">
+        <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 5v14M5 12l7 7 7-7"/></svg>
+        Scroll to learn
+      </div>
+    </div>
+  </section>
+
+  <!-- ── Band 2 · Dev · How We Fetch the Latest Videos ──────────── -->
+  <section id="h-s2" data-band="dev"
+    class="dev-band fade-section py-20 px-6"
+    style="background: #1A1A2E;">
+    <div class="max-w-3xl mx-auto">
+
+      <div class="serif-rule mb-10">Dev Explainer</div>
+
+      <p class="text-xs font-semibold tracking-widest uppercase mb-3"
+         style="color: #0DB7C4; font-family: 'Inter', sans-serif;">
+        Home Page · Data Layer
+      </p>
+      <h2 class="editorial-heading-italic mb-5 leading-snug"
+          style="font-size: 2.5rem; color: #E8E6E1;">
+        How We Fetch the Latest Videos
+      </h2>
+      <p class="leading-relaxed mb-2" style="color: #B0AEA8; font-size: 15px; font-family: 'Inter', sans-serif;">
+        When the home page loads, KillrVideo queries the <code class="text-sm" style="color: #0DB7C4;">latest_videos</code>
+        table — a dedicated read-optimised table that exists solely to serve this use-case.
+        Cassandra's data modelling mantra is <em style="color: #E8E6E1;">"model for the query, not the schema"</em>:
+        because we always want videos sorted by recency within a day, the partition key is the
+        date bucket (<code class="text-sm" style="color: #0DB7C4;">yyyymmdd</code>) and the clustering column
+        is <code class="text-sm" style="color: #0DB7C4;">added_date DESC</code>, so Cassandra returns rows
+        pre-sorted — no ORDER BY shuffle needed.
+      </p>
+      <p class="leading-relaxed mb-8" style="color: #8A8A9A; font-size: 14px; font-family: 'Inter', sans-serif;">
+        Partitioning by day keeps partition sizes bounded.  A single <code class="text-sm" style="color: #0DB7C4;">LIMIT 10</code>
+        on a single partition is one of Cassandra's fastest operations.
+      </p>
+
+      <!-- Query metadata bar -->
+      <div class="flex flex-wrap items-center gap-3 mb-5">
+        <span class="badge-read text-xs font-bold px-3 py-1 rounded-full" style="font-family: 'Inter', sans-serif;">READ</span>
+        <code class="text-xs bg-white/5 px-3 py-1 rounded-md" style="color: rgba(232,230,225,0.45);">GET /api/v1/videos</code>
+        <span class="text-xs" style="color: rgba(232,230,225,0.35);">~12ms</span>
+        <code class="text-xs" style="color: rgba(13,183,196,0.6);">src/hooks/useApi.ts:67</code>
+      </div>
+
+      <!-- CQL / DataAPI toggle -->
+      <div id="h-s2-api" class="flex gap-2 mb-4">
+        <button class="api-tab active" onclick="switchApi('h-s2', 'cql', this)">CQL</button>
+        <button class="api-tab"        onclick="switchApi('h-s2', 'dataapi', this)">Data API</button>
+      </div>
+
+      <!-- CQL query -->
+      <div class="h-s2-cql">
+        <div class="code-block mb-6">
+<span class="kw">SELECT</span> <span class="id">video_id</span>, <span class="id">title</span>, <span class="id">preview_image</span>, <span class="id">user_id</span>, <span class="id">added_date</span>
+<span class="kw">FROM</span>   <span class="id">latest_videos</span>
+<span class="kw">WHERE</span>  <span class="id">yyyymmdd</span> = <span class="str">'2024-01-15'</span>
+<span class="kw">ORDER BY</span> <span class="id">added_date</span> <span class="kw">DESC</span>
+<span class="kw">LIMIT</span>  <span class="num">10</span>
+        </div>
+      </div>
+
+      <!-- DataAPI query (hidden by default) -->
+      <div class="h-s2-dataapi hidden">
+        <div class="code-block mb-6">
+<span class="cm">// Astra Data API — no CQL required</span>
+<span class="kw">const</span> <span class="id">result</span> = <span class="kw">await</span> <span class="id">db</span>.<span class="id">collection</span>(<span class="str">"videos"</span>)
+  .<span class="id">find</span>({})
+  .<span class="id">sort</span>({ <span class="str">"addedDate"</span>: <span class="num">-1</span> })
+  .<span class="id">limit</span>(<span class="num">10</span>)
+  .<span class="id">toArray</span>();
+
+<span class="cm">// Full JSON request body:</span>
+{
+  <span class="key">"find"</span>: {
+    <span class="key">"filter"</span>: {},
+    <span class="key">"sort"</span>:   { <span class="key">"addedDate"</span>: <span class="num">-1</span> },
+    <span class="key">"options"</span>: { <span class="key">"limit"</span>: <span class="num">10</span> }
+  }
+}
+        </div>
+      </div>
+
+      <!-- Schema -->
+      <div class="mb-6">
+        <p class="text-xs font-semibold tracking-widest uppercase mb-3"
+           style="color: rgba(232,230,225,0.3); font-family: 'Inter', sans-serif;">
+          Schema &mdash; latest_videos
+        </p>
+        <div class="overflow-x-auto">
+          <table class="w-full text-sm" style="border-collapse: separate; border-spacing: 0 4px;">
+            <tbody>
+              <tr>
+                <td class="pr-4 py-1 font-mono" style="color: rgba(232,230,225,0.75);">yyyymmdd</td>
+                <td class="pr-6 py-1 font-mono text-xs" style="color: rgba(232,230,225,0.35);">TEXT</td>
+                <td><span class="badge-pk">PK</span></td>
+                <td class="pl-4 text-xs italic" style="color: rgba(232,230,225,0.3); font-family: 'Inter', sans-serif;">Date bucket — partitions data by day to keep partition size bounded</td>
+              </tr>
+              <tr>
+                <td class="pr-4 py-1 font-mono" style="color: rgba(232,230,225,0.75);">added_date</td>
+                <td class="pr-6 py-1 font-mono text-xs" style="color: rgba(232,230,225,0.35);">TIMESTAMP</td>
+                <td><span class="badge-ck">CK ↓</span></td>
+                <td class="pl-4 text-xs italic" style="color: rgba(232,230,225,0.3); font-family: 'Inter', sans-serif;">Clustering column — rows pre-sorted newest-first</td>
+              </tr>
+              <tr>
+                <td class="pr-4 py-1 font-mono" style="color: rgba(232,230,225,0.5);">video_id</td>
+                <td class="pr-6 py-1 font-mono text-xs" style="color: rgba(232,230,225,0.25);">UUID</td>
+                <td><span class="text-xs" style="color: rgba(232,230,225,0.18);">—</span></td>
+                <td></td>
+              </tr>
+              <tr>
+                <td class="pr-4 py-1 font-mono" style="color: rgba(232,230,225,0.5);">title</td>
+                <td class="pr-6 py-1 font-mono text-xs" style="color: rgba(232,230,225,0.25);">TEXT</td>
+                <td><span class="text-xs" style="color: rgba(232,230,225,0.18);">—</span></td>
+                <td></td>
+              </tr>
+              <tr>
+                <td class="pr-4 py-1 font-mono" style="color: rgba(232,230,225,0.5);">user_id</td>
+                <td class="pr-6 py-1 font-mono text-xs" style="color: rgba(232,230,225,0.25);">UUID</td>
+                <td><span class="text-xs" style="color: rgba(232,230,225,0.18);">—</span></td>
+                <td></td>
+              </tr>
+              <tr>
+                <td class="pr-4 py-1 font-mono" style="color: rgba(232,230,225,0.5);">thumbnail_url</td>
+                <td class="pr-6 py-1 font-mono text-xs" style="color: rgba(232,230,225,0.25);">TEXT</td>
+                <td><span class="text-xs" style="color: rgba(232,230,225,0.18);">—</span></td>
+                <td></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Language tabs -->
+      <div id="h-s2-lang" class="flex flex-wrap gap-2 mb-4">
+        <button class="lang-tab active" onclick="switchLang('h-s2', 'python', this)">Python</button>
+        <button class="lang-tab"        onclick="switchLang('h-s2', 'java',   this)">Java</button>
+        <button class="lang-tab"        onclick="switchLang('h-s2', 'nodejs', this)">Node.js</button>
+        <button class="lang-tab"        onclick="switchLang('h-s2', 'rust',   this)">Rust</button>
+      </div>
+
+      <div class="h-s2-python">
+        <div class="code-block">
+<span class="kw">from</span> <span class="id">cassandra.cluster</span> <span class="kw">import</span> <span class="id">Cluster</span>
+<span class="cm"># Session setup omitted — see docs/connection-setup.md</span>
+<span class="id">session</span> = <span class="id">cluster</span>.<span class="id">connect</span>(<span class="str">"killrvideo"</span>)
+
+<span class="id">prepared</span> = <span class="id">session</span>.<span class="id">prepare</span>(
+    <span class="str">"SELECT video_id, title, thumbnail_url, added_date"</span>
+    <span class="str">" FROM latest_videos WHERE yyyymmdd = ? LIMIT 10"</span>
+)
+<span class="id">rows</span> = <span class="id">session</span>.<span class="id">execute</span>(<span class="id">prepared</span>, [<span class="str">"2024-01-15"</span>])
+<span class="kw">for</span> <span class="id">row</span> <span class="kw">in</span> <span class="id">rows</span>:
+    <span class="id">print</span>(<span class="id">row</span>.<span class="id">title</span>, <span class="id">row</span>.<span class="id">added_date</span>)
+        </div>
+      </div>
+      <div class="h-s2-java hidden">
+        <div class="code-block">
+<span class="kw">import</span> <span class="id">com.datastax.oss.driver.api.core.CqlSession</span>;
+<span class="kw">import</span> <span class="id">com.datastax.oss.driver.api.core.cql.PreparedStatement</span>;
+
+<span class="cm">// Session obtained from application context</span>
+<span class="id">PreparedStatement</span> <span class="id">prepared</span> = <span class="id">session</span>.<span class="id">prepare</span>(
+    <span class="str">"SELECT video_id, title, added_date FROM latest_videos"</span> +
+    <span class="str">" WHERE yyyymmdd = ? LIMIT 10"</span>
+);
+<span class="id">session</span>.<span class="id">execute</span>(<span class="id">prepared</span>.<span class="id">bind</span>(<span class="str">"2024-01-15"</span>))
+       .<span class="id">forEach</span>(<span class="id">row</span> -&gt; <span class="id">System</span>.<span class="id">out</span>.<span class="id">println</span>(<span class="id">row</span>.<span class="id">getString</span>(<span class="str">"title"</span>)));
+        </div>
+      </div>
+      <div class="h-s2-nodejs hidden">
+        <div class="code-block">
+<span class="kw">const</span> <span class="id">cassandra</span> = <span class="kw">require</span>(<span class="str">'cassandra-driver'</span>);
+<span class="cm">// Client obtained from application context</span>
+<span class="kw">const</span> <span class="id">query</span> =
+  <span class="str">'SELECT video_id, title, added_date FROM latest_videos WHERE yyyymmdd = ? LIMIT 10'</span>;
+<span class="kw">const</span> { <span class="id">rows</span> } = <span class="kw">await</span> <span class="id">client</span>.<span class="id">execute</span>(<span class="id">query</span>, [<span class="str">'2024-01-15'</span>], { <span class="id">prepare</span>: <span class="kw">true</span> });
+<span class="id">rows</span>.<span class="id">forEach</span>(<span class="id">r</span> =&gt; <span class="id">console</span>.<span class="id">log</span>(<span class="id">r</span>[<span class="str">'title'</span>]));
+        </div>
+      </div>
+      <div class="h-s2-rust hidden">
+        <div class="code-block">
+<span class="kw">use</span> <span class="id">scylla::Session</span>;
+
+<span class="cm">// Session obtained from application state</span>
+<span class="kw">let</span> <span class="id">rows</span> = <span class="id">session</span>
+    .<span class="id">query</span>(
+        <span class="str">"SELECT video_id, title, added_date FROM latest_videos WHERE yyyymmdd = ? LIMIT 10"</span>,
+        (<span class="str">"2024-01-15"</span>,),
+    )
+    .<span class="kw">await</span>?
+    .<span class="id">rows_typed</span>::&lt;(<span class="id">Uuid</span>, <span class="id">String</span>, <span class="id">Duration</span>)&gt;()?;
+<span class="kw">for</span> <span class="id">row</span> <span class="kw">in</span> <span class="id">rows</span> {
+    <span class="kw">let</span> (<span class="id">id</span>, <span class="id">title</span>, <span class="id">ts</span>) = <span class="id">row</span>?;
+    <span class="id">println!</span>(<span class="str">"{title}"</span>);
+}
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ── Band 3 · Consumer · Featured Videos ───────────────────── -->
+  <section id="h-s3" data-band="consumer"
+    class="fade-section py-20 px-6"
+    style="background: #FFFFFF;">
+    <div class="max-w-5xl mx-auto">
+      <p class="text-xs font-semibold tracking-widest uppercase mb-2"
+         style="color: #E85B3A; letter-spacing: 0.18em; font-family: 'Inter', sans-serif;">
+        Featured
+      </p>
+      <h2 class="editorial-heading mb-10" style="font-size: 2.5rem; color: #1A1A2E;">
+        Latest Videos
+      </h2>
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+
+        <!-- Card 1 -->
+        <div class="video-card">
+          <div class="thumb-placeholder" style="background: linear-gradient(135deg, #1A1A2E 0%, #E85B3A 100%);">
+            <span>🎬</span>
+          </div>
+          <div class="p-4">
+            <h3 class="font-semibold mb-1 text-sm leading-snug" style="color: #1A1A2E; font-family: 'Inter', sans-serif;">
+              Getting Started with Apache Cassandra
+            </h3>
+            <p class="text-xs" style="color: #8A8A9A; font-family: 'Inter', sans-serif;">TechTalks &middot; 14 min</p>
+          </div>
+        </div>
+
+        <!-- Card 2 -->
+        <div class="video-card">
+          <div class="thumb-placeholder" style="background: linear-gradient(135deg, #1A1A2E 0%, #0DB7C4 100%);">
+            <span>🗄️</span>
+          </div>
+          <div class="p-4">
+            <h3 class="font-semibold mb-1 text-sm leading-snug" style="color: #1A1A2E; font-family: 'Inter', sans-serif;">
+              Data Modelling for Time-Series in Cassandra
+            </h3>
+            <p class="text-xs" style="color: #8A8A9A; font-family: 'Inter', sans-serif;">DataEngineering &middot; 22 min</p>
+          </div>
+        </div>
+
+        <!-- Card 3 -->
+        <div class="video-card">
+          <div class="thumb-placeholder" style="background: linear-gradient(135deg, #064e3b 0%, #10b981 100%);">
+            <span>☁️</span>
+          </div>
+          <div class="p-4">
+            <h3 class="font-semibold mb-1 text-sm leading-snug" style="color: #1A1A2E; font-family: 'Inter', sans-serif;">
+              Astra DB: Serverless Cassandra in the Cloud
+            </h3>
+            <p class="text-xs" style="color: #8A8A9A; font-family: 'Inter', sans-serif;">CloudNative &middot; 18 min</p>
+          </div>
+        </div>
+
+        <!-- Card 4 -->
+        <div class="video-card">
+          <div class="thumb-placeholder" style="background: linear-gradient(135deg, #7B2D00 0%, #E85B3A 100%);">
+            <span>⚡</span>
+          </div>
+          <div class="p-4">
+            <h3 class="font-semibold mb-1 text-sm leading-snug" style="color: #1A1A2E; font-family: 'Inter', sans-serif;">
+              Counter Tables &amp; Atomic Increments
+            </h3>
+            <p class="text-xs" style="color: #8A8A9A; font-family: 'Inter', sans-serif;">DeepDive &middot; 11 min</p>
+          </div>
+        </div>
+
+        <!-- Card 5 -->
+        <div class="video-card">
+          <div class="thumb-placeholder" style="background: linear-gradient(135deg, #1e3a5f 0%, #3b82f6 100%);">
+            <span>🔑</span>
+          </div>
+          <div class="p-4">
+            <h3 class="font-semibold mb-1 text-sm leading-snug" style="color: #1A1A2E; font-family: 'Inter', sans-serif;">
+              Partition Keys vs Clustering Columns Explained
+            </h3>
+            <p class="text-xs" style="color: #8A8A9A; font-family: 'Inter', sans-serif;">Fundamentals &middot; 9 min</p>
+          </div>
+        </div>
+
+        <!-- Card 6 -->
+        <div class="video-card">
+          <div class="thumb-placeholder" style="background: linear-gradient(135deg, #252538 0%, #0DB7C4 100%);">
+            <span>🧩</span>
+          </div>
+          <div class="p-4">
+            <h3 class="font-semibold mb-1 text-sm leading-snug" style="color: #1A1A2E; font-family: 'Inter', sans-serif;">
+              Building KillrVideo: Architecture Walkthrough
+            </h3>
+            <p class="text-xs" style="color: #8A8A9A; font-family: 'Inter', sans-serif;">Architecture &middot; 31 min</p>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- ── Band 4 · Dev · The Data Model Behind Video Discovery ───── -->
+  <section id="h-s4" data-band="dev"
+    class="dev-band fade-section py-20 px-6"
+    style="background: #1A1A2E;">
+    <div class="max-w-3xl mx-auto">
+
+      <div class="serif-rule mb-10">Data Model</div>
+
+      <p class="text-xs font-semibold tracking-widest uppercase mb-3"
+         style="color: #0DB7C4; font-family: 'Inter', sans-serif;">
+        Design Decisions
+      </p>
+      <h2 class="editorial-heading-italic mb-5 leading-snug"
+          style="font-size: 2.5rem; color: #E8E6E1;">
+        The Data Model Behind Video Discovery
+      </h2>
+      <p class="leading-relaxed mb-3" style="color: #B0AEA8; font-size: 15px; font-family: 'Inter', sans-serif;">
+        Why does <code style="color: #0DB7C4; font-size: 13px;">latest_videos</code> use <code style="color: #0DB7C4; font-size: 13px;">yyyymmdd</code> as its partition key
+        instead of simply partitioning by, say, month or user?
+        The answer is partition cardinality.  If we partitioned by <em style="color: #E8E6E1;">month</em>, a busy month
+        could accumulate millions of rows in a single partition — Cassandra's sweet spot is
+        tens of thousands of rows per partition.  A <em style="color: #E8E6E1;">day bucket</em> keeps each partition
+        at a predictable, manageable size while still enabling efficient chronological queries.
+      </p>
+      <p class="leading-relaxed mb-8" style="color: #8A8A9A; font-size: 14px; font-family: 'Inter', sans-serif;">
+        The trade-off: cross-day queries require multiple round trips (one per day).  For a
+        "latest videos" feed this is fine — we almost always want today's videos.  For analytics
+        spanning months, a different table or a separate analytics pipeline would be appropriate.
+      </p>
+
+      <!-- Full schema with annotations -->
+      <div class="rounded-xl overflow-hidden" style="border: 1px solid rgba(232,230,225,0.1);">
+        <div class="px-5 py-3 flex items-center justify-between" style="border-bottom: 1px solid rgba(232,230,225,0.1); background: #252538;">
+          <span class="font-mono text-sm" style="color: #0DB7C4;">latest_videos</span>
+          <span class="text-xs" style="color: rgba(232,230,225,0.25); font-family: 'Inter', sans-serif;">CREATE TABLE killrvideo.latest_videos ( ... )</span>
+        </div>
+        <div class="px-5 py-4 space-y-3" style="background: #252538;">
+          <div class="flex items-start gap-3">
+            <span class="badge-pk mt-0.5">PK</span>
+            <div>
+              <span class="font-mono text-sm" style="color: #E8E6E1;">yyyymmdd</span>
+              <span class="ml-3 text-xs" style="color: rgba(232,230,225,0.35);">TEXT</span>
+              <p class="text-xs mt-0.5 italic" style="color: rgba(232,230,225,0.3); font-family: 'Inter', sans-serif;">Date bucket — e.g. "20240115". Controls which Cassandra node stores the row.</p>
+            </div>
+          </div>
+          <div class="flex items-start gap-3">
+            <span class="badge-ck mt-0.5">CK ↓</span>
+            <div>
+              <span class="font-mono text-sm" style="color: #E8E6E1;">added_date</span>
+              <span class="ml-3 text-xs" style="color: rgba(232,230,225,0.35);">TIMESTAMP</span>
+              <p class="text-xs mt-0.5 italic" style="color: rgba(232,230,225,0.3); font-family: 'Inter', sans-serif;">Clustering column, descending — rows returned newest-first without sorting.</p>
+            </div>
+          </div>
+          <div class="flex items-center gap-3 pl-9">
+            <span class="font-mono text-sm" style="color: rgba(232,230,225,0.5);">video_id</span>
+            <span class="text-xs" style="color: rgba(232,230,225,0.25);">UUID</span>
+          </div>
+          <div class="flex items-center gap-3 pl-9">
+            <span class="font-mono text-sm" style="color: rgba(232,230,225,0.5);">title</span>
+            <span class="text-xs" style="color: rgba(232,230,225,0.25);">TEXT</span>
+          </div>
+          <div class="flex items-center gap-3 pl-9">
+            <span class="font-mono text-sm" style="color: rgba(232,230,225,0.5);">user_id</span>
+            <span class="text-xs" style="color: rgba(232,230,225,0.25);">UUID</span>
+          </div>
+          <div class="flex items-center gap-3 pl-9">
+            <span class="font-mono text-sm" style="color: rgba(232,230,225,0.5);">thumbnail_url</span>
+            <span class="text-xs" style="color: rgba(232,230,225,0.25);">TEXT</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Design note callout -->
+      <div class="mt-6 rounded-xl px-5 py-4" style="border: 1px solid rgba(13,183,196,0.2); background: rgba(13,183,196,0.05);">
+        <p class="text-xs font-semibold mb-1" style="color: #0DB7C4; font-family: 'Inter', sans-serif;">Design Note</p>
+        <p class="text-sm leading-relaxed" style="color: #B0AEA8; font-family: 'Inter', sans-serif;">
+          <code style="color: #0DB7C4;">latest_videos</code> is a <strong style="color: #E8E6E1;">query-specific denormalized table</strong>
+          — it duplicates columns from <code style="color: #0DB7C4;">videos</code> so the home page
+          can be served with a single-partition read, no joins needed.  This is idiomatic Cassandra.
+        </p>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ── Band 5 · Consumer · Stats & Community ─────────────────── -->
+  <section id="h-s5" data-band="consumer"
+    class="fade-section py-24 px-6"
+    style="background: #FBF8F4;">
+    <div class="max-w-5xl mx-auto">
+
+      <!-- Stats bar -->
+      <div class="grid grid-cols-2 sm:grid-cols-4 gap-6 mb-20">
+        <div class="text-center">
+          <p class="editorial-heading" style="font-size: 3rem; color: #E85B3A;">1.2M</p>
+          <p class="text-sm mt-1" style="color: #4A4A5A; font-family: 'Inter', sans-serif;">Videos hosted</p>
+        </div>
+        <div class="text-center">
+          <p class="editorial-heading" style="font-size: 3rem; color: #0DB7C4;">38K</p>
+          <p class="text-sm mt-1" style="color: #4A4A5A; font-family: 'Inter', sans-serif;">Active learners</p>
+        </div>
+        <div class="text-center">
+          <p class="editorial-heading" style="font-size: 3rem; color: #E85B3A;">4</p>
+          <p class="text-sm mt-1" style="color: #4A4A5A; font-family: 'Inter', sans-serif;">Driver languages</p>
+        </div>
+        <div class="text-center">
+          <p class="editorial-heading" style="font-size: 3rem; color: #0DB7C4;">~3ms</p>
+          <p class="text-sm mt-1" style="color: #4A4A5A; font-family: 'Inter', sans-serif;">Typical read latency</p>
+        </div>
+      </div>
+
+      <!-- Community section -->
+      <div class="max-w-2xl mx-auto text-center">
+        <p class="text-xs font-semibold tracking-widest uppercase mb-4"
+           style="color: #E85B3A; letter-spacing: 0.18em; font-family: 'Inter', sans-serif;">
+          Community
+        </p>
+        <h2 class="editorial-heading mb-5" style="font-size: 2.5rem; color: #1A1A2E;">
+          Learn by Doing,<br>Teach by Sharing
+        </h2>
+        <p class="leading-relaxed mb-8" style="color: #4A4A5A; font-family: 'Inter', sans-serif;">
+          KillrVideo is open-source.  Every query, schema, and driver example in the learning
+          bands above lives in the repository — fork it, run it locally, and submit a pull
+          request when you improve an explanation.
+        </p>
+        <div class="flex flex-wrap justify-center gap-4">
+          <button class="px-6 py-2.5 rounded-full font-semibold text-sm text-white transition-colors"
+            style="background: #E85B3A; font-family: 'Inter', sans-serif;"
+            onmouseover="this.style.background='#D14A2B'" onmouseout="this.style.background='#E85B3A'">
+            View on GitHub
+          </button>
+          <button class="px-6 py-2.5 rounded-full font-semibold text-sm transition-colors"
+            style="border: 1px solid rgba(74,74,90,0.25); color: #4A4A5A; font-family: 'Inter', sans-serif;"
+            onmouseover="this.style.background='rgba(74,74,90,0.05)'" onmouseout="this.style.background='transparent'">
+            Join the Community
+          </button>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+</div><!-- /page-home -->
+
+
+<!-- ═══════════════════════════════════════════════════════════════
+     PAGE: WATCH
+═══════════════════════════════════════════════════════════════ -->
+<div id="page-watch" class="page-view">
+
+  <!-- ── Band 1 · Consumer · Video Player ──────────────────────── -->
+  <section id="w-s1" data-band="consumer"
+    class="fade-section pt-24 pb-14 px-6"
+    style="background: #FFFFFF;">
+    <div class="max-w-4xl mx-auto">
+
+      <!-- Player placeholder -->
+      <div class="rounded-2xl overflow-hidden mb-6 shadow-xl"
+        style="aspect-ratio: 16/9; background: linear-gradient(160deg, #1A1A2E 0%, #252538 100%); display: flex; align-items: center; justify-content: center; position: relative;">
+        <button class="w-20 h-20 rounded-full flex items-center justify-center"
+          style="background: rgba(232,91,58,0.85); border: 3px solid rgba(255,255,255,0.3);">
+          <svg width="32" height="32" viewBox="0 0 24 24" fill="white"><path d="M8 5v14l11-7z"/></svg>
+        </button>
+        <div style="position: absolute; bottom: 16px; left: 20px; right: 20px;">
+          <div style="height: 4px; background: rgba(255,255,255,0.15); border-radius: 2px;">
+            <div style="height: 4px; width: 35%; background: #E85B3A; border-radius: 2px;"></div>
+          </div>
+          <div class="flex justify-between mt-1">
+            <span class="text-xs" style="color: rgba(255,255,255,0.5); font-family: 'Inter', sans-serif;">5:24</span>
+            <span class="text-xs" style="color: rgba(255,255,255,0.5); font-family: 'Inter', sans-serif;">14:12</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Title + user info -->
+      <h1 class="editorial-heading mb-3" style="font-size: 1.875rem; color: #1A1A2E;">
+        Getting Started with Apache Cassandra
+      </h1>
+      <div class="flex items-center gap-4">
+        <div class="w-9 h-9 rounded-full flex items-center justify-center text-white text-sm font-bold"
+          style="background: #E85B3A; font-family: 'Inter', sans-serif;">T</div>
+        <div>
+          <p class="font-semibold text-sm" style="color: #1A1A2E; font-family: 'Inter', sans-serif;">TechTalks</p>
+          <p class="text-xs" style="color: #8A8A9A; font-family: 'Inter', sans-serif;">Published Jan 15, 2024 &middot; 14,230 views</p>
+        </div>
+        <div class="ml-auto flex gap-2">
+          <button class="px-4 py-1.5 rounded-full text-sm font-semibold transition-colors"
+            style="border: 1px solid rgba(74,74,90,0.2); color: #4A4A5A; font-family: 'Inter', sans-serif;"
+            onmouseover="this.style.background='rgba(74,74,90,0.05)'" onmouseout="this.style.background='transparent'">
+            Subscribe
+          </button>
+          <button class="px-4 py-1.5 rounded-full text-sm font-semibold text-white transition-colors"
+            style="background: #E85B3A; font-family: 'Inter', sans-serif;"
+            onmouseover="this.style.background='#D14A2B'" onmouseout="this.style.background='#E85B3A'">
+            + Add to List
+          </button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── Band 2 · Dev · Fetching a Single Video ─────────────────── -->
+  <section id="w-s2" data-band="dev"
+    class="dev-band fade-section py-20 px-6"
+    style="background: #1A1A2E;">
+    <div class="max-w-3xl mx-auto">
+
+      <div class="serif-rule mb-10">Dev Explainer</div>
+
+      <p class="text-xs font-semibold tracking-widest uppercase mb-3"
+         style="color: #0DB7C4; font-family: 'Inter', sans-serif;">
+        Watch Page · Data Layer
+      </p>
+      <h2 class="editorial-heading-italic mb-5 leading-snug"
+          style="font-size: 2.5rem; color: #E8E6E1;">
+        Fetching a Single Video
+      </h2>
+      <p class="leading-relaxed mb-2" style="color: #B0AEA8; font-size: 15px; font-family: 'Inter', sans-serif;">
+        When you open a video page, the frontend sends a single GET request for that video's
+        metadata.  The backend runs a <strong style="color: #E8E6E1;">single-partition read</strong>
+        against <code style="color: #0DB7C4; font-size: 13px;">videos_by_id</code>, keyed on <code style="color: #0DB7C4; font-size: 13px;">video_id</code>.
+        Because <code style="color: #0DB7C4; font-size: 13px;">video_id</code> is the partition key, Cassandra can
+        route the request directly to the correct node — no scatter-gather, no secondary index.
+      </p>
+      <p class="leading-relaxed mb-8" style="color: #8A8A9A; font-size: 14px; font-family: 'Inter', sans-serif;">
+        This is Cassandra's strongest access pattern.  A single-partition read typically
+        completes in 1–5 ms on co-located infrastructure.
+      </p>
+
+      <!-- Metadata bar -->
+      <div class="flex flex-wrap items-center gap-3 mb-5">
+        <span class="badge-read text-xs font-bold px-3 py-1 rounded-full" style="font-family: 'Inter', sans-serif;">READ</span>
+        <code class="text-xs bg-white/5 px-3 py-1 rounded-md" style="color: rgba(232,230,225,0.45);">GET /api/v1/videos/:id</code>
+        <span class="text-xs" style="color: rgba(232,230,225,0.35);">~3ms</span>
+        <code class="text-xs" style="color: rgba(13,183,196,0.6);">src/hooks/useApi.ts:42</code>
+      </div>
+
+      <!-- API toggle -->
+      <div id="w-s2-api" class="flex gap-2 mb-4">
+        <button class="api-tab active" onclick="switchApi('w-s2', 'cql', this)">CQL</button>
+        <button class="api-tab"        onclick="switchApi('w-s2', 'dataapi', this)">Data API</button>
+      </div>
+
+      <div class="w-s2-cql">
+        <div class="code-block mb-6">
+<span class="kw">SELECT</span> <span class="id">video_id</span>, <span class="id">title</span>, <span class="id">description</span>, <span class="id">user_id</span>,
+       <span class="id">tags</span>, <span class="id">thumbnail_url</span>, <span class="id">added_date</span>
+<span class="kw">FROM</span>   <span class="id">videos</span>
+<span class="kw">WHERE</span>  <span class="id">video_id</span> = <span class="lit">550e8400-e29b-41d4-a716-446655440000</span>
+        </div>
+      </div>
+
+      <div class="w-s2-dataapi hidden">
+        <div class="code-block mb-6">
+<span class="cm">// Astra Data API</span>
+<span class="kw">const</span> <span class="id">video</span> = <span class="kw">await</span> <span class="id">db</span>.<span class="id">collection</span>(<span class="str">"videos"</span>).<span class="id">findOne</span>({
+  <span class="str">"_id"</span>: <span class="str">"550e8400-e29b-41d4-a716-446655440000"</span>
+});
+
+<span class="cm">// Full JSON request body:</span>
+{
+  <span class="key">"findOne"</span>: {
+    <span class="key">"filter"</span>: { <span class="key">"_id"</span>: <span class="str">"550e8400-e29b-41d4-a716-446655440000"</span> }
+  }
+}
+        </div>
+      </div>
+
+      <!-- Schema -->
+      <div class="mb-6">
+        <p class="text-xs font-semibold tracking-widest uppercase mb-3"
+           style="color: rgba(232,230,225,0.3); font-family: 'Inter', sans-serif;">
+          Schema &mdash; videos_by_id
+        </p>
+        <div class="overflow-x-auto">
+          <table class="w-full text-sm" style="border-collapse: separate; border-spacing: 0 4px;">
+            <tbody>
+              <tr>
+                <td class="pr-4 py-1 font-mono" style="color: rgba(232,230,225,0.75);">video_id</td>
+                <td class="pr-6 py-1 font-mono text-xs" style="color: rgba(232,230,225,0.35);">UUID</td>
+                <td><span class="badge-pk">PK</span></td>
+                <td class="pl-4 text-xs italic" style="color: rgba(232,230,225,0.3); font-family: 'Inter', sans-serif;">Partition key — routes read directly to the owning node</td>
+              </tr>
+              <tr>
+                <td class="pr-4 py-1 font-mono" style="color: rgba(232,230,225,0.75);">added_date</td>
+                <td class="pr-6 py-1 font-mono text-xs" style="color: rgba(232,230,225,0.35);">TIMESTAMP</td>
+                <td><span class="badge-ck">CK ↓</span></td>
+                <td class="pl-4 text-xs italic" style="color: rgba(232,230,225,0.3); font-family: 'Inter', sans-serif;">Clustering key — orders multiple versions of a video if re-uploaded</td>
+              </tr>
+              <tr><td class="pr-4 py-1 font-mono" style="color: rgba(232,230,225,0.5);">title</td><td class="font-mono text-xs" style="color: rgba(232,230,225,0.25);">TEXT</td><td></td><td></td></tr>
+              <tr><td class="pr-4 py-1 font-mono" style="color: rgba(232,230,225,0.5);">description</td><td class="font-mono text-xs" style="color: rgba(232,230,225,0.25);">TEXT</td><td></td><td></td></tr>
+              <tr><td class="pr-4 py-1 font-mono" style="color: rgba(232,230,225,0.5);">user_id</td><td class="font-mono text-xs" style="color: rgba(232,230,225,0.25);">UUID</td><td></td><td></td></tr>
+              <tr><td class="pr-4 py-1 font-mono" style="color: rgba(232,230,225,0.5);">tags</td><td class="font-mono text-xs" style="color: rgba(232,230,225,0.25);">SET&lt;TEXT&gt;</td><td></td><td></td></tr>
+              <tr><td class="pr-4 py-1 font-mono" style="color: rgba(232,230,225,0.5);">thumbnail_url</td><td class="font-mono text-xs" style="color: rgba(232,230,225,0.25);">TEXT</td><td></td><td></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Language tabs -->
+      <div id="w-s2-lang" class="flex flex-wrap gap-2 mb-4">
+        <button class="lang-tab active" onclick="switchLang('w-s2', 'python', this)">Python</button>
+        <button class="lang-tab"        onclick="switchLang('w-s2', 'java',   this)">Java</button>
+        <button class="lang-tab"        onclick="switchLang('w-s2', 'nodejs', this)">Node.js</button>
+        <button class="lang-tab"        onclick="switchLang('w-s2', 'rust',   this)">Rust</button>
+      </div>
+
+      <div class="w-s2-python">
+        <div class="code-block">
+<span class="kw">from</span> <span class="id">cassandra.cluster</span> <span class="kw">import</span> <span class="id">Cluster</span>
+<span class="kw">from</span> <span class="id">uuid</span> <span class="kw">import</span> <span class="id">UUID</span>
+<span class="cm"># Session setup omitted — see docs/connection-setup.md</span>
+<span class="id">video_id</span> = <span class="id">UUID</span>(<span class="str">"550e8400-e29b-41d4-a716-446655440000"</span>)
+<span class="id">prepared</span> = <span class="id">session</span>.<span class="id">prepare</span>(<span class="str">"SELECT * FROM videos WHERE video_id = ?"</span>)
+<span class="id">row</span> = <span class="id">session</span>.<span class="id">execute</span>(<span class="id">prepared</span>, [<span class="id">video_id</span>]).<span class="id">one</span>()
+<span class="kw">if</span> <span class="id">row</span>:
+    <span class="id">print</span>(<span class="id">row</span>.<span class="id">title</span>, <span class="id">row</span>.<span class="id">description</span>)
+        </div>
+      </div>
+      <div class="w-s2-java hidden">
+        <div class="code-block">
+<span class="kw">import</span> <span class="id">com.datastax.oss.driver.api.core.cql.Row</span>;
+<span class="kw">import</span> <span class="id">java.util.UUID</span>;
+<span class="id">UUID</span> <span class="id">videoId</span> = <span class="id">UUID</span>.<span class="id">fromString</span>(<span class="str">"550e8400-e29b-41d4-a716-446655440000"</span>);
+<span class="id">PreparedStatement</span> <span class="id">ps</span> = <span class="id">session</span>.<span class="id">prepare</span>(<span class="str">"SELECT * FROM videos WHERE video_id = ?"</span>);
+<span class="id">Row</span> <span class="id">row</span> = <span class="id">session</span>.<span class="id">execute</span>(<span class="id">ps</span>.<span class="id">bind</span>(<span class="id">videoId</span>)).<span class="id">one</span>();
+<span class="kw">if</span> (<span class="id">row</span> != <span class="kw">null</span>) { <span class="id">System</span>.<span class="id">out</span>.<span class="id">println</span>(<span class="id">row</span>.<span class="id">getString</span>(<span class="str">"title"</span>)); }
+        </div>
+      </div>
+      <div class="w-s2-nodejs hidden">
+        <div class="code-block">
+<span class="kw">const</span> <span class="id">query</span> = <span class="str">'SELECT * FROM videos WHERE video_id = ?'</span>;
+<span class="kw">const</span> { <span class="id">rows</span> } = <span class="kw">await</span> <span class="id">client</span>.<span class="id">execute</span>(<span class="id">query</span>,
+  [<span class="str">'550e8400-e29b-41d4-a716-446655440000'</span>], { <span class="id">prepare</span>: <span class="kw">true</span> });
+<span class="kw">const</span> <span class="id">row</span> = <span class="id">rows</span>[<span class="num">0</span>];
+<span class="kw">if</span> (<span class="id">row</span>) { <span class="id">console</span>.<span class="id">log</span>(<span class="id">row</span>[<span class="str">'title'</span>], <span class="id">row</span>[<span class="str">'description'</span>]); }
+        </div>
+      </div>
+      <div class="w-s2-rust hidden">
+        <div class="code-block">
+<span class="kw">use</span> <span class="id">uuid::Uuid</span>;
+<span class="kw">let</span> <span class="id">video_id</span> = <span class="id">Uuid</span>::<span class="id">parse_str</span>(<span class="str">"550e8400-e29b-41d4-a716-446655440000"</span>)?;
+<span class="kw">let</span> <span class="id">row</span> = <span class="id">session</span>
+    .<span class="id">query</span>(<span class="str">"SELECT title, description FROM videos WHERE video_id = ?"</span>, (<span class="id">video_id</span>,))
+    .<span class="kw">await</span>?
+    .<span class="id">rows_typed</span>::&lt;(<span class="id">String</span>, <span class="id">String</span>)&gt;()?
+    .<span class="id">next</span>();
+<span class="kw">if let</span> <span class="id">Some</span>(<span class="id">Ok</span>((<span class="id">title</span>, <span class="id">desc</span>))) = <span class="id">row</span> {
+    <span class="id">println!</span>(<span class="str">"{title}: {desc}"</span>);
+}
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ── Band 3 · Consumer · Rating + Description ───────────────── -->
+  <section id="w-s3" data-band="consumer"
+    class="fade-section py-16 px-6"
+    style="background: #FBF8F4;">
+    <div class="max-w-4xl mx-auto">
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-10">
+
+        <!-- Description -->
+        <div class="md:col-span-2">
+          <h2 class="editorial-heading mb-4" style="font-size: 1.75rem; color: #1A1A2E;">About This Video</h2>
+          <p class="leading-relaxed mb-3" style="color: #4A4A5A; font-family: 'Inter', sans-serif;">
+            An end-to-end walkthrough of Apache Cassandra fundamentals: ring architecture,
+            replication, consistency levels, and how to model data for read performance.
+            We use the KillrVideo application as a concrete, running example throughout.
+          </p>
+          <p class="leading-relaxed" style="color: #6A6A7A; font-family: 'Inter', sans-serif;">
+            By the end you'll understand why Cassandra eschews joins, how the partition key
+            controls data placement, and when to reach for a denormalized table vs. a
+            secondary index.
+          </p>
+          <!-- Tags -->
+          <div class="flex flex-wrap gap-2 mt-5">
+            <span class="text-xs px-3 py-1 rounded-full font-medium" style="background: rgba(232,91,58,0.1); color: #E85B3A;">Cassandra</span>
+            <span class="text-xs px-3 py-1 rounded-full font-medium" style="background: rgba(13,183,196,0.1); color: #0DB7C4;">DataStax</span>
+            <span class="text-xs px-3 py-1 rounded-full font-medium" style="background: rgba(232,91,58,0.08); color: #E85B3A;">Database Design</span>
+            <span class="text-xs px-3 py-1 rounded-full font-medium" style="background: rgba(26,26,46,0.07); color: #4A4A5A;">Tutorial</span>
+          </div>
+        </div>
+
+        <!-- Rating panel -->
+        <div>
+          <h3 class="editorial-heading mb-4" style="font-size: 1.375rem; color: #1A1A2E;">Rate this Video</h3>
+          <div class="flex gap-1 mb-4" id="star-container">
+            <span class="star" onclick="setRating(1)">&#9733;</span>
+            <span class="star" onclick="setRating(2)">&#9733;</span>
+            <span class="star" onclick="setRating(3)">&#9733;</span>
+            <span class="star empty" onclick="setRating(4)">&#9733;</span>
+            <span class="star empty" onclick="setRating(5)">&#9733;</span>
+          </div>
+          <p class="text-xs mb-1" style="color: #8A8A9A; font-family: 'Inter', sans-serif;">4.2 / 5.0 average</p>
+          <p class="text-xs" style="color: #AAAA9A; font-family: 'Inter', sans-serif;">Based on 1,847 ratings</p>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- ── Band 4 · Dev · How Ratings Work in Cassandra ──────────── -->
+  <section id="w-s4" data-band="dev"
+    class="dev-band fade-section py-20 px-6"
+    style="background: #1A1A2E;">
+    <div class="max-w-3xl mx-auto">
+
+      <div class="serif-rule mb-10">Counter Pattern</div>
+
+      <p class="text-xs font-semibold tracking-widest uppercase mb-3"
+         style="color: #E85B3A; font-family: 'Inter', sans-serif;">
+        Watch Page · Write Path
+      </p>
+      <h2 class="editorial-heading-italic mb-5 leading-snug"
+          style="font-size: 2.5rem; color: #E8E6E1;">
+        How Ratings Work in Cassandra
+      </h2>
+      <p class="leading-relaxed mb-2" style="color: #B0AEA8; font-size: 15px; font-family: 'Inter', sans-serif;">
+        Counting ratings in a distributed database is harder than it sounds.  A naive
+        approach — read the current count, add one, write back — is a race condition the
+        moment two users submit simultaneously.  Cassandra solves this with a dedicated
+        <code style="color: #0DB7C4; font-size: 13px;">COUNTER</code> data type: an atomic, distributed
+        increment that requires no read-before-write.
+      </p>
+      <p class="leading-relaxed mb-8" style="color: #8A8A9A; font-size: 14px; font-family: 'Inter', sans-serif;">
+        The trade-off: counter tables cannot contain non-counter columns except for primary-key
+        columns.  That is why <code style="color: #0DB7C4; font-size: 13px;">video_ratings</code> is a
+        separate table from <code style="color: #0DB7C4; font-size: 13px;">videos_by_id</code>.
+      </p>
+
+      <!-- Metadata bar -->
+      <div class="flex flex-wrap items-center gap-3 mb-5">
+        <span class="badge-write text-xs font-bold px-3 py-1 rounded-full" style="font-family: 'Inter', sans-serif;">WRITE</span>
+        <code class="text-xs bg-white/5 px-3 py-1 rounded-md" style="color: rgba(232,230,225,0.45);">POST /api/v1/videos/:id/ratings</code>
+        <span class="text-xs" style="color: rgba(232,230,225,0.35);">~4ms</span>
+        <code class="text-xs" style="color: rgba(13,183,196,0.6);">src/hooks/useApi.ts:198</code>
+      </div>
+
+      <!-- API toggle -->
+      <div id="w-s4-api" class="flex gap-2 mb-4">
+        <button class="api-tab active" onclick="switchApi('w-s4', 'cql', this)">CQL</button>
+        <button class="api-tab"        onclick="switchApi('w-s4', 'dataapi', this)">Data API</button>
+      </div>
+
+      <div class="w-s4-cql">
+        <div class="code-block mb-6">
+<span class="kw">UPDATE</span> <span class="id">video_ratings</span>
+<span class="kw">SET</span>    <span class="id">rating_total</span> = <span class="id">rating_total</span> + <span class="lit">?</span>,
+       <span class="id">rating_count</span> = <span class="id">rating_count</span> + <span class="num">1</span>
+<span class="kw">WHERE</span>  <span class="id">video_id</span> = <span class="lit">?</span>
+        </div>
+      </div>
+
+      <div class="w-s4-dataapi hidden">
+        <div class="code-block mb-6">
+<span class="cm">// Astra Data API — atomic increment</span>
+<span class="kw">await</span> <span class="id">db</span>.<span class="id">collection</span>(<span class="str">"ratings"</span>).<span class="id">updateOne</span>(
+  { <span class="str">"_id"</span>: <span class="str">"550e8400-e29b-41d4-a716-446655440000"</span> },
+  { <span class="str">"$inc"</span>: { <span class="str">"total"</span>: <span class="num">4</span>, <span class="str">"count"</span>: <span class="num">1</span> } }
+);
+
+{
+  <span class="key">"updateOne"</span>: {
+    <span class="key">"filter"</span>: { <span class="key">"_id"</span>: <span class="str">"550e8400-e29b-41d4-a716-446655440000"</span> },
+    <span class="key">"update"</span>: { <span class="key">"$inc"</span>: { <span class="key">"total"</span>: <span class="num">4</span>, <span class="key">"count"</span>: <span class="num">1</span> } }
+  }
+}
+        </div>
+      </div>
+
+      <!-- Schema -->
+      <div class="mb-6">
+        <p class="text-xs font-semibold tracking-widest uppercase mb-3"
+           style="color: rgba(232,230,225,0.3); font-family: 'Inter', sans-serif;">
+          Schema &mdash; video_ratings
+        </p>
+        <table class="w-full text-sm" style="border-collapse: separate; border-spacing: 0 4px;">
+          <tbody>
+            <tr>
+              <td class="pr-4 py-1 font-mono" style="color: rgba(232,230,225,0.75);">video_id</td>
+              <td class="pr-6 py-1 font-mono text-xs" style="color: rgba(232,230,225,0.35);">UUID</td>
+              <td><span class="badge-pk">PK</span></td>
+              <td class="pl-4 text-xs italic" style="color: rgba(232,230,225,0.3); font-family: 'Inter', sans-serif;">One row per video — all ratings roll up here</td>
+            </tr>
+            <tr>
+              <td class="pr-4 py-1 font-mono" style="color: rgba(232,230,225,0.5);">rating_total</td>
+              <td class="pr-6 py-1 font-mono text-xs" style="color: rgba(232,230,225,0.35);">COUNTER</td>
+              <td></td>
+              <td class="pl-4 text-xs italic" style="color: rgba(232,230,225,0.3); font-family: 'Inter', sans-serif;">Cumulative sum of all star values submitted</td>
+            </tr>
+            <tr>
+              <td class="pr-4 py-1 font-mono" style="color: rgba(232,230,225,0.5);">rating_count</td>
+              <td class="pr-6 py-1 font-mono text-xs" style="color: rgba(232,230,225,0.35);">COUNTER</td>
+              <td></td>
+              <td class="pl-4 text-xs italic" style="color: rgba(232,230,225,0.3); font-family: 'Inter', sans-serif;">Number of ratings — average = total ÷ count</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Language tabs -->
+      <div id="w-s4-lang" class="flex flex-wrap gap-2 mb-4">
+        <button class="lang-tab active" onclick="switchLang('w-s4', 'python', this)">Python</button>
+        <button class="lang-tab"        onclick="switchLang('w-s4', 'java',   this)">Java</button>
+        <button class="lang-tab"        onclick="switchLang('w-s4', 'nodejs', this)">Node.js</button>
+        <button class="lang-tab"        onclick="switchLang('w-s4', 'rust',   this)">Rust</button>
+      </div>
+
+      <div class="w-s4-python">
+        <div class="code-block">
+<span class="kw">from</span> <span class="id">uuid</span> <span class="kw">import</span> <span class="id">UUID</span>
+<span class="id">video_id</span> = <span class="id">UUID</span>(<span class="str">"550e8400-e29b-41d4-a716-446655440000"</span>)
+<span class="id">rating</span>   = <span class="num">4</span>
+<span class="id">prepared</span> = <span class="id">session</span>.<span class="id">prepare</span>(
+    <span class="str">"UPDATE video_ratings SET rating_total = rating_total + ?,"</span>
+    <span class="str">" rating_count = rating_count + 1 WHERE video_id = ?"</span>
+)
+<span class="id">session</span>.<span class="id">execute</span>(<span class="id">prepared</span>, (<span class="id">rating</span>, <span class="id">video_id</span>))
+        </div>
+      </div>
+      <div class="w-s4-java hidden">
+        <div class="code-block">
+<span class="id">UUID</span> <span class="id">videoId</span> = <span class="id">UUID</span>.<span class="id">fromString</span>(<span class="str">"550e8400-e29b-41d4-a716-446655440000"</span>);
+<span class="id">int</span>  <span class="id">rating</span>  = <span class="num">4</span>;
+<span class="id">PreparedStatement</span> <span class="id">ps</span> = <span class="id">session</span>.<span class="id">prepare</span>(
+    <span class="str">"UPDATE video_ratings SET rating_total = rating_total + ?,"</span> +
+    <span class="str">" rating_count = rating_count + 1 WHERE video_id = ?"</span>
+);
+<span class="id">session</span>.<span class="id">execute</span>(<span class="id">ps</span>.<span class="id">bind</span>(<span class="id">rating</span>, <span class="id">videoId</span>));
+        </div>
+      </div>
+      <div class="w-s4-nodejs hidden">
+        <div class="code-block">
+<span class="kw">const</span> <span class="id">q</span> = <span class="str">'UPDATE video_ratings SET rating_total = rating_total + ?,'</span> +
+          <span class="str">' rating_count = rating_count + 1 WHERE video_id = ?'</span>;
+<span class="kw">await</span> <span class="id">client</span>.<span class="id">execute</span>(<span class="id">q</span>, [<span class="num">4</span>, <span class="str">'550e8400-e29b-41d4-a716-446655440000'</span>],
+  { <span class="id">prepare</span>: <span class="kw">true</span> });
+        </div>
+      </div>
+      <div class="w-s4-rust hidden">
+        <div class="code-block">
+<span class="kw">let</span> <span class="id">video_id</span> = <span class="id">Uuid</span>::<span class="id">parse_str</span>(<span class="str">"550e8400-e29b-41d4-a716-446655440000"</span>)?;
+<span class="id">session</span>.<span class="id">query</span>(
+    <span class="str">"UPDATE video_ratings SET rating_total = rating_total + ?,"</span>
+    <span class="str">" rating_count = rating_count + 1 WHERE video_id = ?"</span>,
+    (<span class="num">4_i64</span>, <span class="id">video_id</span>),
+).<span class="kw">await</span>?;
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ── Band 5 · Consumer · Comments ──────────────────────────── -->
+  <section id="w-s5" data-band="consumer"
+    class="fade-section py-16 px-6"
+    style="background: #FFFFFF;">
+    <div class="max-w-4xl mx-auto">
+      <h2 class="editorial-heading mb-8" style="font-size: 2rem; color: #1A1A2E;">
+        Comments <span style="font-size: 1.25rem; font-weight: 400; color: #8A8A9A;">(247)</span>
+      </h2>
+
+      <!-- Add comment -->
+      <div class="flex gap-3 mb-8">
+        <div class="w-9 h-9 flex-shrink-0 rounded-full flex items-center justify-center text-white text-sm font-bold"
+          style="background: #0DB7C4; font-family: 'Inter', sans-serif;">Y</div>
+        <input type="text" placeholder="Add a comment…"
+          class="flex-1 pb-2 text-sm focus:outline-none transition-colors"
+          style="border: none; border-bottom: 1px solid #E0DDD9; background: transparent; color: #4A4A5A; font-family: 'Inter', sans-serif;" />
+      </div>
+
+      <!-- Comment list -->
+      <div class="space-y-5">
+        <div class="comment-bubble">
+          <div class="flex items-center gap-2 mb-1">
+            <span class="font-semibold text-sm" style="color: #1A1A2E; font-family: 'Inter', sans-serif;">cassandra_fan92</span>
+            <span class="text-xs" style="color: #8A8A9A; font-family: 'Inter', sans-serif;">3 hours ago</span>
+          </div>
+          <p class="text-sm leading-relaxed" style="color: #4A4A5A; font-family: 'Inter', sans-serif;">
+            The partition-key-as-date-bucket pattern finally clicked for me watching this.
+            I kept thinking of it as a workaround but it's actually the intended design. Great explanation!
+          </p>
+        </div>
+        <div class="comment-bubble">
+          <div class="flex items-center gap-2 mb-1">
+            <span class="font-semibold text-sm" style="color: #1A1A2E; font-family: 'Inter', sans-serif;">distributed_systems_dev</span>
+            <span class="text-xs" style="color: #8A8A9A; font-family: 'Inter', sans-serif;">1 day ago</span>
+          </div>
+          <p class="text-sm leading-relaxed" style="color: #4A4A5A; font-family: 'Inter', sans-serif;">
+            Worth noting that the DataStax Java Driver 4.x is a huge improvement over 3.x in terms of
+            async ergonomics. The reactive streams support is excellent for high-throughput applications.
+          </p>
+        </div>
+        <div class="comment-bubble">
+          <div class="flex items-center gap-2 mb-1">
+            <span class="font-semibold text-sm" style="color: #1A1A2E; font-family: 'Inter', sans-serif;">rusty_backend</span>
+            <span class="text-xs" style="color: #8A8A9A; font-family: 'Inter', sans-serif;">2 days ago</span>
+          </div>
+          <p class="text-sm leading-relaxed" style="color: #4A4A5A; font-family: 'Inter', sans-serif;">
+            The scylla crate works great with Astra DB — used it in production for six months.
+            Compile-time query checking via typed queries is a real safety win.
+          </p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── Band 6 · Dev · Time-Sorted Comments ───────────────────── -->
+  <section id="w-s6" data-band="dev"
+    class="dev-band fade-section py-20 px-6"
+    style="background: #1A1A2E;">
+    <div class="max-w-3xl mx-auto">
+
+      <div class="serif-rule mb-10">Dev Explainer</div>
+
+      <p class="text-xs font-semibold tracking-widest uppercase mb-3"
+         style="color: #0DB7C4; font-family: 'Inter', sans-serif;">
+        Watch Page · Comments Layer
+      </p>
+      <h2 class="editorial-heading-italic mb-5 leading-snug"
+          style="font-size: 2.5rem; color: #E8E6E1;">
+        Time-Sorted Comments
+      </h2>
+      <p class="leading-relaxed mb-2" style="color: #B0AEA8; font-size: 15px; font-family: 'Inter', sans-serif;">
+        Comments must appear in reverse-chronological order — newest first.  In Cassandra this
+        is achieved without an <code style="color: #0DB7C4; font-size: 13px;">ORDER BY</code> in the query:
+        the clustering column <code style="color: #0DB7C4; font-size: 13px;">comment_timestamp DESC</code>
+        means rows are physically stored newest-first on disk.  Reading them in order is
+        a sequential disk scan — Cassandra's fastest I/O pattern.
+      </p>
+      <p class="leading-relaxed mb-8" style="color: #8A8A9A; font-size: 14px; font-family: 'Inter', sans-serif;">
+        The partition key is <code style="color: #0DB7C4; font-size: 13px;">video_id</code> — all comments
+        for a video live in the same partition, so a single read fetches them all with
+        no cross-node coordination.
+      </p>
+
+      <!-- Metadata bar -->
+      <div class="flex flex-wrap items-center gap-3 mb-5">
+        <span class="badge-read text-xs font-bold px-3 py-1 rounded-full" style="font-family: 'Inter', sans-serif;">READ</span>
+        <code class="text-xs bg-white/5 px-3 py-1 rounded-md" style="color: rgba(232,230,225,0.45);">GET /api/v1/videos/:id/comments</code>
+        <span class="text-xs" style="color: rgba(232,230,225,0.35);">~3ms</span>
+        <code class="text-xs" style="color: rgba(13,183,196,0.6);">src/hooks/useApi.ts:124</code>
+      </div>
+
+      <!-- API toggle -->
+      <div id="w-s6-api" class="flex gap-2 mb-4">
+        <button class="api-tab active" onclick="switchApi('w-s6', 'cql', this)">CQL</button>
+        <button class="api-tab"        onclick="switchApi('w-s6', 'dataapi', this)">Data API</button>
+      </div>
+
+      <div class="w-s6-cql">
+        <div class="code-block mb-6">
+<span class="kw">SELECT</span> <span class="id">comment_id</span>, <span class="id">user_id</span>, <span class="id">comment</span>, <span class="id">comment_timestamp</span>
+<span class="kw">FROM</span>   <span class="id">comments_by_video</span>
+<span class="kw">WHERE</span>  <span class="id">video_id</span> = <span class="lit">?</span>
+<span class="kw">ORDER BY</span> <span class="id">comment_timestamp</span> <span class="kw">DESC</span>
+        </div>
+      </div>
+
+      <div class="w-s6-dataapi hidden">
+        <div class="code-block mb-6">
+<span class="cm">// Astra Data API</span>
+<span class="kw">const</span> <span class="id">comments</span> = <span class="kw">await</span> <span class="id">db</span>.<span class="id">collection</span>(<span class="str">"comments"</span>)
+  .<span class="id">find</span>({ <span class="str">"videoId"</span>: <span class="str">"550e8400-e29b-41d4-a716-446655440000"</span> })
+  .<span class="id">sort</span>({ <span class="str">"timestamp"</span>: <span class="num">-1</span> })
+  .<span class="id">toArray</span>();
+
+{
+  <span class="key">"find"</span>: {
+    <span class="key">"filter"</span>: { <span class="key">"videoId"</span>: <span class="str">"550e8400-e29b-41d4-a716-446655440000"</span> },
+    <span class="key">"sort"</span>:   { <span class="key">"timestamp"</span>: <span class="num">-1</span> }
+  }
+}
+        </div>
+      </div>
+
+      <!-- Schema -->
+      <div class="mb-6">
+        <p class="text-xs font-semibold tracking-widest uppercase mb-3"
+           style="color: rgba(232,230,225,0.3); font-family: 'Inter', sans-serif;">
+          Schema &mdash; comments_by_video
+        </p>
+        <table class="w-full text-sm" style="border-collapse: separate; border-spacing: 0 4px;">
+          <tbody>
+            <tr>
+              <td class="pr-4 py-1 font-mono" style="color: rgba(232,230,225,0.75);">video_id</td>
+              <td class="pr-6 py-1 font-mono text-xs" style="color: rgba(232,230,225,0.35);">UUID</td>
+              <td><span class="badge-pk">PK</span></td>
+              <td class="pl-4 text-xs italic" style="color: rgba(232,230,225,0.3); font-family: 'Inter', sans-serif;">All comments for a video co-located on one node</td>
+            </tr>
+            <tr>
+              <td class="pr-4 py-1 font-mono" style="color: rgba(232,230,225,0.75);">comment_timestamp</td>
+              <td class="pr-6 py-1 font-mono text-xs" style="color: rgba(232,230,225,0.35);">TIMESTAMP</td>
+              <td><span class="badge-ck">CK ↓</span></td>
+              <td class="pl-4 text-xs italic" style="color: rgba(232,230,225,0.3); font-family: 'Inter', sans-serif;">Newest-first ordering baked into storage — no sort step needed</td>
+            </tr>
+            <tr><td class="pr-4 py-1 font-mono" style="color: rgba(232,230,225,0.5);">comment_id</td><td class="font-mono text-xs" style="color: rgba(232,230,225,0.25);">UUID</td><td></td><td></td></tr>
+            <tr><td class="pr-4 py-1 font-mono" style="color: rgba(232,230,225,0.5);">user_id</td><td class="font-mono text-xs" style="color: rgba(232,230,225,0.25);">UUID</td><td></td><td></td></tr>
+            <tr><td class="pr-4 py-1 font-mono" style="color: rgba(232,230,225,0.5);">comment</td><td class="font-mono text-xs" style="color: rgba(232,230,225,0.25);">TEXT</td><td></td><td></td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Language tabs -->
+      <div id="w-s6-lang" class="flex flex-wrap gap-2 mb-4">
+        <button class="lang-tab active" onclick="switchLang('w-s6', 'python', this)">Python</button>
+        <button class="lang-tab"        onclick="switchLang('w-s6', 'java',   this)">Java</button>
+        <button class="lang-tab"        onclick="switchLang('w-s6', 'nodejs', this)">Node.js</button>
+        <button class="lang-tab"        onclick="switchLang('w-s6', 'rust',   this)">Rust</button>
+      </div>
+
+      <div class="w-s6-python">
+        <div class="code-block">
+<span class="kw">from</span> <span class="id">uuid</span> <span class="kw">import</span> <span class="id">UUID</span>
+<span class="id">video_id</span> = <span class="id">UUID</span>(<span class="str">"550e8400-e29b-41d4-a716-446655440000"</span>)
+<span class="id">prepared</span> = <span class="id">session</span>.<span class="id">prepare</span>(
+    <span class="str">"SELECT comment_id, user_id, comment, comment_timestamp"</span>
+    <span class="str">" FROM comments_by_video WHERE video_id = ? ORDER BY comment_timestamp DESC"</span>
+)
+<span class="id">rows</span> = <span class="id">session</span>.<span class="id">execute</span>(<span class="id">prepared</span>, [<span class="id">video_id</span>])
+<span class="kw">for</span> <span class="id">row</span> <span class="kw">in</span> <span class="id">rows</span>:
+    <span class="id">print</span>(<span class="id">row</span>.<span class="id">comment</span>)
+        </div>
+      </div>
+      <div class="w-s6-java hidden">
+        <div class="code-block">
+<span class="id">UUID</span> <span class="id">videoId</span> = <span class="id">UUID</span>.<span class="id">fromString</span>(<span class="str">"550e8400-e29b-41d4-a716-446655440000"</span>);
+<span class="id">PreparedStatement</span> <span class="id">ps</span> = <span class="id">session</span>.<span class="id">prepare</span>(
+    <span class="str">"SELECT comment_id, user_id, comment, comment_timestamp"</span> +
+    <span class="str">" FROM comments_by_video WHERE video_id = ? ORDER BY comment_timestamp DESC"</span>
+);
+<span class="id">session</span>.<span class="id">execute</span>(<span class="id">ps</span>.<span class="id">bind</span>(<span class="id">videoId</span>))
+       .<span class="id">forEach</span>(<span class="id">r</span> -&gt; <span class="id">System</span>.<span class="id">out</span>.<span class="id">println</span>(<span class="id">r</span>.<span class="id">getString</span>(<span class="str">"comment"</span>)));
+        </div>
+      </div>
+      <div class="w-s6-nodejs hidden">
+        <div class="code-block">
+<span class="kw">const</span> <span class="id">q</span> =
+  <span class="str">'SELECT comment_id, user_id, comment, comment_timestamp'</span> +
+  <span class="str">' FROM comments_by_video WHERE video_id = ? ORDER BY comment_timestamp DESC'</span>;
+<span class="kw">const</span> { <span class="id">rows</span> } = <span class="kw">await</span> <span class="id">client</span>.<span class="id">execute</span>(<span class="id">q</span>,
+  [<span class="str">'550e8400-e29b-41d4-a716-446655440000'</span>], { <span class="id">prepare</span>: <span class="kw">true</span> });
+<span class="id">rows</span>.<span class="id">forEach</span>(<span class="id">r</span> =&gt; <span class="id">console</span>.<span class="id">log</span>(<span class="id">r</span>[<span class="str">'comment'</span>]));
+        </div>
+      </div>
+      <div class="w-s6-rust hidden">
+        <div class="code-block">
+<span class="kw">let</span> <span class="id">video_id</span> = <span class="id">Uuid</span>::<span class="id">parse_str</span>(<span class="str">"550e8400-e29b-41d4-a716-446655440000"</span>)?;
+<span class="kw">let</span> <span class="id">rows</span> = <span class="id">session</span>
+    .<span class="id">query</span>(
+        <span class="str">"SELECT comment_id, user_id, comment, comment_timestamp"</span>
+        <span class="str">" FROM comments_by_video WHERE video_id = ? ORDER BY comment_timestamp DESC"</span>,
+        (<span class="id">video_id</span>,),
+    )
+    .<span class="kw">await</span>?
+    .<span class="id">rows_typed</span>::&lt;(<span class="id">Uuid</span>, <span class="id">Uuid</span>, <span class="id">String</span>, <span class="id">Duration</span>)&gt;()?;
+<span class="kw">for</span> <span class="id">row</span> <span class="kw">in</span> <span class="id">rows</span> {
+    <span class="kw">let</span> (<span class="id">_id</span>, <span class="id">_uid</span>, <span class="id">comment</span>, <span class="id">_ts</span>) = <span class="id">row</span>?;
+    <span class="id">println!</span>(<span class="str">"{comment}"</span>);
+}
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+</div><!-- /page-watch -->
+
+
+<!-- ═══════════════════════════════════════════════════════════════
+     FOOTER
+═══════════════════════════════════════════════════════════════ -->
+<footer class="border-t py-8 px-6" style="background: #1A1A2E; border-color: rgba(232,230,225,0.07);">
+  <div class="max-w-5xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-3">
+    <div class="flex items-center gap-3">
+      <a href="index.html" class="text-xs transition-colors"
+         style="color: rgba(232,230,225,0.28); font-family: 'Inter', sans-serif;"
+         onmouseover="this.style.color='rgba(232,230,225,0.6)'" onmouseout="this.style.color='rgba(232,230,225,0.28)'">
+        &larr; All Prototypes
+      </a>
+      <span style="color: rgba(232,230,225,0.14);">|</span>
+      <span class="text-xs" style="color: rgba(232,230,225,0.18); font-family: 'Inter', sans-serif;">05 — Narrative Scroll</span>
+    </div>
+    <span class="text-xs" style="color: rgba(232,230,225,0.18); font-family: 'Inter', sans-serif;">Design exploration — not production code</span>
+  </div>
+</footer>
+
+
+<!-- ═══════════════════════════════════════════════════════════════
+     JAVASCRIPT
+═══════════════════════════════════════════════════════════════ -->
+<script>
+// ─────────────────────────────────────────────────────────────────
+// State
+// ─────────────────────────────────────────────────────────────────
+let currentPage    = 'home';
+let learningMode   = true;
+let currentSection = null;
+
+// ─────────────────────────────────────────────────────────────────
+// Header scroll effect
+// ─────────────────────────────────────────────────────────────────
+window.addEventListener('scroll', () => {
+  const header = document.getElementById('site-header');
+  if (window.scrollY > 60) {
+    header.classList.add('scrolled');
+  } else {
+    header.classList.remove('scrolled');
+  }
+  updateScrollspy();
+}, { passive: true });
+
+// Force initial scroll class (page starts scrolled if returning)
+document.getElementById('site-header').style.background = 'transparent';
+
+// ─────────────────────────────────────────────────────────────────
+// Page toggle (Home / Watch)
+// ─────────────────────────────────────────────────────────────────
+function switchPage(page) {
+  currentPage = page;
+
+  document.querySelectorAll('.page-view').forEach(el => el.classList.remove('active'));
+  document.getElementById('page-' + page).classList.add('active');
+
+  document.querySelectorAll('.page-tab').forEach(btn => {
+    btn.style.background = 'transparent';
+    btn.style.color = 'rgba(255,255,255,0.6)';
+  });
+  const activeTab = document.getElementById('tab-' + page);
+  activeTab.style.background = 'rgba(255,255,255,0.15)';
+  activeTab.style.color = '#fff';
+
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+  buildScrollspy();
+  // Trigger fade-in for newly visible sections
+  setTimeout(checkFade, 50);
+}
+
+// ─────────────────────────────────────────────────────────────────
+// Learning Mode toggle
+// ─────────────────────────────────────────────────────────────────
+function toggleLearning() {
+  learningMode = !learningMode;
+  const toggle = document.getElementById('learning-toggle');
+  if (learningMode) {
+    toggle.classList.add('on');
+  } else {
+    toggle.classList.remove('on');
+  }
+  applyLearningMode();
+  buildScrollspy();
+}
+
+function applyLearningMode() {
+  // Only act on visible page
+  const pageEl = document.getElementById('page-' + currentPage);
+  pageEl.querySelectorAll('.dev-band').forEach(band => {
+    if (learningMode) {
+      band.classList.remove('hidden-band');
+    } else {
+      band.classList.add('hidden-band');
+    }
+  });
+}
+
+// ─────────────────────────────────────────────────────────────────
+// Scrollspy
+// ─────────────────────────────────────────────────────────────────
+function buildScrollspy() {
+  const spy = document.getElementById('scrollspy');
+  spy.innerHTML = '';
+
+  const pageEl = document.getElementById('page-' + currentPage);
+  const sections = Array.from(pageEl.querySelectorAll('section[id]')).filter(s => {
+    // Skip hidden dev bands
+    if (!learningMode && s.classList.contains('dev-band')) return false;
+    return true;
+  });
+
+  sections.forEach((sec, i) => {
+    const dot = document.createElement('div');
+    const isCons = sec.dataset.band === 'consumer';
+    dot.className = 'spy-dot ' + (isCons ? 'consumer' : 'dev');
+    dot.title = sec.querySelector('h1,h2')?.textContent?.trim() || ('Section ' + (i+1));
+    dot.addEventListener('click', () => {
+      sec.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    });
+    dot.dataset.sectionId = sec.id;
+    spy.appendChild(dot);
+  });
+
+  updateScrollspy();
+}
+
+function updateScrollspy() {
+  const pageEl = document.getElementById('page-' + currentPage);
+  const sections = Array.from(pageEl.querySelectorAll('section[id]')).filter(s => {
+    if (!learningMode && s.classList.contains('dev-band')) return false;
+    return true;
+  });
+
+  let active = sections[0];
+  const mid = window.scrollY + window.innerHeight * 0.4;
+  for (const sec of sections) {
+    const rect = sec.getBoundingClientRect();
+    const top = rect.top + window.scrollY;
+    if (top <= mid) active = sec;
+  }
+
+  document.querySelectorAll('.spy-dot').forEach(dot => {
+    dot.classList.toggle('active', dot.dataset.sectionId === (active?.id || ''));
+  });
+}
+
+// ─────────────────────────────────────────────────────────────────
+// API toggle (CQL / Data API) — per dev band
+// ─────────────────────────────────────────────────────────────────
+function switchApi(bandId, mode, btn) {
+  // Toggle button styles
+  btn.closest('[id$="-api"]').querySelectorAll('.api-tab').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+
+  // Show/hide content
+  const band = document.getElementById(bandId + '-api').closest('section');
+  band.querySelectorAll('[class*="' + bandId + '-cql"], [class*="' + bandId + '-dataapi"]').forEach(el => {
+    el.classList.add('hidden');
+  });
+  band.querySelectorAll('.' + bandId + '-' + mode).forEach(el => {
+    el.classList.remove('hidden');
+  });
+}
+
+// ─────────────────────────────────────────────────────────────────
+// Language tabs — per dev band
+// ─────────────────────────────────────────────────────────────────
+function switchLang(bandId, lang, btn) {
+  btn.closest('[id$="-lang"]').querySelectorAll('.lang-tab').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+
+  const band = document.getElementById(bandId + '-lang').closest('section');
+  ['python','java','nodejs','rust'].forEach(l => {
+    band.querySelectorAll('.' + bandId + '-' + l).forEach(el => {
+      el.classList.toggle('hidden', l !== lang);
+    });
+  });
+}
+
+// ─────────────────────────────────────────────────────────────────
+// Star rating
+// ─────────────────────────────────────────────────────────────────
+let currentRating = 3;
+
+function setRating(n) {
+  currentRating = n;
+  const stars = document.querySelectorAll('#star-container .star');
+  stars.forEach((s, i) => {
+    if (i < n) {
+      s.classList.remove('empty');
+    } else {
+      s.classList.add('empty');
+    }
+  });
+}
+
+document.querySelectorAll('#star-container .star').forEach((s, i) => {
+  s.addEventListener('mouseover', () => {
+    document.querySelectorAll('#star-container .star').forEach((st, j) => {
+      st.style.color = j <= i ? '#FFCA0B' : '#D4CFC8';
+    });
+  });
+  s.addEventListener('mouseleave', () => {
+    setRating(currentRating);
+  });
+});
+
+// ─────────────────────────────────────────────────────────────────
+// Fade-in on scroll (Intersection Observer)
+// ─────────────────────────────────────────────────────────────────
+function checkFade() {
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        entry.target.classList.add('visible');
+        observer.unobserve(entry.target);
+      }
+    });
+  }, { threshold: 0.08 });
+
+  document.querySelectorAll('.fade-section').forEach(el => {
+    if (!el.classList.contains('visible')) observer.observe(el);
+  });
+}
+
+// ─────────────────────────────────────────────────────────────────
+// Init
+// ─────────────────────────────────────────────────────────────────
+(function init() {
+  // Set initial page tab highlight
+  switchPage('home');
+  checkFade();
+})();
+</script>
+
+</body>
+</html>

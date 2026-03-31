@@ -8,7 +8,6 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useLogin, useRegister } from '@/hooks/useApi';
 import { useAuth } from '@/hooks/useAuth';
 import { toast } from 'sonner';
-import { EducationalTooltip } from '@/components/educational/EducationalTooltip';
 
 export default function Auth() {
   const { user } = useAuth();
@@ -66,12 +65,8 @@ export default function Auth() {
         <CardContent>
           <Tabs defaultValue="login" className="w-full">
             <TabsList className="grid w-full grid-cols-2">
-              <EducationalTooltip id="login-credential-lookup" side="top">
-                <TabsTrigger value="login">Login</TabsTrigger>
-              </EducationalTooltip>
-              <EducationalTooltip id="registration-dual-table" side="top">
-                <TabsTrigger value="register">Register</TabsTrigger>
-              </EducationalTooltip>
+              <TabsTrigger value="login">Login</TabsTrigger>
+              <TabsTrigger value="register">Register</TabsTrigger>
             </TabsList>
             
             <TabsContent value="login">

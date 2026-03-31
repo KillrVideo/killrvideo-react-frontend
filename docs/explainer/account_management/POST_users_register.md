@@ -125,17 +125,6 @@ CREATE TABLE killrvideo.user_credentials (
 
 **Service Function**: `app/services/user_service.py:53`
 
-```python
-async def get_user_by_email_from_credentials_table(email: str):
-    table = await get_table("user_credentials")
-    return await table.find_one(filter={"email": email})
-```
-
-**Equivalent CQL**:
-```cql
-SELECT * FROM killrvideo.user_credentials WHERE email = 'john.doe@example.com';
-```
-
 **Performance**: **O(1)** - Direct partition key lookup, extremely fast
 
 **Why this works**:
@@ -143,77 +132,857 @@ SELECT * FROM killrvideo.user_credentials WHERE email = 'john.doe@example.com';
 - Cassandra knows exactly which node has this data
 - No table scan required
 
+#### CQL
+
+```cql
+SELECT * FROM killrvideo.user_credentials WHERE email = ?;
+```
+
+#### Data API (astrapy Collection)
+
+```python
+result = await collection.find_one(filter={"email": "john.doe@example.com"})
+```
+
+#### Table API (astrapy Table)
+
+```python
+result = await table.find_one(filter={"email": "john.doe@example.com"})
+```
+
+#### Driver Examples
+
+<details>
+<summary>Python (cassandra-driver)</summary>
+
+```python
+from cassandra.cluster import Cluster
+
+cluster = Cluster(["127.0.0.1"])
+session = cluster.connect("killrvideo")
+
+prepared = session.prepare(
+    "SELECT * FROM user_credentials WHERE email = ?"
+)
+result = session.execute(prepared, ["john.doe@example.com"])
+row = result.one()
+```
+
+</details>
+
+<details>
+<summary>Python (astrapy 2.x - Data API)</summary>
+
+```python
+from astrapy import DataAPIClient
+
+client = DataAPIClient(token)
+db = client.get_database_by_api_endpoint(endpoint)
+collection = db.get_collection("user_credentials")
+
+result = await collection.find_one(filter={"email": "john.doe@example.com"})
+```
+
+</details>
+
+<details>
+<summary>Python (astrapy 2.x - Table API)</summary>
+
+```python
+from astrapy import DataAPIClient
+
+client = DataAPIClient(token)
+db = client.get_database_by_api_endpoint(endpoint)
+table = db.get_table("user_credentials")
+
+result = await table.find_one(filter={"email": "john.doe@example.com"})
+```
+
+</details>
+
+<details>
+<summary>Node.js (cassandra-driver)</summary>
+
+```javascript
+const cassandra = require("cassandra-driver");
+
+const client = new cassandra.Client({
+  contactPoints: ["127.0.0.1"],
+  localDataCenter: "datacenter1",
+  keyspace: "killrvideo",
+});
+
+const query = "SELECT * FROM user_credentials WHERE email = ?";
+const result = await client.execute(query, ["john.doe@example.com"], {
+  prepare: true,
+});
+const row = result.first();
+```
+
+</details>
+
+<details>
+<summary>Node.js (@datastax/astra-db-ts 2.x - Data API)</summary>
+
+```typescript
+import { DataAPIClient } from "@datastax/astra-db-ts";
+
+const client = new DataAPIClient(token);
+const db = client.db(endpoint);
+const collection = db.collection("user_credentials");
+
+const result = await collection.findOne({ email: "john.doe@example.com" });
+```
+
+</details>
+
+<details>
+<summary>Node.js (@datastax/astra-db-ts 2.x - Table API)</summary>
+
+```typescript
+import { DataAPIClient } from "@datastax/astra-db-ts";
+
+const client = new DataAPIClient(token);
+const db = client.db(endpoint);
+const table = db.table("user_credentials");
+
+const result = await table.findOne({ email: "john.doe@example.com" });
+```
+
+</details>
+
+<details>
+<summary>Java (java-driver-core 4.x)</summary>
+
+```java
+import com.datastax.oss.driver.api.core.CqlSession;
+import com.datastax.oss.driver.api.core.cql.*;
+
+CqlSession session = CqlSession.builder()
+    .withKeyspace("killrvideo")
+    .build();
+
+PreparedStatement prepared = session.prepare(
+    "SELECT * FROM user_credentials WHERE email = ?"
+);
+BoundStatement bound = prepared.bind("john.doe@example.com");
+Row row = session.execute(bound).one();
+```
+
+</details>
+
+<details>
+<summary>Java (astra-db-java 2.x - Data API)</summary>
+
+```java
+import com.datastax.astra.client.DataAPIClient;
+import com.datastax.astra.client.Collection;
+
+DataAPIClient client = new DataAPIClient(token);
+var db = client.getDatabase(endpoint);
+Collection<Document> collection = db.getCollection("user_credentials");
+
+Optional<Document> result = collection.findOne(
+    eq("email", "john.doe@example.com")
+);
+```
+
+</details>
+
+<details>
+<summary>Java (astra-db-java 2.x - Table API)</summary>
+
+```java
+import com.datastax.astra.client.DataAPIClient;
+import com.datastax.astra.client.tables.Table;
+
+DataAPIClient client = new DataAPIClient(token);
+var db = client.getDatabase(endpoint);
+Table<Row> table = db.getTable("user_credentials");
+
+Optional<Row> result = table.findOne(
+    eq("email", "john.doe@example.com")
+);
+```
+
+</details>
+
+<details>
+<summary>C# (CassandraCSharpDriver 3.x)</summary>
+
+```csharp
+using Cassandra;
+
+var cluster = Cluster.Builder()
+    .AddContactPoint("127.0.0.1")
+    .Build();
+var session = cluster.Connect("killrvideo");
+
+var prepared = session.Prepare(
+    "SELECT * FROM user_credentials WHERE email = ?"
+);
+var bound = prepared.Bind("john.doe@example.com");
+var row = session.Execute(bound).FirstOrDefault();
+```
+
+> **Note**: C# does not have a Data API or Table API client. Use CQL for direct access, or call the Data API via REST/HTTP.
+
+</details>
+
+<details>
+<summary>Go (gocql v2)</summary>
+
+```go
+package main
+
+import "github.com/gocql/gocql"
+
+cluster := gocql.NewCluster("127.0.0.1")
+cluster.Keyspace = "killrvideo"
+session, _ := cluster.CreateSession()
+defer session.Close()
+
+var email, password string
+var userid gocql.UUID
+var accountLocked bool
+
+err := session.Query(
+    "SELECT * FROM user_credentials WHERE email = ?",
+    "john.doe@example.com",
+).Scan(&email, &password, &userid, &accountLocked)
+```
+
+> **Note**: Go does not have a Data API or Table API client. Use CQL for direct access, or call the Data API via REST/HTTP.
+
+</details>
+
+---
+
 ### 2. Insert New User Profile
 
 **Service Function**: `app/services/user_service.py:118`
 
-```python
-async def create_user_in_table(user_in: UserCreateRequest):
-    users_table = await get_table("users")
+**Performance**: **O(1)** - Single partition write
 
-    user_id = uuid4()  # Generate unique UUID
-    creation_date = datetime.now(timezone.utc)
+#### CQL
 
-    user_document = {
-        "userid": str(user_id),          # Converted to string for Data API
-        "firstname": user_in.firstname,
-        "lastname": user_in.lastname,
-        "email": user_in.email,
-        "created_date": creation_date.isoformat(),  # ISO-8601 format
-        "account_status": "active",
-        "last_login_date": None
-    }
-
-    await users_table.insert_one(document=user_document)
-```
-
-**Equivalent CQL**:
 ```cql
 INSERT INTO killrvideo.users (
     userid, firstname, lastname, email, created_date, account_status, last_login_date
-) VALUES (
-    550e8400-e29b-41d4-a716-446655440000,
-    'John',
-    'Doe',
-    'john.doe@example.com',
-    '2025-10-31T10:30:00Z',
-    'active',
-    null
+) VALUES (?, ?, ?, ?, ?, ?, ?);
+```
+
+#### Data API (astrapy Collection)
+
+```python
+await collection.insert_one({
+    "userid": "550e8400-e29b-41d4-a716-446655440000",
+    "firstname": "John",
+    "lastname": "Doe",
+    "email": "john.doe@example.com",
+    "created_date": "2025-10-31T10:30:00Z",
+    "account_status": "active",
+    "last_login_date": None
+})
+```
+
+#### Table API (astrapy Table)
+
+```python
+await table.insert_one({
+    "userid": "550e8400-e29b-41d4-a716-446655440000",
+    "firstname": "John",
+    "lastname": "Doe",
+    "email": "john.doe@example.com",
+    "created_date": "2025-10-31T10:30:00Z",
+    "account_status": "active",
+    "last_login_date": None
+})
+```
+
+#### Driver Examples
+
+<details>
+<summary>Python (cassandra-driver)</summary>
+
+```python
+from cassandra.cluster import Cluster
+from uuid import uuid4
+from datetime import datetime, timezone
+
+cluster = Cluster(["127.0.0.1"])
+session = cluster.connect("killrvideo")
+
+prepared = session.prepare("""
+    INSERT INTO users (userid, firstname, lastname, email,
+                       created_date, account_status, last_login_date)
+    VALUES (?, ?, ?, ?, ?, ?, ?)
+""")
+
+user_id = uuid4()
+session.execute(prepared, [
+    user_id, "John", "Doe", "john.doe@example.com",
+    datetime.now(timezone.utc), "active", None
+])
+```
+
+</details>
+
+<details>
+<summary>Python (astrapy 2.x - Data API)</summary>
+
+```python
+from astrapy import DataAPIClient
+from uuid import uuid4
+from datetime import datetime, timezone
+
+client = DataAPIClient(token)
+db = client.get_database_by_api_endpoint(endpoint)
+collection = db.get_collection("users")
+
+user_id = uuid4()
+await collection.insert_one({
+    "userid": str(user_id),
+    "firstname": "John",
+    "lastname": "Doe",
+    "email": "john.doe@example.com",
+    "created_date": datetime.now(timezone.utc).isoformat(),
+    "account_status": "active",
+    "last_login_date": None
+})
+```
+
+</details>
+
+<details>
+<summary>Python (astrapy 2.x - Table API)</summary>
+
+```python
+from astrapy import DataAPIClient
+from uuid import uuid4
+from datetime import datetime, timezone
+
+client = DataAPIClient(token)
+db = client.get_database_by_api_endpoint(endpoint)
+table = db.get_table("users")
+
+user_id = uuid4()
+await table.insert_one({
+    "userid": str(user_id),
+    "firstname": "John",
+    "lastname": "Doe",
+    "email": "john.doe@example.com",
+    "created_date": datetime.now(timezone.utc).isoformat(),
+    "account_status": "active",
+    "last_login_date": None
+})
+```
+
+</details>
+
+<details>
+<summary>Node.js (cassandra-driver)</summary>
+
+```javascript
+const cassandra = require("cassandra-driver");
+const { v4: uuidv4 } = require("uuid");
+
+const client = new cassandra.Client({
+  contactPoints: ["127.0.0.1"],
+  localDataCenter: "datacenter1",
+  keyspace: "killrvideo",
+});
+
+const query = `INSERT INTO users (userid, firstname, lastname, email,
+               created_date, account_status, last_login_date)
+               VALUES (?, ?, ?, ?, ?, ?, ?)`;
+
+const userId = cassandra.types.Uuid.random();
+await client.execute(
+  query,
+  [userId, "John", "Doe", "john.doe@example.com", new Date(), "active", null],
+  { prepare: true }
 );
 ```
 
-**Performance**: **O(1)** - Single partition write
+</details>
+
+<details>
+<summary>Node.js (@datastax/astra-db-ts 2.x - Data API)</summary>
+
+```typescript
+import { DataAPIClient } from "@datastax/astra-db-ts";
+import { v4 as uuidv4 } from "uuid";
+
+const client = new DataAPIClient(token);
+const db = client.db(endpoint);
+const collection = db.collection("users");
+
+await collection.insertOne({
+  userid: uuidv4(),
+  firstname: "John",
+  lastname: "Doe",
+  email: "john.doe@example.com",
+  created_date: new Date().toISOString(),
+  account_status: "active",
+  last_login_date: null,
+});
+```
+
+</details>
+
+<details>
+<summary>Node.js (@datastax/astra-db-ts 2.x - Table API)</summary>
+
+```typescript
+import { DataAPIClient } from "@datastax/astra-db-ts";
+import { v4 as uuidv4 } from "uuid";
+
+const client = new DataAPIClient(token);
+const db = client.db(endpoint);
+const table = db.table("users");
+
+await table.insertOne({
+  userid: uuidv4(),
+  firstname: "John",
+  lastname: "Doe",
+  email: "john.doe@example.com",
+  created_date: new Date().toISOString(),
+  account_status: "active",
+  last_login_date: null,
+});
+```
+
+</details>
+
+<details>
+<summary>Java (java-driver-core 4.x)</summary>
+
+```java
+import com.datastax.oss.driver.api.core.CqlSession;
+import com.datastax.oss.driver.api.core.cql.*;
+import com.datastax.oss.driver.api.core.uuid.Uuids;
+import java.time.Instant;
+
+CqlSession session = CqlSession.builder()
+    .withKeyspace("killrvideo")
+    .build();
+
+PreparedStatement prepared = session.prepare(
+    "INSERT INTO users (userid, firstname, lastname, email, " +
+    "created_date, account_status, last_login_date) " +
+    "VALUES (?, ?, ?, ?, ?, ?, ?)"
+);
+
+UUID userId = Uuids.random();
+BoundStatement bound = prepared.bind(
+    userId, "John", "Doe", "john.doe@example.com",
+    Instant.now(), "active", null
+);
+session.execute(bound);
+```
+
+</details>
+
+<details>
+<summary>Java (astra-db-java 2.x - Data API)</summary>
+
+```java
+import com.datastax.astra.client.DataAPIClient;
+import com.datastax.astra.client.Collection;
+import com.datastax.astra.client.model.Document;
+
+DataAPIClient client = new DataAPIClient(token);
+var db = client.getDatabase(endpoint);
+Collection<Document> collection = db.getCollection("users");
+
+Document doc = new Document()
+    .append("userid", UUID.randomUUID().toString())
+    .append("firstname", "John")
+    .append("lastname", "Doe")
+    .append("email", "john.doe@example.com")
+    .append("created_date", Instant.now().toString())
+    .append("account_status", "active")
+    .append("last_login_date", null);
+
+collection.insertOne(doc);
+```
+
+</details>
+
+<details>
+<summary>Java (astra-db-java 2.x - Table API)</summary>
+
+```java
+import com.datastax.astra.client.DataAPIClient;
+import com.datastax.astra.client.tables.Table;
+import com.datastax.astra.client.tables.row.Row;
+
+DataAPIClient client = new DataAPIClient(token);
+var db = client.getDatabase(endpoint);
+Table<Row> table = db.getTable("users");
+
+Row row = new Row()
+    .add("userid", UUID.randomUUID().toString())
+    .add("firstname", "John")
+    .add("lastname", "Doe")
+    .add("email", "john.doe@example.com")
+    .add("created_date", Instant.now().toString())
+    .add("account_status", "active")
+    .add("last_login_date", null);
+
+table.insertOne(row);
+```
+
+</details>
+
+<details>
+<summary>C# (CassandraCSharpDriver 3.x)</summary>
+
+```csharp
+using Cassandra;
+using System;
+
+var cluster = Cluster.Builder()
+    .AddContactPoint("127.0.0.1")
+    .Build();
+var session = cluster.Connect("killrvideo");
+
+var prepared = session.Prepare(
+    "INSERT INTO users (userid, firstname, lastname, email, " +
+    "created_date, account_status, last_login_date) " +
+    "VALUES (?, ?, ?, ?, ?, ?, ?)"
+);
+
+var userId = Guid.NewGuid();
+var bound = prepared.Bind(
+    userId, "John", "Doe", "john.doe@example.com",
+    DateTimeOffset.UtcNow, "active", null
+);
+session.Execute(bound);
+```
+
+> **Note**: C# does not have a Data API or Table API client. Use CQL for direct access, or call the Data API via REST/HTTP.
+
+</details>
+
+<details>
+<summary>Go (gocql v2)</summary>
+
+```go
+package main
+
+import (
+    "github.com/gocql/gocql"
+    "time"
+)
+
+cluster := gocql.NewCluster("127.0.0.1")
+cluster.Keyspace = "killrvideo"
+session, _ := cluster.CreateSession()
+defer session.Close()
+
+userId := gocql.TimeUUID()
+
+err := session.Query(
+    `INSERT INTO users (userid, firstname, lastname, email,
+     created_date, account_status, last_login_date)
+     VALUES (?, ?, ?, ?, ?, ?, ?)`,
+    userId, "John", "Doe", "john.doe@example.com",
+    time.Now().UTC(), "active", nil,
+).Exec()
+```
+
+> **Note**: Go does not have a Data API or Table API client. Use CQL for direct access, or call the Data API via REST/HTTP.
+
+</details>
+
+---
 
 ### 3. Insert Credentials Record
 
 **Service Function**: `app/services/user_service.py:119`
 
-```python
-hashed_password = get_password_hash(user_in.password)  # Bcrypt hash
+**Performance**: **O(1)** - Single partition write
 
-credentials_document = {
-    "email": user_in.email,
+#### CQL
+
+```cql
+INSERT INTO killrvideo.user_credentials (email, password, userid, account_locked)
+VALUES (?, ?, ?, ?);
+```
+
+#### Data API (astrapy Collection)
+
+```python
+await collection.insert_one({
+    "email": "john.doe@example.com",
+    "password": "$2b$12$KIXvBxNYz8rN3qF.xJ7zPO...",
+    "userid": "550e8400-e29b-41d4-a716-446655440000",
+    "account_locked": False
+})
+```
+
+#### Table API (astrapy Table)
+
+```python
+await table.insert_one({
+    "email": "john.doe@example.com",
+    "password": "$2b$12$KIXvBxNYz8rN3qF.xJ7zPO...",
+    "userid": "550e8400-e29b-41d4-a716-446655440000",
+    "account_locked": False
+})
+```
+
+#### Driver Examples
+
+<details>
+<summary>Python (cassandra-driver)</summary>
+
+```python
+from cassandra.cluster import Cluster
+
+cluster = Cluster(["127.0.0.1"])
+session = cluster.connect("killrvideo")
+
+prepared = session.prepare(
+    "INSERT INTO user_credentials (email, password, userid, account_locked) "
+    "VALUES (?, ?, ?, ?)"
+)
+
+session.execute(prepared, [
+    "john.doe@example.com",
+    hashed_password,  # bcrypt hash
+    user_id,          # UUID from step 2
+    False
+])
+```
+
+</details>
+
+<details>
+<summary>Python (astrapy 2.x - Data API)</summary>
+
+```python
+from astrapy import DataAPIClient
+
+client = DataAPIClient(token)
+db = client.get_database_by_api_endpoint(endpoint)
+collection = db.get_collection("user_credentials")
+
+await collection.insert_one({
+    "email": "john.doe@example.com",
     "password": hashed_password,
     "userid": str(user_id),
     "account_locked": False
-}
-
-await credentials_table.insert_one(document=credentials_document)
+})
 ```
 
-**Equivalent CQL**:
-```cql
-INSERT INTO killrvideo.user_credentials (
-    email, password, userid, account_locked
-) VALUES (
-    'john.doe@example.com',
-    '$2b$12$KIXvBxNYz8rN3qF.xJ7zPO...',  -- bcrypt hash
-    550e8400-e29b-41d4-a716-446655440000,
-    false
+</details>
+
+<details>
+<summary>Python (astrapy 2.x - Table API)</summary>
+
+```python
+from astrapy import DataAPIClient
+
+client = DataAPIClient(token)
+db = client.get_database_by_api_endpoint(endpoint)
+table = db.get_table("user_credentials")
+
+await table.insert_one({
+    "email": "john.doe@example.com",
+    "password": hashed_password,
+    "userid": str(user_id),
+    "account_locked": False
+})
+```
+
+</details>
+
+<details>
+<summary>Node.js (cassandra-driver)</summary>
+
+```javascript
+const cassandra = require("cassandra-driver");
+
+const client = new cassandra.Client({
+  contactPoints: ["127.0.0.1"],
+  localDataCenter: "datacenter1",
+  keyspace: "killrvideo",
+});
+
+const query =
+  "INSERT INTO user_credentials (email, password, userid, account_locked) VALUES (?, ?, ?, ?)";
+
+await client.execute(
+  query,
+  ["john.doe@example.com", hashedPassword, userId, false],
+  { prepare: true }
 );
 ```
 
-**Performance**: **O(1)** - Single partition write
+</details>
+
+<details>
+<summary>Node.js (@datastax/astra-db-ts 2.x - Data API)</summary>
+
+```typescript
+import { DataAPIClient } from "@datastax/astra-db-ts";
+
+const client = new DataAPIClient(token);
+const db = client.db(endpoint);
+const collection = db.collection("user_credentials");
+
+await collection.insertOne({
+  email: "john.doe@example.com",
+  password: hashedPassword,
+  userid: userId,
+  account_locked: false,
+});
+```
+
+</details>
+
+<details>
+<summary>Node.js (@datastax/astra-db-ts 2.x - Table API)</summary>
+
+```typescript
+import { DataAPIClient } from "@datastax/astra-db-ts";
+
+const client = new DataAPIClient(token);
+const db = client.db(endpoint);
+const table = db.table("user_credentials");
+
+await table.insertOne({
+  email: "john.doe@example.com",
+  password: hashedPassword,
+  userid: userId,
+  account_locked: false,
+});
+```
+
+</details>
+
+<details>
+<summary>Java (java-driver-core 4.x)</summary>
+
+```java
+import com.datastax.oss.driver.api.core.CqlSession;
+import com.datastax.oss.driver.api.core.cql.*;
+
+CqlSession session = CqlSession.builder()
+    .withKeyspace("killrvideo")
+    .build();
+
+PreparedStatement prepared = session.prepare(
+    "INSERT INTO user_credentials (email, password, userid, account_locked) " +
+    "VALUES (?, ?, ?, ?)"
+);
+
+BoundStatement bound = prepared.bind(
+    "john.doe@example.com", hashedPassword, userId, false
+);
+session.execute(bound);
+```
+
+</details>
+
+<details>
+<summary>Java (astra-db-java 2.x - Data API)</summary>
+
+```java
+import com.datastax.astra.client.DataAPIClient;
+import com.datastax.astra.client.Collection;
+import com.datastax.astra.client.model.Document;
+
+DataAPIClient client = new DataAPIClient(token);
+var db = client.getDatabase(endpoint);
+Collection<Document> collection = db.getCollection("user_credentials");
+
+Document doc = new Document()
+    .append("email", "john.doe@example.com")
+    .append("password", hashedPassword)
+    .append("userid", userId.toString())
+    .append("account_locked", false);
+
+collection.insertOne(doc);
+```
+
+</details>
+
+<details>
+<summary>Java (astra-db-java 2.x - Table API)</summary>
+
+```java
+import com.datastax.astra.client.DataAPIClient;
+import com.datastax.astra.client.tables.Table;
+import com.datastax.astra.client.tables.row.Row;
+
+DataAPIClient client = new DataAPIClient(token);
+var db = client.getDatabase(endpoint);
+Table<Row> table = db.getTable("user_credentials");
+
+Row row = new Row()
+    .add("email", "john.doe@example.com")
+    .add("password", hashedPassword)
+    .add("userid", userId.toString())
+    .add("account_locked", false);
+
+table.insertOne(row);
+```
+
+</details>
+
+<details>
+<summary>C# (CassandraCSharpDriver 3.x)</summary>
+
+```csharp
+using Cassandra;
+
+var cluster = Cluster.Builder()
+    .AddContactPoint("127.0.0.1")
+    .Build();
+var session = cluster.Connect("killrvideo");
+
+var prepared = session.Prepare(
+    "INSERT INTO user_credentials (email, password, userid, account_locked) " +
+    "VALUES (?, ?, ?, ?)"
+);
+
+var bound = prepared.Bind(
+    "john.doe@example.com", hashedPassword, userId, false
+);
+session.Execute(bound);
+```
+
+> **Note**: C# does not have a Data API or Table API client. Use CQL for direct access, or call the Data API via REST/HTTP.
+
+</details>
+
+<details>
+<summary>Go (gocql v2)</summary>
+
+```go
+package main
+
+import "github.com/gocql/gocql"
+
+cluster := gocql.NewCluster("127.0.0.1")
+cluster.Keyspace = "killrvideo"
+session, _ := cluster.CreateSession()
+defer session.Close()
+
+err := session.Query(
+    `INSERT INTO user_credentials (email, password, userid, account_locked)
+     VALUES (?, ?, ?, ?)`,
+    "john.doe@example.com", hashedPassword, userId, false,
+).Exec()
+```
+
+> **Note**: Go does not have a Data API or Table API client. Use CQL for direct access, or call the Data API via REST/HTTP.
+
+</details>
 
 ## Implementation Flow
 

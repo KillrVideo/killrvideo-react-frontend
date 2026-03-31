@@ -4,7 +4,6 @@ import { Clock, Eye, Star } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { useUser } from '@/hooks/useApi';
-import { EducationalTooltip } from '@/components/educational/EducationalTooltip';
 
 interface VideoCardProps {
   id: string;
@@ -108,12 +107,10 @@ const VideoCard = memo(({
         
         <div className="flex items-center justify-between text-sm text-gray-500 mb-3 font-noto">
           <div className="flex items-center space-x-4">
-            <EducationalTooltip id="counter-views" side="top">
-              <span className="flex items-center">
+            <span className="flex items-center">
                 <Eye className="w-4 h-4 mr-1" />
                 {formatViews(views)}
               </span>
-            </EducationalTooltip>
             <span className="flex items-center">
               <Star className="w-4 h-4 mr-1 fill-accent text-accent" />
               {typeof rating === 'number' ? rating.toFixed(1) : '--'}
@@ -122,8 +119,7 @@ const VideoCard = memo(({
           <span>{getTimeAgo(uploadDate)}</span>
         </div>
         
-        <EducationalTooltip id="search-sai-overview" side="top">
-          <div className="flex flex-wrap gap-1">
+        <div className="flex flex-wrap gap-1">
             {tags.slice(0, 3).map((tag) => (
               <Badge
                 key={tag}
@@ -139,7 +135,6 @@ const VideoCard = memo(({
               </Badge>
             )}
           </div>
-        </EducationalTooltip>
       </CardContent>
     </Card>
   );
