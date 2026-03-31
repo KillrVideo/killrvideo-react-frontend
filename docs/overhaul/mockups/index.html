@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>KillrVideo UI/UX Overhaul — Prototypes</title>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400;1,700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            'kv-orange': '#E85B3A',
+            'kv-navy': '#1A1A2E',
+            'kv-teal': '#0DB7C4',
+            'kv-cream': '#FBF8F4',
+          },
+          fontFamily: {
+            serif: ['"Playfair Display"', 'Georgia', 'serif'],
+            sans: ['Inter', 'system-ui', 'sans-serif'],
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    body {
+      font-family: 'Inter', system-ui, sans-serif;
+    }
+    h1, h2.editorial {
+      font-family: 'Playfair Display', Georgia, serif;
+    }
+    .card-accent-split {
+      background: linear-gradient(to right, #FBF8F4, #1A1A2E);
+    }
+    .card-accent-floating {
+      background-color: #E85B3A;
+      box-shadow: 0 1px 8px rgba(232, 91, 58, 0.35);
+    }
+    .card:hover .view-link {
+      text-decoration: underline;
+    }
+    .card {
+      background: #FFFFFF;
+      box-shadow: 0 1px 4px rgba(26, 26, 46, 0.06), 0 2px 12px rgba(26, 26, 46, 0.04);
+    }
+    .card:hover {
+      box-shadow: 0 4px 16px rgba(26, 26, 46, 0.1), 0 2px 6px rgba(26, 26, 46, 0.06);
+    }
+  </style>
+</head>
+<body class="antialiased min-h-screen" style="background-color: #FBF8F4; color: #1A1A2E;">
+
+  <!-- Header -->
+  <header class="bg-white border-b border-gray-200">
+    <div class="max-w-5xl mx-auto px-6 py-10">
+      <div class="flex items-center gap-3 mb-4">
+        <span class="inline-block w-3 h-8 rounded-sm" style="background-color: #E85B3A;"></span>
+        <span class="text-sm font-semibold tracking-widest uppercase" style="color: #8A8A9A;">KillrVideo</span>
+      </div>
+      <h1 class="text-3xl sm:text-4xl tracking-tight" style="color: #1A1A2E; font-family: 'Playfair Display', Georgia, serif;">
+        UI/UX Overhaul — Prototypes
+      </h1>
+      <p class="mt-3 text-lg max-w-2xl" style="color: #4A4A5A; font-family: 'Inter', sans-serif;">
+        Six design directions for the redesigned KillrVideo developer experience.
+        Each prototype explores a different approach to blending a consumer video interface
+        with always-available developer tooling — API traces, CQL/DataAPI switching,
+        multi-language code samples, and live schema inspection.
+      </p>
+    </div>
+  </header>
+
+  <!-- Main content -->
+  <main class="max-w-5xl mx-auto px-6 py-12">
+
+    <!-- Prototype card grid -->
+    <section aria-labelledby="prototypes-heading">
+      <h2 id="prototypes-heading" class="text-xs font-semibold tracking-widest uppercase mb-6" style="color: #8A8A9A;">
+        Design Directions
+      </h2>
+
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+
+        <!-- 01 Terminal Fusion -->
+        <a href="01-terminal-fusion.html"
+           class="card group block rounded-xl border border-gray-200 overflow-hidden transition-shadow duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2" style="--tw-ring-color: #E85B3A;">
+          <div class="h-2" style="background-color: #1A1A2E;"></div>
+          <div class="p-6">
+            <p class="text-xs font-semibold tracking-widest uppercase mb-1" style="color: #8A8A9A;">01</p>
+            <h3 class="text-lg font-semibold mb-2" style="color: #1A1A2E; font-family: 'Playfair Display', Georgia, serif;">Terminal Fusion</h3>
+            <p class="text-sm mb-4 leading-relaxed" style="color: #4A4A5A;">
+              Dark IDE aesthetic with a persistent left sidebar dev panel. API traces,
+              schema, and code samples are always visible alongside the video UI.
+            </p>
+            <span class="inline-block text-xs font-medium rounded-full px-3 py-1 mb-4" style="background-color: #F5F3EF; color: #4A4A5A;">
+              Best for: developers who want always-on tooling
+            </span>
+            <p class="view-link text-sm font-semibold" style="color: #E85B3A;">
+              View Prototype &rarr;
+            </p>
+          </div>
+        </a>
+
+        <!-- 02 Clean Canvas -->
+        <a href="02-clean-canvas.html"
+           class="card group block rounded-xl border border-gray-200 overflow-hidden transition-shadow duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2" style="--tw-ring-color: #E85B3A;">
+          <div class="h-2" style="background-color: #E85B3A;"></div>
+          <div class="p-6">
+            <p class="text-xs font-semibold tracking-widest uppercase mb-1" style="color: #8A8A9A;">02</p>
+            <h3 class="text-lg font-semibold mb-2" style="color: #1A1A2E; font-family: 'Playfair Display', Georgia, serif;">Clean Canvas</h3>
+            <p class="text-sm mb-4 leading-relaxed" style="color: #4A4A5A;">
+              Minimal white design with inline expandable dev blocks. Dev context
+              appears in-place only when requested, keeping the UI distraction-free.
+            </p>
+            <span class="inline-block text-xs font-medium rounded-full px-3 py-1 mb-4" style="background-color: #F5F3EF; color: #4A4A5A;">
+              Best for: casual exploration, lowest learning curve
+            </span>
+            <p class="view-link text-sm font-semibold" style="color: #E85B3A;">
+              View Prototype &rarr;
+            </p>
+          </div>
+        </a>
+
+        <!-- 03 Split Lens -->
+        <a href="03-split-lens.html"
+           class="card group block rounded-xl border border-gray-200 overflow-hidden transition-shadow duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2" style="--tw-ring-color: #E85B3A;">
+          <div class="h-2 card-accent-split"></div>
+          <div class="p-6">
+            <p class="text-xs font-semibold tracking-widest uppercase mb-1" style="color: #8A8A9A;">03</p>
+            <h3 class="text-lg font-semibold mb-2" style="color: #1A1A2E; font-family: 'Playfair Display', Georgia, serif;">Split Lens</h3>
+            <p class="text-sm mb-4 leading-relaxed" style="color: #4A4A5A;">
+              50/50 split screen with the consumer UI on the left and the full dev
+              panel on the right. Both panes scroll independently.
+            </p>
+            <span class="inline-block text-xs font-medium rounded-full px-3 py-1 mb-4" style="background-color: #F5F3EF; color: #4A4A5A;">
+              Best for: deep study and side-by-side comparison
+            </span>
+            <p class="view-link text-sm font-semibold" style="color: #E85B3A;">
+              View Prototype &rarr;
+            </p>
+          </div>
+        </a>
+
+        <!-- 04 Floating Inspector -->
+        <a href="04-floating-inspector.html"
+           class="card group block rounded-xl border border-gray-200 overflow-hidden transition-shadow duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2" style="--tw-ring-color: #E85B3A;">
+          <div class="h-2 card-accent-floating"></div>
+          <div class="p-6">
+            <p class="text-xs font-semibold tracking-widest uppercase mb-1" style="color: #8A8A9A;">04</p>
+            <h3 class="text-lg font-semibold mb-2" style="color: #1A1A2E; font-family: 'Playfair Display', Georgia, serif;">Floating Inspector</h3>
+            <p class="text-sm mb-4 leading-relaxed" style="color: #4A4A5A;">
+              A draggable floating dev panel overlaid on a refined consumer UI.
+              Minimise, move, or resize it without leaving the page.
+            </p>
+            <span class="inline-block text-xs font-medium rounded-full px-3 py-1 mb-4" style="background-color: #F5F3EF; color: #4A4A5A;">
+              Best for: power users who want full layout control
+            </span>
+            <p class="view-link text-sm font-semibold" style="color: #E85B3A;">
+              View Prototype &rarr;
+            </p>
+          </div>
+        </a>
+
+        <!-- 05 Narrative Scroll -->
+        <a href="05-narrative-scroll.html"
+           class="card group block rounded-xl border border-gray-200 overflow-hidden transition-shadow duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2" style="--tw-ring-color: #E85B3A;">
+          <div class="h-2" style="background-color: #1A1A2E;"></div>
+          <div class="p-6">
+            <p class="text-xs font-semibold tracking-widest uppercase mb-1" style="color: #8A8A9A;">05</p>
+            <h3 class="text-lg font-semibold mb-2" style="color: #1A1A2E; font-family: 'Playfair Display', Georgia, serif;">Narrative Scroll</h3>
+            <p class="text-sm mb-4 leading-relaxed" style="color: #4A4A5A;">
+              Editorial layout with dev explainer bands woven between content sections.
+              Each scroll step reveals a new layer of how the app works.
+            </p>
+            <span class="inline-block text-xs font-medium rounded-full px-3 py-1 mb-4" style="background-color: #F5F3EF; color: #4A4A5A;">
+              Best for: first-time learners, guided narrative
+            </span>
+            <p class="view-link text-sm font-semibold" style="color: #E85B3A;">
+              View Prototype &rarr;
+            </p>
+          </div>
+        </a>
+
+        <!-- 06 Learning Split (Candidate) -->
+        <a href="06-learning-split.html"
+           class="card group block rounded-xl border-2 overflow-hidden transition-shadow duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2" style="--tw-ring-color: #E85B3A; border-color: #E85B3A;">
+          <div class="h-2 card-accent-split"></div>
+          <div class="p-6">
+            <p class="text-xs font-semibold tracking-widest uppercase mb-1" style="color: #E85B3A;">06 — CANDIDATE</p>
+            <h3 class="text-lg font-semibold mb-2" style="color: #1A1A2E; font-family: 'Playfair Display', Georgia, serif;">Learning Split</h3>
+            <p class="text-sm mb-4 leading-relaxed" style="color: #4A4A5A;">
+              Split-pane layout with the consumer side faithfully matching the real
+              KillrVideo app — purple hero, video cards, comments, related videos —
+              paired with a dark dev panel on the right.
+            </p>
+            <span class="inline-block text-xs font-medium rounded-full px-3 py-1 mb-4" style="background-color: rgba(232, 91, 58, 0.1); color: #E85B3A;">
+              Best for: realistic implementation candidate
+            </span>
+            <p class="view-link text-sm font-semibold" style="color: #E85B3A;">
+              View Prototype &rarr;
+            </p>
+          </div>
+        </a>
+
+      </div>
+    </section>
+
+    <!-- How to Use -->
+    <section class="mt-16" aria-labelledby="how-to-use-heading">
+      <div class="rounded-xl border p-8" style="border-color: #0DB7C4; background-color: rgba(13, 183, 196, 0.04);">
+        <h2 id="how-to-use-heading" class="text-xs font-semibold tracking-widest uppercase mb-4" style="color: #0DB7C4;">
+          How to Use These Prototypes
+        </h2>
+        <p class="text-sm mb-5 leading-relaxed" style="color: #4A4A5A;">
+          Each prototype is a fully self-contained HTML file — no build step required.
+          Open any of them directly in a browser and explore the following interactions:
+        </p>
+        <ul class="space-y-3 text-sm" style="color: #4A4A5A;">
+          <li class="flex items-start gap-3">
+            <span class="mt-0.5 flex-shrink-0 w-5 h-5 rounded-full flex items-center justify-center text-white text-xs font-bold" style="background-color: #0DB7C4;">1</span>
+            <span><strong class="font-semibold" style="color: #1A1A2E;">Toggle dev mode</strong> — look for a "Dev Mode" toggle or button to show and hide the developer overlay or panel.</span>
+          </li>
+          <li class="flex items-start gap-3">
+            <span class="mt-0.5 flex-shrink-0 w-5 h-5 rounded-full flex items-center justify-center text-white text-xs font-bold" style="background-color: #0DB7C4;">2</span>
+            <span><strong class="font-semibold" style="color: #1A1A2E;">Switch between CQL and Data API</strong> — use the API-mode tabs to see how the same operation looks in Cassandra Query Language vs. the Astra Data API.</span>
+          </li>
+          <li class="flex items-start gap-3">
+            <span class="mt-0.5 flex-shrink-0 w-5 h-5 rounded-full flex items-center justify-center text-white text-xs font-bold" style="background-color: #0DB7C4;">3</span>
+            <span><strong class="font-semibold" style="color: #1A1A2E;">Try different language tabs</strong> — code samples are shown in multiple languages (Python, JavaScript, Java, curl). Click each tab to switch.</span>
+          </li>
+          <li class="flex items-start gap-3">
+            <span class="mt-0.5 flex-shrink-0 w-5 h-5 rounded-full flex items-center justify-center text-white text-xs font-bold" style="background-color: #0DB7C4;">4</span>
+            <span><strong class="font-semibold" style="color: #1A1A2E;">Switch between Home and Watch views</strong> — each prototype renders at least two page contexts so you can see how the dev panel adapts across different routes.</span>
+          </li>
+        </ul>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Footer -->
+  <footer class="border-t border-gray-200 mt-16" style="background-color: #FFFFFF;">
+    <div class="max-w-5xl mx-auto px-6 py-6 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs" style="color: #8A8A9A;">
+      <span>KillrVideo &mdash; UI/UX Overhaul Prototypes</span>
+      <span>Design explorations only &mdash; not production code</span>
+    </div>
+  </footer>
+
+</body>
+</html>

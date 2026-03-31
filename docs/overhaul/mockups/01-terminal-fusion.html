@@ -1,0 +1,1380 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>KillrVideo — Terminal Fusion Mockup</title>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400;1,700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    /* Warm Editorial palette */
+    :root {
+      --bg:        #1A1A2E;
+      --surface:   #252538;
+      --surface2:  #2E2E45;
+      --border:    #3A3A55;
+      --text:      #E8E6E1;
+      --text2:     #6B6B7B;
+      --teal:      #0DB7C4;
+      --orange:    #E85B3A;
+      --orange-h:  #D14A2B;
+      --gold:      #FFCA0B;
+      --cream:     #FBF8F4;
+      --kw:        #E85B3A;   /* keywords — orange */
+      --str:       #7EC89F;   /* strings — soft green */
+      --fn:        #78A9FF;   /* functions — soft blue */
+      --num:       #FFCA0B;   /* numbers — gold */
+      --comment:   #6B6B7B;  /* comments — warm muted */
+      --sidebar-w: 280px;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Inter', system-ui, -apple-system, sans-serif;
+      margin: 0;
+      overflow: hidden;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* ── Scrollbars ── */
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: var(--surface); }
+    ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+
+    /* ── Top bar ── */
+    #topbar {
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      height: 48px;
+      display: flex;
+      align-items: center;
+      padding: 0 16px;
+      gap: 12px;
+      flex-shrink: 0;
+      z-index: 100;
+    }
+
+    .logo-text {
+      font-family: 'Playfair Display', Georgia, serif;
+      font-style: italic;
+      font-weight: 400;
+      font-size: 17px;
+      letter-spacing: -0.3px;
+      color: var(--text);
+    }
+    .logo-text span { color: var(--teal); }
+
+    .breadcrumb {
+      font-family: 'JetBrains Mono', 'Fira Code', 'Cascadia Code', ui-monospace, monospace;
+      font-size: 12px;
+      color: var(--text2);
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 3px 10px;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+    .breadcrumb .bc-sep { color: var(--border); margin: 0 1px; }
+    .breadcrumb .bc-active { color: var(--fn); }
+
+    /* Page tabs */
+    .page-tabs {
+      display: flex;
+      gap: 2px;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      padding: 3px;
+    }
+    .page-tab {
+      padding: 4px 16px;
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.15s;
+      color: var(--text2);
+      border: none;
+      background: transparent;
+      user-select: none;
+      font-family: 'Inter', sans-serif;
+    }
+    .page-tab:hover { color: var(--text); background: var(--surface2); }
+    .page-tab.active { background: var(--orange); color: #fff; box-shadow: 0 2px 8px rgba(232,91,58,0.4); }
+
+    /* Dev mode toggle */
+    .dev-toggle-wrap {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 12px;
+      color: var(--text2);
+      cursor: pointer;
+      user-select: none;
+    }
+    .dev-toggle-wrap:hover .dev-label { color: var(--text); }
+
+    .toggle-track {
+      width: 36px;
+      height: 20px;
+      border-radius: 10px;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      position: relative;
+      transition: background 0.2s, border-color 0.2s;
+      cursor: pointer;
+    }
+    .toggle-track.on {
+      background: color-mix(in srgb, var(--teal) 25%, var(--surface2));
+      border-color: var(--teal);
+    }
+    .toggle-knob {
+      position: absolute;
+      top: 2px;
+      left: 2px;
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      background: var(--text2);
+      transition: transform 0.2s, background 0.2s;
+    }
+    .toggle-track.on .toggle-knob {
+      transform: translateX(16px);
+      background: var(--teal);
+    }
+    .dev-label {
+      font-family: 'JetBrains Mono', ui-monospace, monospace;
+      font-size: 11px;
+      letter-spacing: 0.5px;
+      transition: color 0.15s;
+    }
+    .dev-label.on { color: var(--teal); }
+
+    /* ── Layout body ── */
+    #layout {
+      display: flex;
+      flex: 1;
+      overflow: hidden;
+    }
+
+    /* ── Sidebar ── */
+    #sidebar {
+      width: var(--sidebar-w);
+      min-width: var(--sidebar-w);
+      background: var(--surface);
+      border-right: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      transition: width 0.3s cubic-bezier(0.4,0,0.2,1),
+                  min-width 0.3s cubic-bezier(0.4,0,0.2,1),
+                  opacity 0.3s ease;
+      opacity: 1;
+    }
+    #sidebar.collapsed {
+      width: 0;
+      min-width: 0;
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    .sidebar-inner {
+      width: var(--sidebar-w);
+      display: flex;
+      flex-direction: column;
+      overflow-y: auto;
+      overflow-x: hidden;
+      flex: 1;
+    }
+
+    .sidebar-header {
+      padding: 12px 14px 8px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-shrink: 0;
+    }
+    .sidebar-title {
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 1.2px;
+      text-transform: uppercase;
+      color: var(--text2);
+      font-family: 'Inter', sans-serif;
+    }
+
+    /* API toggle pill */
+    .api-pill {
+      display: flex;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      padding: 3px;
+      margin: 10px 14px;
+      gap: 2px;
+      flex-shrink: 0;
+    }
+    .api-pill-btn {
+      flex: 1;
+      text-align: center;
+      padding: 5px 10px;
+      border-radius: 999px;
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.3px;
+      cursor: pointer;
+      transition: all 0.2s;
+      color: var(--text2);
+      border: none;
+      background: transparent;
+      user-select: none;
+      font-family: 'Inter', sans-serif;
+    }
+    .api-pill-btn.active {
+      background: var(--orange);
+      color: #fff;
+      box-shadow: 0 2px 8px rgba(232,91,58,0.4);
+    }
+    .api-pill-btn:not(.active):hover { color: var(--text); background: var(--surface2); }
+
+    /* Accordion sections */
+    .accordion {
+      border-bottom: 1px solid var(--border);
+      flex-shrink: 0;
+    }
+    .accordion-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 8px 14px;
+      cursor: pointer;
+      user-select: none;
+      transition: background 0.1s;
+    }
+    .accordion-header:hover { background: var(--surface2); }
+    .accordion-label {
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      color: var(--text2);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-family: 'Inter', sans-serif;
+    }
+    .accordion-label .dot {
+      width: 6px; height: 6px;
+      border-radius: 50%;
+      background: var(--teal);
+      display: inline-block;
+    }
+    .accordion-chevron {
+      font-size: 10px;
+      color: var(--text2);
+      transition: transform 0.2s;
+    }
+    .accordion.closed .accordion-chevron { transform: rotate(-90deg); }
+    .accordion-body {
+      padding: 0 14px 12px;
+      overflow: hidden;
+    }
+    .accordion.closed .accordion-body { display: none; }
+
+    /* Code block */
+    .code-block {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 10px 12px;
+      font-family: 'JetBrains Mono', 'Fira Code', 'Cascadia Code', ui-monospace, monospace;
+      font-size: 11px;
+      line-height: 1.7;
+      overflow-x: auto;
+      white-space: pre;
+      color: var(--text);
+    }
+    .code-block .kw  { color: var(--kw); }
+    .code-block .str { color: var(--str); }
+    .code-block .fn  { color: var(--fn); }
+    .code-block .num { color: var(--num); }
+    .code-block .cm  { color: var(--comment); font-style: italic; }
+    .code-block .op  { color: var(--teal); }
+    .code-block .cls { color: #F7768E; }
+
+    /* Schema table */
+    .schema-table {
+      width: 100%;
+      font-size: 11px;
+      border-collapse: collapse;
+      font-family: 'JetBrains Mono', ui-monospace, monospace;
+    }
+    .schema-table tr { border-bottom: 1px solid var(--border); }
+    .schema-table tr:last-child { border-bottom: none; }
+    .schema-table td { padding: 5px 4px; color: var(--text); vertical-align: middle; }
+    .schema-table td:first-child { color: var(--fn); }
+    .schema-table td:nth-child(2) { color: var(--text2); font-size: 10px; }
+
+    .badge {
+      display: inline-block;
+      padding: 1px 6px;
+      border-radius: 4px;
+      font-size: 9px;
+      font-weight: 700;
+      letter-spacing: 0.3px;
+    }
+    .badge-pk  { background: rgba(232,91,58,0.25); color: var(--orange); border: 1px solid rgba(232,91,58,0.5); }
+    .badge-ck  { background: rgba(13,183,196,0.2);  color: var(--teal); border: 1px solid rgba(13,183,196,0.4); }
+    .badge-col { background: var(--surface2); color: var(--text2); border: 1px solid var(--border); }
+
+    /* Language tabs */
+    .lang-tabs {
+      display: flex;
+      gap: 2px;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 6px 6px 0 0;
+      padding: 3px 3px 0;
+    }
+    .lang-tab {
+      padding: 4px 10px;
+      font-size: 10px;
+      font-weight: 600;
+      cursor: pointer;
+      border-radius: 4px 4px 0 0;
+      color: var(--text2);
+      background: transparent;
+      border: none;
+      border-bottom: 2px solid transparent;
+      transition: all 0.15s;
+      user-select: none;
+      font-family: 'Inter', sans-serif;
+    }
+    .lang-tab:hover { color: var(--text); }
+    .lang-tab.active { color: var(--orange); border-bottom-color: var(--orange); }
+    .lang-code-block {
+      border-radius: 0 0 8px 8px;
+      border-top: none;
+    }
+
+    /* Metadata grid */
+    .meta-grid {
+      display: grid;
+      grid-template-columns: auto 1fr;
+      gap: 6px 10px;
+      font-size: 11px;
+    }
+    .meta-key {
+      color: var(--text2);
+      font-family: 'JetBrains Mono', ui-monospace, monospace;
+      font-size: 10px;
+      white-space: nowrap;
+    }
+    .meta-val {
+      color: var(--text);
+      font-family: 'JetBrains Mono', ui-monospace, monospace;
+      font-size: 10px;
+      word-break: break-all;
+    }
+    .badge-read  { background: rgba(13,183,196,0.2);  color: var(--teal); border: 1px solid rgba(13,183,196,0.4); }
+    .badge-write { background: rgba(255,202,11,0.15); color: var(--gold); border: 1px solid rgba(255,202,11,0.35); }
+
+    /* ── Main content ── */
+    #main {
+      flex: 1;
+      overflow-y: auto;
+      overflow-x: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* ── HOME VIEW ── */
+    #view-home { display: block; }
+    #view-watch { display: none; }
+
+    .hero {
+      background: linear-gradient(135deg, #1A1A2E 0%, #252538 50%, #1e1a2e 100%);
+      border-bottom: 1px solid var(--border);
+      padding: 40px 48px;
+      position: relative;
+      overflow: hidden;
+    }
+    .hero::before {
+      content: '';
+      position: absolute;
+      top: -60px; right: -60px;
+      width: 300px; height: 300px;
+      background: radial-gradient(circle, rgba(232,91,58,0.12) 0%, transparent 70%);
+      border-radius: 50%;
+    }
+    .hero-eyebrow {
+      font-family: 'JetBrains Mono', ui-monospace, monospace;
+      font-size: 11px;
+      color: var(--teal);
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .hero-eyebrow::before {
+      content: '▶';
+      font-size: 9px;
+    }
+    .hero h1 {
+      font-family: 'Playfair Display', Georgia, serif;
+      font-style: italic;
+      font-weight: 400;
+      font-size: 42px;
+      letter-spacing: -1px;
+      line-height: 1.1;
+      margin: 0 0 12px;
+      color: var(--text);
+    }
+    .hero h1 span { color: var(--teal); }
+    .hero p {
+      color: var(--text2);
+      font-size: 15px;
+      line-height: 1.6;
+      max-width: 520px;
+      margin: 0 0 24px;
+    }
+    .hero-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: var(--orange);
+      color: #fff;
+      border: none;
+      border-radius: 999px;
+      padding: 10px 24px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+      box-shadow: 0 4px 16px rgba(232,91,58,0.4);
+      font-family: 'Inter', sans-serif;
+    }
+    .hero-btn:hover { background: var(--orange-h); transform: translateY(-1px); box-shadow: 0 6px 20px rgba(232,91,58,0.5); }
+
+    .stats-bar {
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      padding: 10px 48px;
+      display: flex;
+      gap: 32px;
+      font-size: 12px;
+      color: var(--text2);
+      font-family: 'JetBrains Mono', ui-monospace, monospace;
+      flex-shrink: 0;
+    }
+    .stats-bar span strong { color: var(--teal); font-weight: 700; }
+
+    .section-head {
+      padding: 24px 48px 12px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .section-title {
+      font-family: 'Playfair Display', Georgia, serif;
+      font-size: 16px;
+      font-weight: 400;
+      color: var(--text);
+      letter-spacing: -0.2px;
+    }
+    .section-badge {
+      font-size: 10px;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      color: var(--text2);
+      padding: 2px 8px;
+      border-radius: 999px;
+      font-family: 'JetBrains Mono', ui-monospace, monospace;
+    }
+
+    .video-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+      gap: 16px;
+      padding: 0 48px 32px;
+    }
+    .video-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      overflow: hidden;
+      cursor: pointer;
+      transition: all 0.2s;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+    }
+    .video-card:hover {
+      border-color: var(--orange);
+      transform: translateY(-2px);
+      box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+    }
+    .video-thumb {
+      width: 100%;
+      aspect-ratio: 16/9;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 28px;
+      position: relative;
+      overflow: hidden;
+    }
+    .video-thumb::after {
+      content: '▶';
+      position: absolute;
+      width: 36px; height: 36px;
+      background: rgba(0,0,0,0.6);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 14px;
+      color: #fff;
+      opacity: 0;
+      transition: opacity 0.2s;
+    }
+    .video-card:hover .video-thumb::after { opacity: 1; }
+    .video-info { padding: 10px 12px; }
+    .video-title {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text);
+      line-height: 1.3;
+      margin-bottom: 4px;
+    }
+    .video-meta {
+      font-size: 11px;
+      color: var(--text2);
+      display: flex;
+      gap: 8px;
+    }
+
+    /* ── WATCH VIEW ── */
+    .watch-layout {
+      display: flex;
+      gap: 24px;
+      padding: 24px 48px;
+      flex: 1;
+      min-height: 0;
+    }
+    .watch-main { flex: 1; min-width: 0; }
+    .watch-sidebar {
+      width: 240px;
+      flex-shrink: 0;
+    }
+
+    .player-wrap {
+      aspect-ratio: 16/9;
+      background: #0a0a0f;
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 16px;
+      position: relative;
+      overflow: hidden;
+    }
+    .player-wrap::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(ellipse at center, rgba(232,91,58,0.06) 0%, transparent 70%);
+    }
+    .play-btn-big {
+      width: 64px; height: 64px;
+      background: rgba(255,255,255,0.1);
+      border: 2px solid rgba(255,255,255,0.2);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 22px;
+      color: #fff;
+      cursor: pointer;
+      transition: all 0.2s;
+      backdrop-filter: blur(4px);
+    }
+    .play-btn-big:hover { background: rgba(232,91,58,0.5); border-color: var(--orange); transform: scale(1.05); }
+
+    .player-controls {
+      position: absolute;
+      bottom: 0; left: 0; right: 0;
+      background: linear-gradient(transparent, rgba(0,0,0,0.8));
+      padding: 20px 16px 12px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .progress-bar {
+      flex: 1;
+      height: 4px;
+      background: rgba(255,255,255,0.2);
+      border-radius: 2px;
+      position: relative;
+      cursor: pointer;
+    }
+    .progress-fill {
+      width: 35%;
+      height: 100%;
+      background: var(--orange);
+      border-radius: 2px;
+    }
+    .time-txt { font-size: 11px; color: rgba(255,255,255,0.7); font-family: ui-monospace, monospace; }
+    .ctrl-btn { font-size: 14px; color: rgba(255,255,255,0.8); cursor: pointer; background: none; border: none; }
+    .ctrl-btn:hover { color: #fff; }
+
+    .video-title-lg {
+      font-family: 'Playfair Display', Georgia, serif;
+      font-size: 20px;
+      font-weight: 400;
+      color: var(--text);
+      margin-bottom: 8px;
+      line-height: 1.3;
+    }
+    .video-byline {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 12px;
+    }
+    .avatar {
+      width: 32px; height: 32px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--orange), var(--teal));
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 12px;
+      font-weight: 700;
+      color: #fff;
+      flex-shrink: 0;
+    }
+    .byline-name { font-size: 13px; font-weight: 600; color: var(--text); }
+    .byline-date { font-size: 11px; color: var(--text2); }
+    .star-row { display: flex; gap: 3px; margin-bottom: 12px; }
+    .star { font-size: 16px; color: var(--gold); cursor: pointer; transition: transform 0.1s; }
+    .star:hover { transform: scale(1.2); }
+    .star.empty { color: var(--border); }
+
+    .video-desc {
+      font-size: 13px;
+      color: var(--text2);
+      line-height: 1.6;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 12px;
+      margin-bottom: 20px;
+    }
+
+    .comments-section { margin-top: 4px; }
+    .comments-title {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text);
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .comment-count {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      padding: 1px 7px;
+      border-radius: 999px;
+      font-size: 10px;
+      color: var(--text2);
+      font-family: ui-monospace, monospace;
+    }
+    .comment-input-row {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 14px;
+      align-items: flex-start;
+    }
+    .comment-input {
+      flex: 1;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 8px 12px;
+      color: var(--text);
+      font-size: 13px;
+      outline: none;
+      resize: none;
+      transition: border-color 0.15s;
+      font-family: 'Inter', sans-serif;
+    }
+    .comment-input:focus { border-color: var(--orange); }
+    .comment-submit {
+      background: var(--orange);
+      color: #fff;
+      border: none;
+      border-radius: 999px;
+      padding: 8px 16px;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.15s;
+      white-space: nowrap;
+      font-family: 'Inter', sans-serif;
+    }
+    .comment-submit:hover { background: var(--orange-h); }
+    .comment {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 12px;
+    }
+    .comment-body { flex: 1; }
+    .comment-header { display: flex; align-items: center; gap: 8px; margin-bottom: 3px; }
+    .comment-name { font-size: 12px; font-weight: 600; color: var(--text); }
+    .comment-time { font-size: 10px; color: var(--text2); font-family: ui-monospace, monospace; }
+    .comment-text { font-size: 12px; color: var(--text2); line-height: 1.5; }
+
+    /* Related videos */
+    .related-title {
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+      color: var(--text2);
+      margin-bottom: 12px;
+      font-family: 'Inter', sans-serif;
+    }
+    .related-card {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 10px;
+      cursor: pointer;
+      transition: opacity 0.15s;
+    }
+    .related-card:hover { opacity: 0.8; }
+    .related-thumb {
+      width: 80px;
+      height: 45px;
+      border-radius: 8px;
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 16px;
+    }
+    .related-info { flex: 1; min-width: 0; }
+    .related-title-text {
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--text);
+      line-height: 1.3;
+      margin-bottom: 2px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .related-meta { font-size: 10px; color: var(--text2); }
+
+    /* Divider */
+    .divider {
+      border: none;
+      border-top: 1px solid var(--border);
+      margin: 12px 0;
+    }
+
+    /* Utility */
+    .flex-1 { flex: 1; }
+    .spacer { flex: 1; }
+  </style>
+</head>
+<body>
+
+<!-- ══════════════════════════════════════════
+     TOP BAR
+═══════════════════════════════════════════ -->
+<div id="topbar">
+  <!-- Logo -->
+  <div class="logo-text">Killr<span>Video</span></div>
+
+  <!-- Breadcrumb -->
+  <div class="breadcrumb" id="breadcrumb">
+    <span style="color:var(--str)">~</span>
+    <span class="bc-sep">/</span>
+    <span>killrvideo</span>
+    <span class="bc-sep">/</span>
+    <span class="bc-active" id="bc-page">home</span>
+  </div>
+
+  <div class="spacer"></div>
+
+  <!-- Page tabs -->
+  <div class="page-tabs">
+    <button class="page-tab active" id="tab-home" onclick="setPage('home')">⌂ Home</button>
+    <button class="page-tab" id="tab-watch" onclick="setPage('watch')">▶ Watch</button>
+  </div>
+
+  <div class="spacer"></div>
+
+  <!-- Dev mode toggle -->
+  <div class="dev-toggle-wrap" onclick="toggleDev()">
+    <span class="dev-label" id="dev-label">DEV MODE</span>
+    <div class="toggle-track" id="dev-track">
+      <div class="toggle-knob"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════
+     LAYOUT
+═══════════════════════════════════════════ -->
+<div id="layout">
+
+  <!-- ── LEFT SIDEBAR ── -->
+  <div id="sidebar" class="collapsed">
+    <div class="sidebar-inner">
+
+      <!-- Header -->
+      <div class="sidebar-header">
+        <span class="sidebar-title">Dev Panel</span>
+        <span style="font-family:ui-monospace,monospace;font-size:11px;color:var(--teal);">[active]</span>
+      </div>
+
+      <!-- API Type Pill -->
+      <div class="api-pill">
+        <button class="api-pill-btn active" id="pill-cql" onclick="setApi('cql')">CQL</button>
+        <button class="api-pill-btn" id="pill-data" onclick="setApi('data')">Data API</button>
+      </div>
+
+      <!-- ── ACCORDION: Current Query ── -->
+      <div class="accordion" id="acc-query">
+        <div class="accordion-header" onclick="toggleAccordion('acc-query')">
+          <span class="accordion-label"><span class="dot"></span>Current Query</span>
+          <span class="accordion-chevron">▾</span>
+        </div>
+        <div class="accordion-body">
+          <!-- CQL queries -->
+          <div id="query-cql-home">
+            <div class="code-block"><span class="kw">SELECT</span> <span class="op">*</span> <span class="kw">FROM</span> <span class="fn">latest_videos</span>
+<span class="kw">WHERE</span> yyyymmdd <span class="op">=</span> <span class="str">'2024-01-15'</span>
+<span class="kw">ORDER BY</span> added_date <span class="kw">DESC</span>
+<span class="kw">LIMIT</span> <span class="num">10</span></div>
+          </div>
+          <div id="query-cql-watch" style="display:none">
+            <div class="code-block"><span class="kw">SELECT</span> <span class="op">*</span> <span class="kw">FROM</span> <span class="fn">videos</span>
+<span class="kw">WHERE</span> video_id <span class="op">=</span>
+  <span class="str">550e8400-e29b-41d4-a716-446655440000</span></div>
+          </div>
+          <!-- Data API queries -->
+          <div id="query-data-home" style="display:none">
+            <div class="code-block"><span class="fn">db</span>.<span class="fn">collection</span>(<span class="str">"videos"</span>)
+  .<span class="fn">find</span>({})
+  .<span class="fn">sort</span>({ <span class="str">"addedDate"</span>: <span class="op">-</span><span class="num">1</span> })
+  .<span class="fn">limit</span>(<span class="num">10</span>)</div>
+          </div>
+          <div id="query-data-watch" style="display:none">
+            <div class="code-block"><span class="fn">db</span>.<span class="fn">collection</span>(<span class="str">"videos"</span>)
+  .<span class="fn">findOne</span>({
+    <span class="str">"_id"</span>: <span class="str">"550e8400-e29b-41d4
+    -a716-446655440000"</span>
+  })</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── ACCORDION: Schema ── -->
+      <div class="accordion" id="acc-schema">
+        <div class="accordion-header" onclick="toggleAccordion('acc-schema')">
+          <span class="accordion-label"><span class="dot" style="background:var(--orange)"></span>Schema</span>
+          <span class="accordion-chevron">▾</span>
+        </div>
+        <div class="accordion-body">
+          <!-- Schema: latest_videos (home) -->
+          <div id="schema-home">
+            <div style="font-size:10px;color:var(--text2);font-family:ui-monospace,monospace;margin-bottom:6px;">latest_videos</div>
+            <div class="code-block" style="padding:6px 8px;">
+              <table class="schema-table">
+                <tr>
+                  <td>yyyymmdd</td>
+                  <td>TEXT</td>
+                  <td><span class="badge badge-pk">PK</span></td>
+                </tr>
+                <tr>
+                  <td>added_date</td>
+                  <td>TIMESTAMP</td>
+                  <td><span class="badge badge-ck">CK ↓</span></td>
+                </tr>
+                <tr>
+                  <td>video_id</td>
+                  <td>UUID</td>
+                  <td><span class="badge badge-col">col</span></td>
+                </tr>
+                <tr>
+                  <td>title</td>
+                  <td>TEXT</td>
+                  <td><span class="badge badge-col">col</span></td>
+                </tr>
+                <tr>
+                  <td>user_id</td>
+                  <td>UUID</td>
+                  <td><span class="badge badge-col">col</span></td>
+                </tr>
+                <tr>
+                  <td>thumbnail_url</td>
+                  <td>TEXT</td>
+                  <td><span class="badge badge-col">col</span></td>
+                </tr>
+              </table>
+            </div>
+          </div>
+          <!-- Schema: videos (watch) -->
+          <div id="schema-watch" style="display:none">
+            <div style="font-size:10px;color:var(--text2);font-family:ui-monospace,monospace;margin-bottom:6px;">videos_by_id</div>
+            <div class="code-block" style="padding:6px 8px;">
+              <table class="schema-table">
+                <tr>
+                  <td>video_id</td>
+                  <td>UUID</td>
+                  <td><span class="badge badge-pk">PK</span></td>
+                </tr>
+                <tr>
+                  <td>added_date</td>
+                  <td>TIMESTAMP</td>
+                  <td><span class="badge badge-ck">CK ↓</span></td>
+                </tr>
+                <tr>
+                  <td>title</td>
+                  <td>TEXT</td>
+                  <td><span class="badge badge-col">col</span></td>
+                </tr>
+                <tr>
+                  <td>description</td>
+                  <td>TEXT</td>
+                  <td><span class="badge badge-col">col</span></td>
+                </tr>
+                <tr>
+                  <td>user_id</td>
+                  <td>UUID</td>
+                  <td><span class="badge badge-col">col</span></td>
+                </tr>
+                <tr>
+                  <td>tags</td>
+                  <td>SET&lt;TEXT&gt;</td>
+                  <td><span class="badge badge-col">col</span></td>
+                </tr>
+                <tr>
+                  <td>thumbnail_url</td>
+                  <td>TEXT</td>
+                  <td><span class="badge badge-col">col</span></td>
+                </tr>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── ACCORDION: Driver Code ── -->
+      <div class="accordion" id="acc-driver">
+        <div class="accordion-header" onclick="toggleAccordion('acc-driver')">
+          <span class="accordion-label"><span class="dot" style="background:var(--fn)"></span>Driver Code</span>
+          <span class="accordion-chevron">▾</span>
+        </div>
+        <div class="accordion-body">
+          <div class="lang-tabs">
+            <button class="lang-tab active" onclick="setLang('python')">Python</button>
+            <button class="lang-tab" onclick="setLang('java')">Java</button>
+            <button class="lang-tab" onclick="setLang('node')">Node.js</button>
+            <button class="lang-tab" onclick="setLang('rust')">Rust</button>
+          </div>
+
+          <div id="lang-python" class="code-block lang-code-block"><span class="kw">from</span> cassandra.cluster <span class="kw">import</span> <span class="cls">Cluster</span>
+session <span class="op">=</span> cluster.<span class="fn">connect</span>(<span class="str">'killrvideo'</span>)
+rows <span class="op">=</span> session.<span class="fn">execute</span>(
+  <span class="str">"SELECT * FROM videos"</span>
+  <span class="str">" WHERE video_id = %s"</span>,
+  [video_id]
+)</div>
+
+          <div id="lang-java" class="code-block lang-code-block" style="display:none"><span class="cls">PreparedStatement</span> ps <span class="op">=</span>
+  session.<span class="fn">prepare</span>(
+    <span class="str">"SELECT * FROM videos"</span>
+    <span class="str">" WHERE video_id = ?"</span>);
+<span class="cls">ResultSet</span> rs <span class="op">=</span>
+  session.<span class="fn">execute</span>(
+    ps.<span class="fn">bind</span>(videoId));</div>
+
+          <div id="lang-node" class="code-block lang-code-block" style="display:none"><span class="kw">const</span> query <span class="op">=</span>
+  <span class="str">'SELECT * FROM videos'</span>
+  <span class="str">' WHERE video_id = ?'</span>;
+<span class="kw">const</span> result <span class="op">=</span> <span class="kw">await</span>
+  client.<span class="fn">execute</span>(
+    query, [videoId],
+    { prepare: <span class="kw">true</span> });</div>
+
+          <div id="lang-rust" class="code-block lang-code-block" style="display:none"><span class="kw">let</span> result <span class="op">=</span> session
+  .<span class="fn">query</span>(
+    <span class="str">"SELECT * FROM videos"</span>
+    <span class="str">" WHERE video_id = ?"</span>,
+    (video_id,))
+  .<span class="kw">await</span>?;</div>
+        </div>
+      </div>
+
+      <!-- ── ACCORDION: Query Metadata ── -->
+      <div class="accordion" id="acc-meta">
+        <div class="accordion-header" onclick="toggleAccordion('acc-meta')">
+          <span class="accordion-label"><span class="dot" style="background:var(--gold)"></span>Query Metadata</span>
+          <span class="accordion-chevron">▾</span>
+        </div>
+        <div class="accordion-body">
+          <div class="meta-grid">
+            <span class="meta-key">Type</span>
+            <span class="meta-val"><span class="badge badge-read">READ</span></span>
+            <span class="meta-key">Endpoint</span>
+            <span class="meta-val" id="meta-endpoint">GET /api/v1/videos</span>
+            <span class="meta-key">Latency</span>
+            <span class="meta-val" id="meta-latency">~2ms</span>
+            <span class="meta-key">Source</span>
+            <span class="meta-val" style="color:var(--fn);" id="meta-source">useApi.ts:87</span>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- /sidebar-inner -->
+  </div><!-- /sidebar -->
+
+  <!-- ── MAIN CONTENT ── -->
+  <div id="main">
+
+    <!-- ════ HOME VIEW ════ -->
+    <div id="view-home">
+      <!-- Hero -->
+      <div class="hero">
+        <div class="hero-eyebrow">Apache Cassandra · Learning Platform</div>
+        <h1>Killr<span>Video</span></h1>
+        <p>
+          The reference application for learning Apache Cassandra and DataStax
+          Astra DB through real-world video streaming patterns.
+        </p>
+        <button class="hero-btn">▶ &nbsp;Browse Videos</button>
+      </div>
+
+      <!-- Stats bar -->
+      <div class="stats-bar">
+        <span><strong>12,847</strong> videos</span>
+        <span><strong>3,241</strong> users</span>
+        <span><strong>89,102</strong> queries served</span>
+        <span style="margin-left:auto;color:var(--teal)">● live</span>
+      </div>
+
+      <!-- Featured Videos -->
+      <div class="section-head">
+        <span class="section-title">Featured Videos</span>
+        <span class="section-badge">latest</span>
+      </div>
+      <div class="video-grid">
+        <div class="video-card">
+          <div class="video-thumb" style="background:linear-gradient(135deg,#252538,#1a2040);">🗄️</div>
+          <div class="video-info">
+            <div class="video-title">Intro to Cassandra Data Modeling</div>
+            <div class="video-meta"><span>@datastax</span><span>·</span><span>14:32</span></div>
+          </div>
+        </div>
+        <div class="video-card">
+          <div class="video-thumb" style="background:linear-gradient(135deg,#1a2b1a,#243b24);">⚡</div>
+          <div class="video-info">
+            <div class="video-title">CQL Deep Dive: Partition Keys</div>
+            <div class="video-meta"><span>@cassandra_dev</span><span>·</span><span>22:08</span></div>
+          </div>
+        </div>
+        <div class="video-card">
+          <div class="video-thumb" style="background:linear-gradient(135deg,#2b1a1a,#3b2424);">🚀</div>
+          <div class="video-info">
+            <div class="video-title">Astra DB REST API in 10 Minutes</div>
+            <div class="video-meta"><span>@astradev</span><span>·</span><span>09:55</span></div>
+          </div>
+        </div>
+        <div class="video-card">
+          <div class="video-thumb" style="background:linear-gradient(135deg,#2b2200,#3b3000);">🎯</div>
+          <div class="video-info">
+            <div class="video-title">Vector Search with Cassandra</div>
+            <div class="video-meta"><span>@mlops_dan</span><span>·</span><span>31:14</span></div>
+          </div>
+        </div>
+      </div>
+    </div><!-- /view-home -->
+
+    <!-- ════ WATCH VIEW ════ -->
+    <div id="view-watch">
+      <div class="watch-layout">
+        <!-- Main video area -->
+        <div class="watch-main">
+          <!-- Player -->
+          <div class="player-wrap">
+            <div class="play-btn-big">▶</div>
+            <div class="player-controls">
+              <button class="ctrl-btn">⏮</button>
+              <button class="ctrl-btn">▶</button>
+              <button class="ctrl-btn">⏭</button>
+              <div class="progress-bar">
+                <div class="progress-fill"></div>
+              </div>
+              <span class="time-txt">4:55 / 14:32</span>
+              <button class="ctrl-btn">🔊</button>
+              <button class="ctrl-btn">⛶</button>
+            </div>
+          </div>
+
+          <!-- Title & byline -->
+          <div class="video-title-lg">Intro to Cassandra Data Modeling</div>
+          <div class="video-byline">
+            <div class="avatar">DS</div>
+            <div>
+              <div class="byline-name">@datastax</div>
+              <div class="byline-date">Jan 15, 2024 · 12,847 views</div>
+            </div>
+          </div>
+
+          <!-- Stars -->
+          <div class="star-row" title="Rate this video">
+            <span class="star" onclick="rate(1)">★</span>
+            <span class="star" onclick="rate(2)">★</span>
+            <span class="star" onclick="rate(3)">★</span>
+            <span class="star" onclick="rate(4)">★</span>
+            <span class="star empty" onclick="rate(5)">★</span>
+          </div>
+
+          <!-- Description -->
+          <div class="video-desc">
+            Learn the fundamentals of data modeling for Apache Cassandra. We cover
+            partition keys, clustering columns, and how to design tables around
+            your queries — not your entities. Perfect for developers coming from
+            a relational background.
+            <br><br>
+            <span style="color:var(--teal);font-family:ui-monospace,monospace;font-size:11px;">
+              #cassandra #nosql #datamodeling #astra
+            </span>
+          </div>
+
+          <!-- Comments -->
+          <div class="comments-section">
+            <div class="comments-title">
+              Comments <span class="comment-count">47</span>
+            </div>
+            <div class="comment-input-row">
+              <div class="avatar" style="width:28px;height:28px;font-size:10px;">me</div>
+              <textarea class="comment-input" rows="2" placeholder="Add a comment…"></textarea>
+              <button class="comment-submit">Post</button>
+            </div>
+
+            <div class="comment">
+              <div class="avatar" style="background:linear-gradient(135deg,#0DB7C4,#E85B3A);width:28px;height:28px;font-size:10px;">JR</div>
+              <div class="comment-body">
+                <div class="comment-header">
+                  <span class="comment-name">@jack_rivers</span>
+                  <span class="comment-time">2h ago</span>
+                </div>
+                <div class="comment-text">This is exactly what I needed. The partition key explanation finally clicked for me.</div>
+              </div>
+            </div>
+
+            <div class="comment">
+              <div class="avatar" style="background:linear-gradient(135deg,#7EC89F,#0DB7C4);width:28px;height:28px;font-size:10px;">SM</div>
+              <div class="comment-body">
+                <div class="comment-header">
+                  <span class="comment-name">@sarah_m_dev</span>
+                  <span class="comment-time">5h ago</span>
+                </div>
+                <div class="comment-text">Great video! Would love a follow-up on secondary indexes vs materialized views.</div>
+              </div>
+            </div>
+
+            <div class="comment">
+              <div class="avatar" style="background:linear-gradient(135deg,#78A9FF,#E85B3A);width:28px;height:28px;font-size:10px;">KP</div>
+              <div class="comment-body">
+                <div class="comment-header">
+                  <span class="comment-name">@kpriya_cass</span>
+                  <span class="comment-time">1d ago</span>
+                </div>
+                <div class="comment-text">Bookmarked. The query-first design mindset shift is real.</div>
+              </div>
+            </div>
+          </div>
+        </div><!-- /watch-main -->
+
+        <!-- Related videos -->
+        <div class="watch-sidebar">
+          <div class="related-title">Up Next</div>
+          <div class="related-card">
+            <div class="related-thumb" style="background:linear-gradient(135deg,#1a2040,#252538);">⚡</div>
+            <div class="related-info">
+              <div class="related-title-text">CQL Deep Dive: Partition Keys</div>
+              <div class="related-meta">@cassandra_dev · 22:08</div>
+            </div>
+          </div>
+          <div class="related-card">
+            <div class="related-thumb" style="background:linear-gradient(135deg,#1a2b1a,#252538);">🔍</div>
+            <div class="related-info">
+              <div class="related-title-text">Cassandra Consistency Levels</div>
+              <div class="related-meta">@datastax · 18:45</div>
+            </div>
+          </div>
+          <div class="related-card">
+            <div class="related-thumb" style="background:linear-gradient(135deg,#2b1a1a,#252538);">🌐</div>
+            <div class="related-info">
+              <div class="related-title-text">Astra DB REST API in 10 Minutes</div>
+              <div class="related-meta">@astradev · 09:55</div>
+            </div>
+          </div>
+          <div class="related-card">
+            <div class="related-thumb" style="background:linear-gradient(135deg,#2b2200,#252538);">🎯</div>
+            <div class="related-info">
+              <div class="related-title-text">Vector Search with Cassandra</div>
+              <div class="related-meta">@mlops_dan · 31:14</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div><!-- /view-watch -->
+
+  </div><!-- /main -->
+</div><!-- /layout -->
+
+<!-- ══════════════════════════════════════════
+     JAVASCRIPT
+═══════════════════════════════════════════ -->
+<script>
+  // ── State ──
+  let devOn   = false;
+  let page    = 'home';   // 'home' | 'watch'
+  let api     = 'cql';    // 'cql' | 'data'
+  let lang    = 'python'; // current driver language
+
+  // ── Dev mode toggle ──
+  function toggleDev() {
+    devOn = !devOn;
+    const track = document.getElementById('dev-track');
+    const label = document.getElementById('dev-label');
+    const sidebar = document.getElementById('sidebar');
+
+    track.classList.toggle('on', devOn);
+    label.classList.toggle('on', devOn);
+    sidebar.classList.toggle('collapsed', !devOn);
+  }
+
+  // ── Page switch ──
+  function setPage(p) {
+    page = p;
+
+    // Tab styling
+    document.getElementById('tab-home').classList.toggle('active', p === 'home');
+    document.getElementById('tab-watch').classList.toggle('active', p === 'watch');
+
+    // Views
+    document.getElementById('view-home').style.display = p === 'home' ? 'block' : 'none';
+    document.getElementById('view-watch').style.display = p === 'watch' ? 'block' : 'none';
+
+    // Breadcrumb
+    const bcPage = document.getElementById('bc-page');
+    bcPage.textContent = p === 'home' ? 'home' : 'watch/550e8400';
+
+    // Update sidebar content
+    refreshSidebar();
+  }
+
+  // ── API type toggle ──
+  function setApi(a) {
+    api = a;
+    document.getElementById('pill-cql').classList.toggle('active', a === 'cql');
+    document.getElementById('pill-data').classList.toggle('active', a === 'data');
+    refreshSidebar();
+  }
+
+  // ── Language tabs ──
+  function setLang(l) {
+    lang = l;
+    // Update tab active state
+    document.querySelectorAll('.lang-tab').forEach(btn => {
+      btn.classList.toggle('active', btn.textContent.toLowerCase().replace('.', '').replace('node', 'node') === l
+        || (l === 'node' && btn.textContent === 'Node.js')
+        || (l === 'python' && btn.textContent === 'Python')
+        || (l === 'java' && btn.textContent === 'Java')
+        || (l === 'rust' && btn.textContent === 'Rust'));
+    });
+    // Show correct block
+    ['python','java','node','rust'].forEach(id => {
+      const el = document.getElementById('lang-' + id);
+      if (el) el.style.display = id === l ? 'block' : 'none';
+    });
+  }
+
+  // ── Accordion ──
+  function toggleAccordion(id) {
+    const el = document.getElementById(id);
+    el.classList.toggle('closed');
+  }
+
+  // ── Sidebar content refresh ──
+  function refreshSidebar() {
+    // Query blocks
+    const blocks = {
+      'query-cql-home':  (api === 'cql'  && page === 'home'),
+      'query-cql-watch': (api === 'cql'  && page === 'watch'),
+      'query-data-home': (api === 'data' && page === 'home'),
+      'query-data-watch':(api === 'data' && page === 'watch'),
+    };
+    Object.entries(blocks).forEach(([id, show]) => {
+      const el = document.getElementById(id);
+      if (el) el.style.display = show ? 'block' : 'none';
+    });
+
+    // Schema blocks
+    document.getElementById('schema-home').style.display  = page === 'home'  ? 'block' : 'none';
+    document.getElementById('schema-watch').style.display = page === 'watch' ? 'block' : 'none';
+
+    // Metadata
+    const endpoint = document.getElementById('meta-endpoint');
+    const latency  = document.getElementById('meta-latency');
+    const source   = document.getElementById('meta-source');
+    if (page === 'home') {
+      endpoint.textContent = 'GET /api/v1/videos/latest';
+      latency.textContent  = '~2ms';
+      source.textContent   = 'useApi.ts:87';
+    } else {
+      endpoint.textContent = 'GET /api/v1/videos/:id';
+      latency.textContent  = '~3ms';
+      source.textContent   = 'useApi.ts:42';
+    }
+  }
+
+  // ── Star rating ──
+  function rate(n) {
+    const stars = document.querySelectorAll('.star');
+    stars.forEach((s, i) => {
+      s.classList.toggle('empty', i >= n);
+    });
+  }
+
+  // ── Fix lang tab click logic ──
+  document.querySelectorAll('.lang-tab').forEach(btn => {
+    btn.onclick = function() {
+      const map = { 'Python':'python', 'Java':'java', 'Node.js':'node', 'Rust':'rust' };
+      setLang(map[btn.textContent] || 'python');
+    };
+  });
+
+  // ── Init ──
+  refreshSidebar();
+</script>
+</body>
+</html>

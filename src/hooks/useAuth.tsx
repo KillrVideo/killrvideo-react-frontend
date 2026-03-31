@@ -1,4 +1,4 @@
-import { createContext, useContext, ReactNode, useState, useEffect, useMemo, useCallback } from 'react';
+import { createContext, useContext, ReactNode, useState, useEffect, useMemo } from 'react';
 import { useProfile } from './useApi';
 import { User } from '@/types/api';
 import { STORAGE_KEYS, EVENTS } from '@/lib/constants';
@@ -7,36 +7,17 @@ interface AuthContextType {
   user: User | null;
   isLoading: boolean;
   isAuthenticated: boolean;
-  guidedTourEnabled: boolean;
-  toggleGuidedTour: () => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [authVersion, setAuthVersion] = useState(0);
-  const [guidedTourEnabled, setGuidedTourEnabled] = useState(() => {
-    if (typeof window !== 'undefined') {
-      const stored = localStorage.getItem(STORAGE_KEYS.GUIDED_TOUR_ENABLED);
-      return stored === 'true';
-    }
-    return false;
-  });
 
   useEffect(() => {
     const handler = () => setAuthVersion((v) => v + 1);
     window.addEventListener(EVENTS.AUTH_CHANGE, handler);
     return () => window.removeEventListener(EVENTS.AUTH_CHANGE, handler);
-  }, []);
-
-  const toggleGuidedTour = useCallback(() => {
-    setGuidedTourEnabled((prev) => {
-      const newValue = !prev;
-      if (typeof window !== 'undefined') {
-        localStorage.setItem(STORAGE_KEYS.GUIDED_TOUR_ENABLED, String(newValue));
-      }
-      return newValue;
-    });
   }, []);
 
   const { data: profile, isLoading } = useProfile();
@@ -61,8 +42,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const isAuthenticated = !!token && !!user;
 
   const contextValue = useMemo(
-    () => ({ user, isLoading, isAuthenticated, guidedTourEnabled, toggleGuidedTour }),
-    [user, isLoading, isAuthenticated, guidedTourEnabled, toggleGuidedTour]
+    () => ({ user, isLoading, isAuthenticated }),
+    [user, isLoading, isAuthenticated]
   );
 
   return (

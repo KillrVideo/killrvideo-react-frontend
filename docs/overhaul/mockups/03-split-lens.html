@@ -1,0 +1,1240 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>KillrVideo — Split Lens Prototype</title>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400;1,700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            'kv-orange': '#E85B3A',
+            'kv-gold':   '#FFCA0B',
+            'kv-teal':   '#0DB7C4',
+            'warm-bg':   '#FBF8F4',
+            'warm-surf': '#FFFFFF',
+            'warm-text': '#1A1A2E',
+            'cool-bg':   '#1A1A2E',
+            'cool-surf': '#252538',
+            'cool-text': '#E8E6E1',
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    * { box-sizing: border-box; }
+
+    html, body {
+      height: 100%;
+      margin: 0;
+      padding: 0;
+      overflow: hidden;
+      font-family: 'Inter', ui-sans-serif, system-ui, sans-serif;
+    }
+
+    /* ── Layout shell ─────────────────────────────────────────── */
+    #app {
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+    }
+
+    #split-container {
+      display: flex;
+      flex: 1;
+      overflow: hidden;
+      position: relative;
+    }
+
+    /* ── Consumer pane ────────────────────────────────────────── */
+    #consumer-pane {
+      background: #FBF8F4;
+      overflow-y: auto;
+      transition: width 0.35s cubic-bezier(0.4,0,0.2,1);
+      width: 50%;
+      flex-shrink: 0;
+    }
+    #app.dev-off #consumer-pane {
+      width: 100%;
+    }
+
+    /* ── Divider ──────────────────────────────────────────────── */
+    #divider {
+      width: 4px;
+      flex-shrink: 0;
+      background: linear-gradient(to bottom, #FBF8F4 0%, #E85B3A 35%, #0DB7C4 70%, #1A1A2E 100%);
+      transition: opacity 0.35s;
+      position: relative;
+      z-index: 10;
+    }
+    #app.dev-off #divider {
+      opacity: 0;
+      width: 0;
+    }
+
+    /* ── Dev pane ─────────────────────────────────────────────── */
+    #dev-pane {
+      background: #1A1A2E;
+      overflow-y: auto;
+      transition: width 0.35s cubic-bezier(0.4,0,0.2,1), opacity 0.3s;
+      width: calc(50% - 4px);
+      flex-shrink: 0;
+      opacity: 1;
+    }
+    #app.dev-off #dev-pane {
+      width: 0;
+      opacity: 0;
+      overflow: hidden;
+    }
+
+    /* ── Scrollbar styling (dev pane) ─────────────────────────── */
+    #dev-pane::-webkit-scrollbar { width: 6px; }
+    #dev-pane::-webkit-scrollbar-track { background: #1A1A2E; }
+    #dev-pane::-webkit-scrollbar-thumb { background: #3A3A52; border-radius: 3px; }
+
+    #consumer-pane::-webkit-scrollbar { width: 6px; }
+    #consumer-pane::-webkit-scrollbar-track { background: #FBF8F4; }
+    #consumer-pane::-webkit-scrollbar-thumb { background: #D8C8B8; border-radius: 3px; }
+
+    /* ── Code blocks ──────────────────────────────────────────── */
+    .code-block {
+      font-family: 'JetBrains Mono', 'Fira Code', 'Cascadia Code', ui-monospace, monospace;
+      font-size: 12px;
+      line-height: 1.65;
+      background: #12122A;
+      color: #E8E6E1;
+      border-radius: 8px;
+      padding: 14px 16px;
+      overflow-x: auto;
+      white-space: pre;
+      border: 1px solid #252538;
+    }
+
+    /* syntax coloring — warm/editorial dark theme */
+    .tok-kw   { color: #E85B3A; }   /* keywords: SELECT, FROM, WHERE — orange */
+    .tok-lit  { color: #0DB7C4; }   /* literals / values — teal */
+    .tok-id   { color: #E8E6E1; }   /* identifiers */
+    .tok-str  { color: #7EC89F; }   /* strings — soft green */
+    .tok-cmt  { color: #6B6B7B; font-style: italic; }
+    .tok-key  { color: #78A9FF; }   /* JSON keys — soft blue */
+    .tok-num  { color: #0DB7C4; }   /* numbers — teal */
+
+    /* ── Toggle pill (split toggle) ───────────────────────────── */
+    #split-toggle {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 14px;
+      border-radius: 9999px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      user-select: none;
+      transition: background 0.2s, color 0.2s, border-color 0.2s;
+      border: 1.5px solid #E85B3A;
+      background: #E85B3A;
+      color: #fff;
+    }
+    #split-toggle.off {
+      background: transparent;
+      color: #E85B3A;
+    }
+
+    /* ── API mode toggle ──────────────────────────────────────── */
+    .api-toggle-btn {
+      padding: 5px 16px;
+      border-radius: 9999px;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.15s, color 0.15s, border-color 0.15s;
+      border: 1px solid #3A3A52;
+      color: #8A8A9A;
+      background: transparent;
+      letter-spacing: 0.04em;
+      font-family: 'Inter', sans-serif;
+    }
+    .api-toggle-btn.active {
+      background: #E85B3A;
+      color: #fff;
+      border-color: #E85B3A;
+    }
+
+    /* ── Language tabs ────────────────────────────────────────── */
+    .lang-tab {
+      padding: 5px 13px;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: color 0.15s, border-color 0.15s;
+      border: none;
+      border-bottom: 2px solid transparent;
+      color: #8A8A9A;
+      background: transparent;
+      font-family: 'Inter', sans-serif;
+    }
+    .lang-tab.active {
+      color: #E85B3A;
+      border-bottom-color: #E85B3A;
+    }
+
+    /* ── Schema table ─────────────────────────────────────────── */
+    .schema-row {
+      display: grid;
+      grid-template-columns: 160px 110px 1fr;
+      gap: 8px;
+      align-items: center;
+      padding: 6px 10px;
+      border-radius: 6px;
+      font-size: 12px;
+      font-family: ui-monospace, monospace;
+    }
+    .schema-row:nth-child(even) { background: #252538; }
+
+    .badge-pk {
+      display: inline-block;
+      padding: 2px 7px;
+      border-radius: 4px;
+      font-size: 10px;
+      font-weight: 700;
+      background: #E85B3A;
+      color: #fff;
+      letter-spacing: 0.05em;
+    }
+    .badge-ck {
+      display: inline-block;
+      padding: 2px 7px;
+      border-radius: 4px;
+      font-size: 10px;
+      font-weight: 700;
+      background: #0DB7C4;
+      color: #1A1A2E;
+      letter-spacing: 0.05em;
+    }
+    .badge-regular {
+      display: inline-block;
+      padding: 2px 7px;
+      border-radius: 4px;
+      font-size: 10px;
+      font-weight: 700;
+      border: 1px solid #3A3A52;
+      color: #8A8A9A;
+    }
+
+    /* ── Query type badge ─────────────────────────────────────── */
+    .badge-read {
+      display: inline-block;
+      padding: 2px 10px;
+      border-radius: 4px;
+      font-size: 11px;
+      font-weight: 700;
+      background: rgba(13,183,196,0.15);
+      color: #0DB7C4;
+      border: 1px solid rgba(13,183,196,0.3);
+      letter-spacing: 0.06em;
+    }
+    .badge-write {
+      display: inline-block;
+      padding: 2px 10px;
+      border-radius: 4px;
+      font-size: 11px;
+      font-weight: 700;
+      background: rgba(232,91,58,0.15);
+      color: #E85B3A;
+      border: 1px solid rgba(232,91,58,0.3);
+      letter-spacing: 0.06em;
+    }
+
+    /* ── View-hidden utility ──────────────────────────────────── */
+    [data-view] { display: none; }
+    [data-view].active { display: block; }
+    [data-dev-view] { display: none; }
+    [data-dev-view].active { display: block; }
+
+    /* ── Star rating ──────────────────────────────────────────── */
+    .star { color: #FFCA0B; font-size: 18px; }
+    .star.empty { color: #D8C8B8; }
+
+    /* ── Video card ───────────────────────────────────────────── */
+    .video-card {
+      background: #fff;
+      border-radius: 14px;
+      overflow: hidden;
+      box-shadow: 0 2px 8px rgba(26,26,46,0.08), 0 0 0 1px rgba(26,26,46,0.04);
+      transition: box-shadow 0.2s, transform 0.2s;
+    }
+    .video-card:hover {
+      box-shadow: 0 8px 24px rgba(232,91,58,0.14);
+      transform: translateY(-2px);
+    }
+
+    /* ── Page tabs ────────────────────────────────────────────── */
+    .page-tab {
+      padding: 8px 20px;
+      border-radius: 9999px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.15s, color 0.15s;
+      color: #6B7280;
+      border: none;
+      background: transparent;
+      font-family: 'Inter', sans-serif;
+    }
+    .page-tab.active {
+      background: #E85B3A;
+      color: #fff;
+    }
+
+    /* ── Comment ──────────────────────────────────────────────── */
+    .comment-avatar {
+      width: 34px;
+      height: 34px;
+      border-radius: 9999px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 14px;
+      font-weight: 700;
+      flex-shrink: 0;
+      color: #fff;
+    }
+
+    /* ── Metadata bar in dev pane ─────────────────────────────── */
+    .meta-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      padding: 3px 10px;
+      border-radius: 6px;
+      font-size: 11px;
+      font-weight: 600;
+      background: #252538;
+      color: #8A8A9A;
+      border: 1px solid #3A3A52;
+      font-family: ui-monospace, monospace;
+    }
+
+    /* ── Dev section heading ──────────────────────────────────── */
+    .dev-section-heading {
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: #5A5A6A;
+      margin-bottom: 10px;
+      font-family: 'Inter', sans-serif;
+    }
+
+    /* ── Tooltip ──────────────────────────────────────────────── */
+    [data-tooltip] { position: relative; cursor: help; }
+    [data-tooltip]:hover::after {
+      content: attr(data-tooltip);
+      position: absolute;
+      bottom: calc(100% + 6px);
+      left: 50%;
+      transform: translateX(-50%);
+      background: #252538;
+      color: #E8E6E1;
+      font-size: 11px;
+      font-family: 'Inter', ui-sans-serif, system-ui, sans-serif;
+      font-weight: 400;
+      padding: 6px 10px;
+      border-radius: 6px;
+      white-space: nowrap;
+      max-width: 240px;
+      white-space: normal;
+      text-align: center;
+      z-index: 100;
+      pointer-events: none;
+      border: 1px solid #3A3A52;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+    }
+
+    /* ── Related video row ────────────────────────────────────── */
+    .related-row {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      padding: 10px;
+      border-radius: 12px;
+      background: #fff;
+      box-shadow: 0 1px 4px rgba(26,26,46,0.06);
+      transition: box-shadow 0.15s;
+    }
+    .related-row:hover { box-shadow: 0 4px 12px rgba(232,91,58,0.12); }
+  </style>
+</head>
+<body>
+
+<div id="app">
+
+  <!-- ═══════════════════════════════════════════════════════════
+       HEADER — spans full width
+  ════════════════════════════════════════════════════════════════ -->
+  <header style="background: #fff; border-bottom: 1px solid #EDE8E2; z-index: 50; flex-shrink: 0;">
+    <div style="display: flex; align-items: center; justify-content: space-between; padding: 0 24px; height: 56px; gap: 16px;">
+
+      <!-- Logo + page tabs (left) -->
+      <div style="display: flex; align-items: center; gap: 20px; min-width: 0;">
+        <div style="display: flex; align-items: center; gap: 8px; flex-shrink: 0;">
+          <div style="width: 28px; height: 28px; border-radius: 6px; background: #1A1A2E; display: flex; align-items: center; justify-content: center;">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+              <polygon points="5,3 19,12 5,21" fill="#FFCA0B"/>
+            </svg>
+          </div>
+          <span style="font-size: 17px; font-weight: 400; color: #1A1A2E; font-family: 'Playfair Display', serif; font-style: italic; letter-spacing: -0.01em;">KillrVideo</span>
+        </div>
+
+        <!-- Page tabs -->
+        <nav style="display: flex; gap: 4px;">
+          <button class="page-tab active" onclick="setView('home')">Home</button>
+          <button class="page-tab" onclick="setView('watch')">Watch</button>
+        </nav>
+      </div>
+
+      <!-- Center: breadcrumb temperature indicator -->
+      <div style="font-size: 11px; color: #9CA3AF; display: flex; align-items: center; gap: 8px; flex-shrink: 0;">
+        <span style="color: #9A4A2A; background: #FEF0EA; padding: 2px 8px; border-radius: 4px; font-weight: 600; font-size: 10px;">WARM</span>
+        <span style="color: #6B7280;">consumer</span>
+        <div style="width: 40px; height: 3px; border-radius: 2px; background: linear-gradient(to right, #FBF8F4, #E85B3A, #0DB7C4, #1A1A2E);"></div>
+        <span style="color: #6B7280;">dev</span>
+        <span style="color: #0A7A87; background: #E0F7F9; padding: 2px 8px; border-radius: 4px; font-weight: 600; font-size: 10px;">COOL</span>
+      </div>
+
+      <!-- Right: split toggle + nav links -->
+      <div style="display: flex; align-items: center; gap: 16px; flex-shrink: 0;">
+        <div style="display: flex; align-items: center; gap: 8px;">
+          <span style="font-size: 12px; font-weight: 600; color: #6B7280;">Dev Panel</span>
+          <button id="split-toggle" onclick="toggleDev()" title="Toggle developer panel">
+            <svg id="toggle-icon-on" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+              <rect x="3" y="3" width="8" height="18" rx="1"/>
+              <rect x="13" y="3" width="8" height="18" rx="1"/>
+            </svg>
+            <svg id="toggle-icon-off" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="display:none;">
+              <rect x="3" y="3" width="18" height="18" rx="1"/>
+              <line x1="12" y1="3" x2="12" y2="21" stroke-dasharray="3,2"/>
+            </svg>
+            <span id="toggle-label">Split On</span>
+          </button>
+        </div>
+        <div style="display: flex; align-items: center; gap: 12px; font-size: 13px; color: #6B7280;">
+          <a href="index.html" style="color: #E85B3A; font-weight: 600; text-decoration: none; font-size: 12px;">&larr; All Prototypes</a>
+        </div>
+      </div>
+
+    </div>
+  </header>
+
+  <!-- ═══════════════════════════════════════════════════════════
+       SPLIT CONTAINER
+  ════════════════════════════════════════════════════════════════ -->
+  <div id="split-container">
+
+    <!-- ──────────────────────────────────────────────────────
+         CONSUMER PANE (left — warm cream)
+    ─────────────────────────────────────────────────────────── -->
+    <div id="consumer-pane">
+
+      <!-- ── HOME VIEW ──────────────────────────────────── -->
+      <div data-view="home" class="active" style="padding: 32px 28px;">
+
+        <!-- Hero -->
+        <div style="margin-bottom: 32px;">
+          <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 14px;">
+            <div style="width: 4px; height: 36px; background: #E85B3A; border-radius: 2px;"></div>
+            <div>
+              <p style="font-size: 11px; font-weight: 600; letter-spacing: 0.12em; text-transform: uppercase; color: #9CA3AF; margin: 0 0 2px; font-family: 'Inter', sans-serif;">Featured Today</p>
+              <h1 style="font-size: 28px; font-weight: 400; color: #1A1A2E; margin: 0; line-height: 1.2; font-family: 'Playfair Display', serif;">Discover Videos</h1>
+            </div>
+          </div>
+          <p style="color: #6B7280; font-size: 14px; margin: 0 0 20px; line-height: 1.6;">
+            Explore the latest content from creators around the world — powered by Apache Cassandra.
+          </p>
+
+          <!-- Stats bar -->
+          <div style="display: flex; gap: 20px; padding: 14px 18px; background: #fff; border-radius: 14px; box-shadow: 0 2px 8px rgba(26,26,46,0.06); border: 1px solid rgba(26,26,46,0.05);">
+            <div style="text-align: center;">
+              <p style="font-size: 18px; font-weight: 700; color: #E85B3A; margin: 0; font-family: 'Playfair Display', serif;">12,847</p>
+              <p style="font-size: 11px; color: #9CA3AF; margin: 0;">Videos</p>
+            </div>
+            <div style="width: 1px; background: #EDE8E2;"></div>
+            <div style="text-align: center;">
+              <p style="font-size: 18px; font-weight: 700; color: #E85B3A; margin: 0; font-family: 'Playfair Display', serif;">3,241</p>
+              <p style="font-size: 11px; color: #9CA3AF; margin: 0;">Creators</p>
+            </div>
+            <div style="width: 1px; background: #EDE8E2;"></div>
+            <div style="text-align: center;">
+              <p style="font-size: 18px; font-weight: 700; color: #E85B3A; margin: 0; font-family: 'Playfair Display', serif;">98.4ms</p>
+              <p style="font-size: 11px; color: #9CA3AF; margin: 0;">Avg latency</p>
+            </div>
+            <div style="width: 1px; background: #EDE8E2;"></div>
+            <div style="text-align: center;">
+              <p style="font-size: 18px; font-weight: 700; color: #FFCA0B; margin: 0; font-family: 'Playfair Display', serif;">Astra DB</p>
+              <p style="font-size: 11px; color: #9CA3AF; margin: 0;">Backend</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Section heading -->
+        <h2 style="font-size: 11px; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; color: #9CA3AF; margin: 0 0 16px; font-family: 'Inter', sans-serif;">Latest Videos</h2>
+
+        <!-- Video cards grid -->
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 24px;">
+
+          <!-- Card 1 -->
+          <div class="video-card">
+            <div style="height: 100px; background: linear-gradient(135deg, #1A1A2E 0%, #E85B3A 100%); display: flex; align-items: center; justify-content: center; position: relative;">
+              <div style="width: 36px; height: 36px; background: rgba(255,255,255,0.18); border-radius: 50%; display: flex; align-items: center; justify-content: center; backdrop-filter: blur(4px);">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="white"><polygon points="5,3 19,12 5,21"/></svg>
+              </div>
+              <span style="position: absolute; bottom: 6px; right: 8px; font-size: 10px; background: rgba(0,0,0,0.55); color: #fff; padding: 1px 6px; border-radius: 4px; font-weight: 600;">8:42</span>
+            </div>
+            <div style="padding: 12px;">
+              <p style="font-size: 13px; font-weight: 600; color: #1A1A2E; margin: 0 0 4px; line-height: 1.35; font-family: 'Inter', sans-serif;">Cassandra Data Modeling Deep Dive</p>
+              <p style="font-size: 11px; color: #9CA3AF; margin: 0 0 8px;">datastax_dev &bull; 14.2k views</p>
+              <div style="display: flex; align-items: center; gap: 4px;">
+                <span class="star">★</span><span class="star">★</span><span class="star">★</span><span class="star">★</span><span class="star empty">★</span>
+                <span style="font-size: 11px; color: #9CA3AF; margin-left: 2px;">(284)</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Card 2 -->
+          <div class="video-card">
+            <div style="height: 100px; background: linear-gradient(135deg, #0A5A63 0%, #0DB7C4 100%); display: flex; align-items: center; justify-content: center; position: relative;">
+              <div style="width: 36px; height: 36px; background: rgba(255,255,255,0.18); border-radius: 50%; display: flex; align-items: center; justify-content: center; backdrop-filter: blur(4px);">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="white"><polygon points="5,3 19,12 5,21"/></svg>
+              </div>
+              <span style="position: absolute; bottom: 6px; right: 8px; font-size: 10px; background: rgba(0,0,0,0.55); color: #fff; padding: 1px 6px; border-radius: 4px; font-weight: 600;">12:07</span>
+            </div>
+            <div style="padding: 12px;">
+              <p style="font-size: 13px; font-weight: 600; color: #1A1A2E; margin: 0 0 4px; line-height: 1.35; font-family: 'Inter', sans-serif;">Getting Started with DataStax Astra</p>
+              <p style="font-size: 11px; color: #9CA3AF; margin: 0 0 8px;">astra_quickstart &bull; 8.9k views</p>
+              <div style="display: flex; align-items: center; gap: 4px;">
+                <span class="star">★</span><span class="star">★</span><span class="star">★</span><span class="star">★</span><span class="star">★</span>
+                <span style="font-size: 11px; color: #9CA3AF; margin-left: 2px;">(512)</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Card 3 -->
+          <div class="video-card">
+            <div style="height: 100px; background: linear-gradient(135deg, #8A3000 0%, #E85B3A 100%); display: flex; align-items: center; justify-content: center; position: relative;">
+              <div style="width: 36px; height: 36px; background: rgba(255,255,255,0.18); border-radius: 50%; display: flex; align-items: center; justify-content: center; backdrop-filter: blur(4px);">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="white"><polygon points="5,3 19,12 5,21"/></svg>
+              </div>
+              <span style="position: absolute; bottom: 6px; right: 8px; font-size: 10px; background: rgba(0,0,0,0.55); color: #fff; padding: 1px 6px; border-radius: 4px; font-weight: 600;">6:33</span>
+            </div>
+            <div style="padding: 12px;">
+              <p style="font-size: 13px; font-weight: 600; color: #1A1A2E; margin: 0 0 4px; line-height: 1.35; font-family: 'Inter', sans-serif;">Partition Keys Explained in 6 Minutes</p>
+              <p style="font-size: 11px; color: #9CA3AF; margin: 0 0 8px;">cass_shorts &bull; 22.1k views</p>
+              <div style="display: flex; align-items: center; gap: 4px;">
+                <span class="star">★</span><span class="star">★</span><span class="star">★</span><span class="star">★</span><span class="star empty">★</span>
+                <span style="font-size: 11px; color: #9CA3AF; margin-left: 2px;">(178)</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Card 4 -->
+          <div class="video-card">
+            <div style="height: 100px; background: linear-gradient(135deg, #003D30 0%, #0DB7A0 100%); display: flex; align-items: center; justify-content: center; position: relative;">
+              <div style="width: 36px; height: 36px; background: rgba(255,255,255,0.18); border-radius: 50%; display: flex; align-items: center; justify-content: center; backdrop-filter: blur(4px);">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="white"><polygon points="5,3 19,12 5,21"/></svg>
+              </div>
+              <span style="position: absolute; bottom: 6px; right: 8px; font-size: 10px; background: rgba(0,0,0,0.55); color: #fff; padding: 1px 6px; border-radius: 4px; font-weight: 600;">19:45</span>
+            </div>
+            <div style="padding: 12px;">
+              <p style="font-size: 13px; font-weight: 600; color: #1A1A2E; margin: 0 0 4px; line-height: 1.35; font-family: 'Inter', sans-serif;">Building Real-time Apps with Cassandra</p>
+              <p style="font-size: 11px; color: #9CA3AF; margin: 0 0 8px;">realtime_builds &bull; 5.3k views</p>
+              <div style="display: flex; align-items: center; gap: 4px;">
+                <span class="star">★</span><span class="star">★</span><span class="star">★</span><span class="star">★</span><span class="star empty">★</span>
+                <span style="font-size: 11px; color: #9CA3AF; margin-left: 2px;">(93)</span>
+              </div>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Load more -->
+        <div style="text-align: center;">
+          <button style="padding: 10px 28px; border-radius: 9999px; background: #E85B3A; color: #fff; font-size: 13px; font-weight: 600; border: none; cursor: pointer; font-family: 'Inter', sans-serif;">Load More Videos</button>
+        </div>
+
+      </div><!-- /home view -->
+
+
+      <!-- ── WATCH VIEW ──────────────────────────────────── -->
+      <div data-view="watch" style="padding: 28px;">
+
+        <!-- Player placeholder -->
+        <div style="border-radius: 14px; overflow: hidden; margin-bottom: 20px; background: #1A1A2E; aspect-ratio: 16/9; display: flex; align-items: center; justify-content: center; position: relative; max-height: 220px;">
+          <div style="position: absolute; inset: 0; background: linear-gradient(135deg, #1A1A2E 0%, #3A1A0E 60%, #E85B3A 100%); opacity: 0.9;"></div>
+          <div style="position: relative; z-index: 1; text-align: center;">
+            <div style="width: 56px; height: 56px; background: rgba(255,255,255,0.12); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 10px; backdrop-filter: blur(8px); border: 2px solid rgba(255,202,11,0.35);">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="#FFCA0B"><polygon points="5,3 19,12 5,21"/></svg>
+            </div>
+            <p style="color: rgba(255,255,255,0.65); font-size: 12px; margin: 0; font-family: 'Inter', sans-serif;">Click to play</p>
+          </div>
+          <!-- Progress bar -->
+          <div style="position: absolute; bottom: 0; left: 0; right: 0; height: 3px; background: rgba(255,255,255,0.12);">
+            <div style="width: 35%; height: 100%; background: #FFCA0B;"></div>
+          </div>
+        </div>
+
+        <!-- Title + meta -->
+        <h1 style="font-size: 20px; font-weight: 400; color: #1A1A2E; margin: 0 0 6px; line-height: 1.3; font-family: 'Playfair Display', serif;">Cassandra Data Modeling Deep Dive</h1>
+        <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 14px; flex-wrap: wrap;">
+          <div style="display: flex; align-items: center; gap: 6px;">
+            <div class="comment-avatar" style="width: 28px; height: 28px; background: #E85B3A; font-size: 11px;">D</div>
+            <span style="font-size: 12px; font-weight: 600; color: #E85B3A; font-family: 'Inter', sans-serif;">datastax_dev</span>
+          </div>
+          <span style="color: #D8C8B8;">|</span>
+          <span style="font-size: 12px; color: #9CA3AF;">Jan 15, 2024 &bull; 14,231 views</span>
+          <span style="font-size: 12px; color: #9CA3AF;">&bull; 8:42</span>
+        </div>
+
+        <!-- Star rating -->
+        <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 16px; padding: 12px 16px; background: #fff; border-radius: 12px; box-shadow: 0 1px 4px rgba(26,26,46,0.06);">
+          <span style="font-size: 12px; color: #6B7280; font-weight: 600; font-family: 'Inter', sans-serif;">Rate this video:</span>
+          <div style="display: flex; gap: 2px; cursor: pointer;">
+            <span class="star" style="font-size: 22px;">★</span>
+            <span class="star" style="font-size: 22px;">★</span>
+            <span class="star" style="font-size: 22px;">★</span>
+            <span class="star" style="font-size: 22px;">★</span>
+            <span class="star empty" style="font-size: 22px;">★</span>
+          </div>
+          <span style="font-size: 12px; color: #9CA3AF;">4.2 avg (284 ratings)</span>
+        </div>
+
+        <!-- Description -->
+        <div style="padding: 14px 16px; background: #fff; border-radius: 12px; margin-bottom: 20px; box-shadow: 0 1px 4px rgba(26,26,46,0.06);">
+          <p style="font-size: 13px; color: #4B5563; margin: 0; line-height: 1.7; font-family: 'Inter', sans-serif;">
+            In this video we explore advanced Cassandra data modeling techniques — partition key design,
+            clustering column ordering, and query-driven schema patterns. We walk through the
+            <code style="font-size: 12px; background: #FEF0EA; color: #E85B3A; padding: 1px 5px; border-radius: 3px;">videos_by_id</code>
+            and <code style="font-size: 12px; background: #FEF0EA; color: #E85B3A; padding: 1px 5px; border-radius: 3px;">latest_videos</code>
+            tables used in this very application.
+          </p>
+          <div style="margin-top: 10px; display: flex; gap: 6px; flex-wrap: wrap;">
+            <span style="font-size: 11px; padding: 2px 10px; background: #FEF0EA; color: #E85B3A; border-radius: 9999px; font-weight: 600; font-family: 'Inter', sans-serif;">cassandra</span>
+            <span style="font-size: 11px; padding: 2px 10px; background: #FEF0EA; color: #E85B3A; border-radius: 9999px; font-weight: 600; font-family: 'Inter', sans-serif;">data-modeling</span>
+            <span style="font-size: 11px; padding: 2px 10px; background: #FEF0EA; color: #E85B3A; border-radius: 9999px; font-weight: 600; font-family: 'Inter', sans-serif;">astra-db</span>
+          </div>
+        </div>
+
+        <!-- Comments -->
+        <h2 style="font-size: 11px; font-weight: 600; color: #9CA3AF; letter-spacing: 0.1em; text-transform: uppercase; margin: 0 0 14px; font-family: 'Inter', sans-serif;">Comments (3)</h2>
+
+        <div style="display: flex; flex-direction: column; gap: 12px; margin-bottom: 24px;">
+          <!-- Comment 1 -->
+          <div style="display: flex; gap: 10px;">
+            <div class="comment-avatar" style="background: #7C3AED;">A</div>
+            <div style="flex: 1; background: #fff; border-radius: 12px; padding: 10px 14px; box-shadow: 0 1px 4px rgba(26,26,46,0.06);">
+              <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 5px;">
+                <span style="font-size: 12px; font-weight: 700; color: #1A1A2E; font-family: 'Inter', sans-serif;">alice_db</span>
+                <span style="font-size: 11px; color: #9CA3AF;">2 hours ago</span>
+              </div>
+              <p style="font-size: 13px; color: #4B5563; margin: 0; line-height: 1.5; font-family: 'Inter', sans-serif;">This is exactly what I needed to understand partition key design. The day-bucket pattern for latest_videos is clever!</p>
+            </div>
+          </div>
+          <!-- Comment 2 -->
+          <div style="display: flex; gap: 10px;">
+            <div class="comment-avatar" style="background: #0A6A7A;">B</div>
+            <div style="flex: 1; background: #fff; border-radius: 12px; padding: 10px 14px; box-shadow: 0 1px 4px rgba(26,26,46,0.06);">
+              <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 5px;">
+                <span style="font-size: 12px; font-weight: 700; color: #1A1A2E; font-family: 'Inter', sans-serif;">bob_cass</span>
+                <span style="font-size: 11px; color: #9CA3AF;">5 hours ago</span>
+              </div>
+              <p style="font-size: 13px; color: #4B5563; margin: 0; line-height: 1.5; font-family: 'Inter', sans-serif;">Great breakdown of TIMEUUID for comments ordering. Never thought about using that instead of a plain timestamp.</p>
+            </div>
+          </div>
+          <!-- Comment 3 -->
+          <div style="display: flex; gap: 10px;">
+            <div class="comment-avatar" style="background: #8A3000;">C</div>
+            <div style="flex: 1; background: #fff; border-radius: 12px; padding: 10px 14px; box-shadow: 0 1px 4px rgba(26,26,46,0.06);">
+              <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 5px;">
+                <span style="font-size: 12px; font-weight: 700; color: #1A1A2E; font-family: 'Inter', sans-serif;">carol_infra</span>
+                <span style="font-size: 11px; color: #9CA3AF;">1 day ago</span>
+              </div>
+              <p style="font-size: 13px; color: #4B5563; margin: 0; line-height: 1.5; font-family: 'Inter', sans-serif;">Wish this had been available when I started with Cassandra last year. Bookmarking for the team.</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Related videos -->
+        <h2 style="font-size: 11px; font-weight: 600; color: #9CA3AF; letter-spacing: 0.1em; text-transform: uppercase; margin: 0 0 14px; font-family: 'Inter', sans-serif;">Related Videos</h2>
+        <div style="display: flex; flex-direction: column; gap: 10px;">
+          <div class="related-row">
+            <div style="width: 80px; height: 52px; border-radius: 9px; background: linear-gradient(135deg, #0A5A63, #0DB7C4); flex-shrink: 0; display: flex; align-items: center; justify-content: center;">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="rgba(255,255,255,0.9)"><polygon points="5,3 19,12 5,21"/></svg>
+            </div>
+            <div style="flex: 1; min-width: 0;">
+              <p style="font-size: 12px; font-weight: 600; color: #1A1A2E; margin: 0 0 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-family: 'Inter', sans-serif;">Getting Started with DataStax Astra</p>
+              <p style="font-size: 11px; color: #9CA3AF; margin: 0;">astra_quickstart &bull; 12:07</p>
+            </div>
+          </div>
+          <div class="related-row">
+            <div style="width: 80px; height: 52px; border-radius: 9px; background: linear-gradient(135deg, #8A3000, #E85B3A); flex-shrink: 0; display: flex; align-items: center; justify-content: center;">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="rgba(255,255,255,0.9)"><polygon points="5,3 19,12 5,21"/></svg>
+            </div>
+            <div style="flex: 1; min-width: 0;">
+              <p style="font-size: 12px; font-weight: 600; color: #1A1A2E; margin: 0 0 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-family: 'Inter', sans-serif;">Partition Keys Explained in 6 Minutes</p>
+              <p style="font-size: 11px; color: #9CA3AF; margin: 0;">cass_shorts &bull; 6:33</p>
+            </div>
+          </div>
+          <div class="related-row">
+            <div style="width: 80px; height: 52px; border-radius: 9px; background: linear-gradient(135deg, #003D30, #0DB7A0); flex-shrink: 0; display: flex; align-items: center; justify-content: center;">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="rgba(255,255,255,0.9)"><polygon points="5,3 19,12 5,21"/></svg>
+            </div>
+            <div style="flex: 1; min-width: 0;">
+              <p style="font-size: 12px; font-weight: 600; color: #1A1A2E; margin: 0 0 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-family: 'Inter', sans-serif;">Building Real-time Apps with Cassandra</p>
+              <p style="font-size: 11px; color: #9CA3AF; margin: 0;">realtime_builds &bull; 19:45</p>
+            </div>
+          </div>
+        </div>
+
+      </div><!-- /watch view -->
+
+    </div><!-- /consumer-pane -->
+
+
+    <!-- ── DIVIDER ──────────────────────────────────────────── -->
+    <div id="divider"></div>
+
+
+    <!-- ──────────────────────────────────────────────────────
+         DEV PANE (right — cool dark navy)
+    ─────────────────────────────────────────────────────────── -->
+    <div id="dev-pane">
+      <div style="padding: 20px 20px 32px;">
+
+        <!-- Dev pane header -->
+        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; padding-bottom: 16px; border-bottom: 1px solid #252538;">
+          <div style="display: flex; align-items: center; gap: 8px;">
+            <div style="width: 22px; height: 22px; border-radius: 5px; background: linear-gradient(135deg, #0DB7C4, #E85B3A); display: flex; align-items: center; justify-content: center;">
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5"><polyline points="4,17 10,11 4,5"/><line x1="12" y1="19" x2="20" y2="19"/></svg>
+            </div>
+            <span style="font-size: 13px; font-weight: 600; color: #E8E6E1; letter-spacing: 0.01em; font-family: 'Inter', sans-serif;">Dev Panel</span>
+            <span style="font-size: 10px; color: #0DB7C4; background: rgba(13,183,196,0.12); padding: 2px 7px; border-radius: 4px; font-weight: 600; letter-spacing: 0.06em;">LIVE</span>
+          </div>
+
+          <!-- API mode toggle -->
+          <div style="display: flex; gap: 3px; background: #12122A; padding: 3px; border-radius: 9999px;">
+            <button class="api-toggle-btn active" id="api-cql" onclick="setApiMode('cql')">CQL</button>
+            <button class="api-toggle-btn" id="api-data" onclick="setApiMode('dataapi')">Data API</button>
+          </div>
+        </div>
+
+
+        <!-- ── HOME DEV VIEW ──────────────────────────────── -->
+        <div data-dev-view="home" class="active">
+
+          <!-- Metadata bar -->
+          <div class="dev-section-heading">Query Metadata</div>
+          <div style="display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 20px;">
+            <span class="badge-read" data-tooltip="SELECT query — read operation against the Cassandra cluster">READ</span>
+            <span class="meta-pill">GET /api/v1/videos</span>
+            <span class="meta-pill" data-tooltip="Representative value for a multi-partition time-bucket read. Not a live measurement.">~12ms</span>
+            <span class="meta-pill" style="cursor: pointer;" onclick="this.style.background='#3A3A52'" title="Click to copy">src/hooks/useApi.ts:67</span>
+          </div>
+
+          <!-- Query block -->
+          <div class="dev-section-heading">Query — latest_videos</div>
+
+          <div id="home-cql-block">
+            <div class="code-block"><span class="tok-kw">SELECT</span> <span class="tok-id">video_id</span>, <span class="tok-id">title</span>, <span class="tok-id">preview_image</span>, <span class="tok-id">user_id</span>, <span class="tok-id">added_date</span>
+<span class="tok-kw">FROM</span> <span class="tok-id">latest_videos</span>
+<span class="tok-kw">WHERE</span> <span class="tok-id">yyyymmdd</span> = <span class="tok-lit">'2024-01-15'</span>
+<span class="tok-kw">ORDER BY</span> <span class="tok-id">added_date</span> <span class="tok-kw">DESC</span>
+<span class="tok-kw">LIMIT</span> <span class="tok-num">10</span></div>
+            <p style="font-size: 11px; color: #5A5A6A; margin: 6px 0 0; line-height: 1.5;">
+              Partitioned by <code style="color: #0DB7C4;">yyyymmdd</code> — a day-bucket pattern preventing unbounded partition growth while keeping chronological queries efficient.
+            </p>
+          </div>
+
+          <div id="home-data-block" style="display:none;">
+            <div class="code-block"><span class="tok-cmt">// DataStax Data API — no CQL knowledge required</span>
+<span class="tok-id">db</span>.<span class="tok-id">collection</span>(<span class="tok-str">"videos"</span>)
+  .<span class="tok-id">find</span>({})
+  .<span class="tok-id">sort</span>({ <span class="tok-key">"addedDate"</span>: <span class="tok-num">-1</span> })
+  .<span class="tok-id">limit</span>(<span class="tok-num">10</span>)
+
+<span class="tok-cmt">// Full request body:</span>
+{
+  <span class="tok-key">"find"</span>: {
+    <span class="tok-key">"filter"</span>: {},
+    <span class="tok-key">"sort"</span>: { <span class="tok-key">"addedDate"</span>: <span class="tok-num">-1</span> },
+    <span class="tok-key">"options"</span>: { <span class="tok-key">"limit"</span>: <span class="tok-num">10</span> }
+  }
+}</div>
+          </div>
+
+          <!-- Schema -->
+          <div class="dev-section-heading" style="margin-top: 20px;">Schema — latest_videos</div>
+          <div style="border-radius: 8px; overflow: hidden; border: 1px solid #252538; margin-bottom: 20px;">
+            <div class="schema-row" style="background: #252538; color: #5A5A6A; font-size: 10px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; padding: 8px 10px;">
+              <span>Column</span><span>Type</span><span>Key</span>
+            </div>
+            <div class="schema-row">
+              <span style="color: #E8E6E1;">yyyymmdd</span>
+              <span style="color: #8A8A9A;">TEXT</span>
+              <span><span class="badge-pk" data-tooltip="Partition key — all videos for one day share this partition. Prevents unbounded growth.">PK</span></span>
+            </div>
+            <div class="schema-row">
+              <span style="color: #E8E6E1;">added_date</span>
+              <span style="color: #8A8A9A;">TIMESTAMP</span>
+              <span><span class="badge-ck" data-tooltip="Clustering key, descending — newest videos sort first within each day partition.">CK ↓</span></span>
+            </div>
+            <div class="schema-row">
+              <span style="color: #E8E6E1;">video_id</span>
+              <span style="color: #8A8A9A;">UUID</span>
+              <span><span class="badge-ck" data-tooltip="Second clustering key — ensures uniqueness when two videos share the same timestamp.">CK ↓</span></span>
+            </div>
+            <div class="schema-row">
+              <span style="color: #E8E6E1;">user_id</span>
+              <span style="color: #8A8A9A;">UUID</span>
+              <span><span class="badge-regular">—</span></span>
+            </div>
+            <div class="schema-row">
+              <span style="color: #E8E6E1;">title</span>
+              <span style="color: #8A8A9A;">TEXT</span>
+              <span><span class="badge-regular">—</span></span>
+            </div>
+            <div class="schema-row">
+              <span style="color: #E8E6E1;">thumbnail_url</span>
+              <span style="color: #8A8A9A;">TEXT</span>
+              <span><span class="badge-regular">—</span></span>
+            </div>
+          </div>
+
+          <!-- Language examples -->
+          <div class="dev-section-heading">Language Examples</div>
+          <div style="display: flex; gap: 0; margin-bottom: 12px; flex-wrap: wrap; border-bottom: 1px solid #252538;">
+            <button class="lang-tab active" onclick="setLang('home','python')">Python</button>
+            <button class="lang-tab" onclick="setLang('home','java')">Java</button>
+            <button class="lang-tab" onclick="setLang('home','node')">Node.js</button>
+            <button class="lang-tab" onclick="setLang('home','rust')">Rust</button>
+          </div>
+
+          <div id="home-lang-python">
+            <div class="code-block"><span class="tok-kw">from</span> <span class="tok-id">cassandra.cluster</span> <span class="tok-kw">import</span> <span class="tok-id">Cluster</span>
+
+<span class="tok-cmt"># Connection setup — see docs/connection-setup.md</span>
+<span class="tok-id">session</span> = <span class="tok-id">cluster</span>.<span class="tok-id">connect</span>(<span class="tok-str">"killrvideo"</span>)
+
+<span class="tok-id">prepared</span> = <span class="tok-id">session</span>.<span class="tok-id">prepare</span>(
+    <span class="tok-str">"SELECT video_id, title, thumbnail_url, user_id, added_date"</span>
+    <span class="tok-str">"  FROM latest_videos WHERE yyyymmdd = %s"</span>
+    <span class="tok-str">"  ORDER BY added_date DESC LIMIT 10"</span>
+)
+<span class="tok-id">rows</span> = <span class="tok-id">session</span>.<span class="tok-id">execute</span>(<span class="tok-id">prepared</span>, [<span class="tok-str">"2024-01-15"</span>])
+
+<span class="tok-kw">for</span> <span class="tok-id">row</span> <span class="tok-kw">in</span> <span class="tok-id">rows</span>:
+    <span class="tok-id">print</span>(<span class="tok-id">row</span>.<span class="tok-id">title</span>, <span class="tok-id">row</span>.<span class="tok-id">video_id</span>)</div>
+          </div>
+
+          <div id="home-lang-java" style="display:none;">
+            <div class="code-block"><span class="tok-kw">import</span> <span class="tok-id">com.datastax.oss.driver.api.core.CqlSession</span>;
+<span class="tok-kw">import</span> <span class="tok-id">com.datastax.oss.driver.api.core.cql.PreparedStatement</span>;
+<span class="tok-kw">import</span> <span class="tok-id">com.datastax.oss.driver.api.core.cql.Row</span>;
+
+<span class="tok-cmt">// Session from application context</span>
+<span class="tok-id">PreparedStatement</span> <span class="tok-id">prepared</span> = <span class="tok-id">session</span>.<span class="tok-id">prepare</span>(
+    <span class="tok-str">"SELECT video_id, title, thumbnail_url, user_id, added_date "</span>
+    + <span class="tok-str">"FROM latest_videos WHERE yyyymmdd = ? "</span>
+    + <span class="tok-str">"ORDER BY added_date DESC LIMIT 10"</span>
+);
+
+<span class="tok-kw">for</span> (<span class="tok-id">Row</span> <span class="tok-id">row</span> : <span class="tok-id">session</span>.<span class="tok-id">execute</span>(<span class="tok-id">prepared</span>.<span class="tok-id">bind</span>(<span class="tok-str">"2024-01-15"</span>))) {
+    <span class="tok-id">String</span> <span class="tok-id">title</span> = <span class="tok-id">row</span>.<span class="tok-id">getString</span>(<span class="tok-str">"title"</span>);
+}</div>
+          </div>
+
+          <div id="home-lang-node" style="display:none;">
+            <div class="code-block"><span class="tok-kw">const</span> <span class="tok-id">cassandra</span> = <span class="tok-id">require</span>(<span class="tok-str">'cassandra-driver'</span>);
+
+<span class="tok-cmt">// Client from application context</span>
+<span class="tok-kw">const</span> <span class="tok-id">query</span> = <span class="tok-str">`SELECT video_id, title, thumbnail_url,
+  user_id, added_date
+  FROM latest_videos
+  WHERE yyyymmdd = ?
+  ORDER BY added_date DESC LIMIT 10`</span>;
+
+<span class="tok-kw">const</span> <span class="tok-id">result</span> = <span class="tok-kw">await</span> <span class="tok-id">client</span>.<span class="tok-id">execute</span>(
+  <span class="tok-id">query</span>, [<span class="tok-str">'2024-01-15'</span>], { <span class="tok-id">prepare</span>: <span class="tok-kw">true</span> }
+);
+<span class="tok-id">result</span>.<span class="tok-id">rows</span>.<span class="tok-id">forEach</span>(<span class="tok-id">row</span> => <span class="tok-id">console</span>.<span class="tok-id">log</span>(<span class="tok-id">row</span>[<span class="tok-str">'title'</span>]));</div>
+          </div>
+
+          <div id="home-lang-rust" style="display:none;">
+            <div class="code-block"><span class="tok-kw">use</span> <span class="tok-id">scylla</span>::<span class="tok-id">Session</span>;
+
+<span class="tok-cmt">// Session from application state</span>
+<span class="tok-kw">let</span> <span class="tok-id">result</span> = <span class="tok-id">session</span>
+    .<span class="tok-id">query</span>(
+        <span class="tok-str">"SELECT video_id, title, thumbnail_url FROM latest_videos \
+         WHERE yyyymmdd = ? ORDER BY added_date DESC LIMIT 10"</span>,
+        (<span class="tok-str">"2024-01-15"</span>,),
+    )
+    .<span class="tok-kw">await</span>?;
+
+<span class="tok-kw">for</span> <span class="tok-id">row</span> <span class="tok-kw">in</span> <span class="tok-id">result</span>.<span class="tok-id">rows_typed</span>::&lt;(<span class="tok-id">Uuid</span>, <span class="tok-id">String</span>, <span class="tok-id">String</span>)&gt;()? {
+    <span class="tok-kw">let</span> (<span class="tok-id">id</span>, <span class="tok-id">title</span>, <span class="tok-id">thumb</span>) = <span class="tok-id">row</span>?;
+}</div>
+          </div>
+
+        </div><!-- /home dev view -->
+
+
+        <!-- ── WATCH DEV VIEW ──────────────────────────────── -->
+        <div data-dev-view="watch">
+
+          <!-- === VIDEO QUERY === -->
+          <div class="dev-section-heading">Query Metadata — Video Fetch</div>
+          <div style="display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 20px;">
+            <span class="badge-read" data-tooltip="SELECT query — single-partition read by primary key">READ</span>
+            <span class="meta-pill">GET /api/v1/videos/:id</span>
+            <span class="meta-pill" data-tooltip="Single-partition read by primary key. Typically 1–5ms on co-located infrastructure.">~3ms</span>
+            <span class="meta-pill" style="cursor: pointer;" title="Click to copy">src/hooks/useApi.ts:42</span>
+          </div>
+
+          <div class="dev-section-heading">Query — videos_by_id</div>
+
+          <div id="watch-cql-video">
+            <div class="code-block"><span class="tok-kw">SELECT</span> <span class="tok-id">video_id</span>, <span class="tok-id">title</span>, <span class="tok-id">description</span>,
+       <span class="tok-id">user_id</span>, <span class="tok-id">tags</span>, <span class="tok-id">thumbnail_url</span>, <span class="tok-id">added_date</span>
+<span class="tok-kw">FROM</span> <span class="tok-id">videos</span>
+<span class="tok-kw">WHERE</span> <span class="tok-id">video_id</span> = <span class="tok-lit">550e8400-e29b-41d4-a716-446655440000</span></div>
+          </div>
+
+          <div id="watch-data-video" style="display:none;">
+            <div class="code-block"><span class="tok-cmt">// DataStax Data API</span>
+<span class="tok-id">db</span>.<span class="tok-id">collection</span>(<span class="tok-str">"videos"</span>).<span class="tok-id">findOne</span>({
+  <span class="tok-key">"_id"</span>: <span class="tok-str">"550e8400-e29b-41d4-a716-446655440000"</span>
+})
+
+<span class="tok-cmt">// Full request body:</span>
+{
+  <span class="tok-key">"findOne"</span>: {
+    <span class="tok-key">"filter"</span>: {
+      <span class="tok-key">"_id"</span>: <span class="tok-str">"550e8400-e29b-41d4-a716-446655440000"</span>
+    }
+  }
+}</div>
+          </div>
+
+          <!-- Schema: videos_by_id -->
+          <div class="dev-section-heading" style="margin-top: 20px;">Schema — videos_by_id</div>
+          <div style="border-radius: 8px; overflow: hidden; border: 1px solid #252538; margin-bottom: 20px;">
+            <div class="schema-row" style="background: #252538; color: #5A5A6A; font-size: 10px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; padding: 8px 10px;">
+              <span>Column</span><span>Type</span><span>Key</span>
+            </div>
+            <div class="schema-row">
+              <span style="color: #E8E6E1;">video_id</span>
+              <span style="color: #8A8A9A;">UUID</span>
+              <span><span class="badge-pk" data-tooltip="Partition key — all data for one video is on the same Cassandra node.">PK</span></span>
+            </div>
+            <div class="schema-row">
+              <span style="color: #E8E6E1;">added_date</span>
+              <span style="color: #8A8A9A;">TIMESTAMP</span>
+              <span><span class="badge-ck" data-tooltip="Clustering key, descending — supports multi-version history ordered newest-first.">CK ↓</span></span>
+            </div>
+            <div class="schema-row">
+              <span style="color: #E8E6E1;">title</span>
+              <span style="color: #8A8A9A;">TEXT</span>
+              <span><span class="badge-regular">—</span></span>
+            </div>
+            <div class="schema-row">
+              <span style="color: #E8E6E1;">description</span>
+              <span style="color: #8A8A9A;">TEXT</span>
+              <span><span class="badge-regular">—</span></span>
+            </div>
+            <div class="schema-row">
+              <span style="color: #E8E6E1;">user_id</span>
+              <span style="color: #8A8A9A;">UUID</span>
+              <span><span class="badge-regular">—</span></span>
+            </div>
+            <div class="schema-row">
+              <span style="color: #E8E6E1;">tags</span>
+              <span style="color: #8A8A9A;">SET&lt;TEXT&gt;</span>
+              <span><span class="badge-regular">—</span></span>
+            </div>
+            <div class="schema-row">
+              <span style="color: #E8E6E1;">thumbnail_url</span>
+              <span style="color: #8A8A9A;">TEXT</span>
+              <span><span class="badge-regular">—</span></span>
+            </div>
+          </div>
+
+          <!-- Divider between video and comments sections -->
+          <div style="height: 1px; background: linear-gradient(to right, #252538, #0DB7C4, #252538); margin: 24px 0;"></div>
+
+          <!-- === COMMENTS QUERY === -->
+          <div class="dev-section-heading">Query Metadata — Comments</div>
+          <div style="display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 20px;">
+            <span class="badge-read" data-tooltip="SELECT query — reads comment list ordered by TIMEUUID descending">READ</span>
+            <span class="meta-pill">GET /api/v1/videos/:id/comments</span>
+            <span class="meta-pill" data-tooltip="Single-partition read. All comments for one video are co-located.">~3ms</span>
+            <span class="meta-pill" style="cursor: pointer;" title="Click to copy">src/hooks/useApi.ts:124</span>
+          </div>
+
+          <div class="dev-section-heading">Query — comments_by_video</div>
+
+          <div id="watch-cql-comments">
+            <div class="code-block"><span class="tok-kw">SELECT</span> <span class="tok-id">comment_id</span>, <span class="tok-id">user_id</span>,
+       <span class="tok-id">comment</span>, <span class="tok-id">comment_timestamp</span>
+<span class="tok-kw">FROM</span> <span class="tok-id">comments_by_video</span>
+<span class="tok-kw">WHERE</span> <span class="tok-id">video_id</span> = <span class="tok-lit">?</span>
+<span class="tok-kw">ORDER BY</span> <span class="tok-id">comment_timestamp</span> <span class="tok-kw">DESC</span></div>
+          </div>
+
+          <div id="watch-data-comments" style="display:none;">
+            <div class="code-block"><span class="tok-cmt">// DataStax Data API</span>
+<span class="tok-id">db</span>.<span class="tok-id">collection</span>(<span class="tok-str">"comments"</span>)
+  .<span class="tok-id">find</span>({ <span class="tok-key">"videoId"</span>: <span class="tok-str">"550e8400-..."</span> })
+  .<span class="tok-id">sort</span>({ <span class="tok-key">"timestamp"</span>: <span class="tok-num">-1</span> })
+
+<span class="tok-cmt">// Full request body:</span>
+{
+  <span class="tok-key">"find"</span>: {
+    <span class="tok-key">"filter"</span>: {
+      <span class="tok-key">"videoId"</span>: <span class="tok-str">"550e8400-e29b-41d4-a716-446655440000"</span>
+    },
+    <span class="tok-key">"sort"</span>: { <span class="tok-key">"timestamp"</span>: <span class="tok-num">-1</span> }
+  }
+}</div>
+          </div>
+
+          <!-- Schema: comments_by_video -->
+          <div class="dev-section-heading" style="margin-top: 20px;">Schema — comments_by_video</div>
+          <div style="border-radius: 8px; overflow: hidden; border: 1px solid #252538; margin-bottom: 20px;">
+            <div class="schema-row" style="background: #252538; color: #5A5A6A; font-size: 10px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; padding: 8px 10px;">
+              <span>Column</span><span>Type</span><span>Key</span>
+            </div>
+            <div class="schema-row">
+              <span style="color: #E8E6E1;">video_id</span>
+              <span style="color: #8A8A9A;">UUID</span>
+              <span><span class="badge-pk" data-tooltip="Partition key — all comments for one video are co-located on the same node.">PK</span></span>
+            </div>
+            <div class="schema-row">
+              <span style="color: #E8E6E1;">comment_timestamp</span>
+              <span style="color: #8A8A9A;">TIMEUUID</span>
+              <span><span class="badge-ck" data-tooltip="TIMEUUID encodes both time and uniqueness — enables time-ordered clustering without a separate timestamp column.">CK ↓</span></span>
+            </div>
+            <div class="schema-row">
+              <span style="color: #E8E6E1;">comment_id</span>
+              <span style="color: #8A8A9A;">UUID</span>
+              <span><span class="badge-regular">—</span></span>
+            </div>
+            <div class="schema-row">
+              <span style="color: #E8E6E1;">user_id</span>
+              <span style="color: #8A8A9A;">UUID</span>
+              <span><span class="badge-regular">—</span></span>
+            </div>
+            <div class="schema-row">
+              <span style="color: #E8E6E1;">comment</span>
+              <span style="color: #8A8A9A;">TEXT</span>
+              <span><span class="badge-regular">—</span></span>
+            </div>
+          </div>
+
+          <!-- Language examples (watch view) -->
+          <div class="dev-section-heading">Language Examples</div>
+          <div style="display: flex; gap: 0; margin-bottom: 12px; flex-wrap: wrap; border-bottom: 1px solid #252538;">
+            <button class="lang-tab active" onclick="setLang('watch','python')">Python</button>
+            <button class="lang-tab" onclick="setLang('watch','java')">Java</button>
+            <button class="lang-tab" onclick="setLang('watch','node')">Node.js</button>
+            <button class="lang-tab" onclick="setLang('watch','rust')">Rust</button>
+          </div>
+
+          <div id="watch-lang-python">
+            <div class="code-block"><span class="tok-cmt"># Video fetch</span>
+<span class="tok-id">video_stmt</span> = <span class="tok-id">session</span>.<span class="tok-id">prepare</span>(
+    <span class="tok-str">"SELECT * FROM videos WHERE video_id = %s"</span>
+)
+<span class="tok-id">video</span> = <span class="tok-id">session</span>.<span class="tok-id">execute</span>(<span class="tok-id">video_stmt</span>, [<span class="tok-id">video_id</span>]).<span class="tok-id">one</span>()
+
+<span class="tok-cmt"># Comments fetch</span>
+<span class="tok-id">comments_stmt</span> = <span class="tok-id">session</span>.<span class="tok-id">prepare</span>(
+    <span class="tok-str">"SELECT comment_id, user_id, comment, comment_timestamp"</span>
+    <span class="tok-str">"  FROM comments_by_video WHERE video_id = %s"</span>
+    <span class="tok-str">"  ORDER BY comment_timestamp DESC"</span>
+)
+<span class="tok-id">comments</span> = <span class="tok-id">session</span>.<span class="tok-id">execute</span>(<span class="tok-id">comments_stmt</span>, [<span class="tok-id">video_id</span>])</div>
+          </div>
+
+          <div id="watch-lang-java" style="display:none;">
+            <div class="code-block"><span class="tok-cmt">// Video fetch</span>
+<span class="tok-id">PreparedStatement</span> <span class="tok-id">videoStmt</span> = <span class="tok-id">session</span>.<span class="tok-id">prepare</span>(
+    <span class="tok-str">"SELECT * FROM videos WHERE video_id = ?"</span>
+);
+<span class="tok-id">Row</span> <span class="tok-id">video</span> = <span class="tok-id">session</span>
+    .<span class="tok-id">execute</span>(<span class="tok-id">videoStmt</span>.<span class="tok-id">bind</span>(<span class="tok-id">videoId</span>)).<span class="tok-id">one</span>();
+
+<span class="tok-cmt">// Comments fetch</span>
+<span class="tok-id">PreparedStatement</span> <span class="tok-id">commentsStmt</span> = <span class="tok-id">session</span>.<span class="tok-id">prepare</span>(
+    <span class="tok-str">"SELECT comment_id, user_id, comment, comment_timestamp "</span>
+    + <span class="tok-str">"FROM comments_by_video WHERE video_id = ? "</span>
+    + <span class="tok-str">"ORDER BY comment_timestamp DESC"</span>
+);
+<span class="tok-kw">for</span> (<span class="tok-id">Row</span> <span class="tok-id">r</span> : <span class="tok-id">session</span>.<span class="tok-id">execute</span>(<span class="tok-id">commentsStmt</span>.<span class="tok-id">bind</span>(<span class="tok-id">videoId</span>))) {
+    <span class="tok-id">System</span>.<span class="tok-id">out</span>.<span class="tok-id">println</span>(<span class="tok-id">r</span>.<span class="tok-id">getString</span>(<span class="tok-str">"comment"</span>));
+}</div>
+          </div>
+
+          <div id="watch-lang-node" style="display:none;">
+            <div class="code-block"><span class="tok-cmt">// Video fetch</span>
+<span class="tok-kw">const</span> <span class="tok-id">video</span> = (<span class="tok-kw">await</span> <span class="tok-id">client</span>.<span class="tok-id">execute</span>(
+  <span class="tok-str">'SELECT * FROM videos WHERE video_id = ?'</span>,
+  [<span class="tok-id">videoId</span>], { <span class="tok-id">prepare</span>: <span class="tok-kw">true</span> }
+)).<span class="tok-id">first</span>();
+
+<span class="tok-cmt">// Comments fetch</span>
+<span class="tok-kw">const</span> <span class="tok-id">comments</span> = <span class="tok-kw">await</span> <span class="tok-id">client</span>.<span class="tok-id">execute</span>(
+  <span class="tok-str">`SELECT comment_id, user_id, comment, comment_timestamp
+   FROM comments_by_video WHERE video_id = ?
+   ORDER BY comment_timestamp DESC`</span>,
+  [<span class="tok-id">videoId</span>], { <span class="tok-id">prepare</span>: <span class="tok-kw">true</span> }
+);</div>
+          </div>
+
+          <div id="watch-lang-rust" style="display:none;">
+            <div class="code-block"><span class="tok-kw">use</span> <span class="tok-id">scylla</span>::<span class="tok-id">Session</span>;
+<span class="tok-kw">use</span> <span class="tok-id">uuid</span>::<span class="tok-id">Uuid</span>;
+
+<span class="tok-cmt">// Video fetch</span>
+<span class="tok-kw">let</span> <span class="tok-id">video</span> = <span class="tok-id">session</span>
+    .<span class="tok-id">query</span>(
+        <span class="tok-str">"SELECT title, description FROM videos WHERE video_id = ?"</span>,
+        (<span class="tok-id">video_id</span>,),
+    )
+    .<span class="tok-kw">await</span>?.<span class="tok-id">rows_typed</span>::&lt;(<span class="tok-id">String</span>, <span class="tok-id">String</span>)&gt;()?
+    .<span class="tok-id">next</span>();
+
+<span class="tok-cmt">// Comments fetch</span>
+<span class="tok-kw">let</span> <span class="tok-id">rows</span> = <span class="tok-id">session</span>
+    .<span class="tok-id">query</span>(
+        <span class="tok-str">"SELECT comment, user_id FROM comments_by_video \
+         WHERE video_id = ? ORDER BY comment_timestamp DESC"</span>,
+        (<span class="tok-id">video_id</span>,),
+    )
+    .<span class="tok-kw">await</span>?;</div>
+          </div>
+
+        </div><!-- /watch dev view -->
+
+      </div>
+    </div><!-- /dev-pane -->
+
+  </div><!-- /split-container -->
+
+</div><!-- /app -->
+
+
+<script>
+  // ── State ──────────────────────────────────────────────────────
+  let currentView   = 'home';
+  let devOn         = true;
+  let apiMode       = 'cql';        // 'cql' | 'dataapi'
+  const langState   = { home: 'python', watch: 'python' };
+
+  // Restore lang preference
+  try {
+    const saved = localStorage.getItem('kv.splitLens.lang');
+    if (saved) { langState.home = saved; langState.watch = saved; }
+  } catch(e) {}
+
+
+  // ── View toggle (Home / Watch) ─────────────────────────────────
+  function setView(view) {
+    currentView = view;
+
+    // Consumer pane views
+    document.querySelectorAll('[data-view]').forEach(el => {
+      el.classList.toggle('active', el.dataset.view === view);
+    });
+    // Dev pane views
+    document.querySelectorAll('[data-dev-view]').forEach(el => {
+      el.classList.toggle('active', el.dataset.devView === view);
+    });
+    // Header tabs
+    document.querySelectorAll('.page-tab').forEach((btn, i) => {
+      btn.classList.toggle('active', (i === 0 && view === 'home') || (i === 1 && view === 'watch'));
+    });
+
+    // Re-apply API mode so newly-visible dev view shows correct blocks
+    applyApiMode();
+  }
+
+
+  // ── Dev panel toggle ───────────────────────────────────────────
+  function toggleDev() {
+    devOn = !devOn;
+    const app    = document.getElementById('app');
+    const toggle = document.getElementById('split-toggle');
+    const label  = document.getElementById('toggle-label');
+    const iconOn = document.getElementById('toggle-icon-on');
+    const iconOff= document.getElementById('toggle-icon-off');
+
+    app.classList.toggle('dev-off', !devOn);
+    toggle.classList.toggle('off', !devOn);
+    label.textContent = devOn ? 'Split On' : 'Split Off';
+    iconOn.style.display  = devOn ? 'block' : 'none';
+    iconOff.style.display = devOn ? 'none'  : 'block';
+  }
+
+
+  // ── API mode toggle ────────────────────────────────────────────
+  function setApiMode(mode) {
+    apiMode = mode;
+    document.getElementById('api-cql').classList.toggle('active', mode === 'cql');
+    document.getElementById('api-data').classList.toggle('active', mode === 'dataapi');
+    applyApiMode();
+  }
+
+  function applyApiMode() {
+    const cql  = apiMode === 'cql';
+    // Home blocks
+    document.getElementById('home-cql-block').style.display  = cql ? 'block' : 'none';
+    document.getElementById('home-data-block').style.display = cql ? 'none'  : 'block';
+    // Watch blocks
+    document.getElementById('watch-cql-video').style.display    = cql ? 'block' : 'none';
+    document.getElementById('watch-data-video').style.display   = cql ? 'none'  : 'block';
+    document.getElementById('watch-cql-comments').style.display = cql ? 'block' : 'none';
+    document.getElementById('watch-data-comments').style.display= cql ? 'none'  : 'block';
+  }
+
+
+  // ── Language switcher ──────────────────────────────────────────
+  function setLang(view, lang) {
+    langState[view] = lang;
+    try { localStorage.setItem('kv.splitLens.lang', lang); } catch(e) {}
+
+    // Update tab buttons inside the correct dev view
+    const devViewEl = document.querySelector(`[data-dev-view="${view}"]`);
+    devViewEl.querySelectorAll('.lang-tab').forEach((btn, i) => {
+      const btnLang = ['python','java','node','rust'][i];
+      btn.classList.toggle('active', btnLang === lang);
+    });
+
+    // Show/hide code blocks
+    ['python','java','node','rust'].forEach(l => {
+      const el = document.getElementById(`${view}-lang-${l}`);
+      if (el) el.style.display = (l === lang) ? 'block' : 'none';
+    });
+  }
+
+
+  // ── Init ───────────────────────────────────────────────────────
+  // Apply saved lang preference to both views on load
+  setLang('home',  langState.home);
+  setLang('watch', langState.watch);
+</script>
+
+</body>
+</html>

@@ -1,6 +1,5 @@
 import { Star } from 'lucide-react';
 import { useState } from 'react';
-import { EducationalTooltip } from '@/components/educational/EducationalTooltip';
 
 interface StarRatingProps {
   value: number; // current rating (0-5)
@@ -20,26 +19,24 @@ const StarRating = ({ value, onChange, readOnly = false, size = 20 }: StarRating
   };
 
   return (
-    <EducationalTooltip id="counter-ratings" side="top">
-      <div className="flex items-center space-x-1">
-        {[1, 2, 3, 4, 5].map((star) => (
-          <button
-            key={star}
-            type="button"
-            disabled={readOnly}
-            className={`text-gray-300 hover:text-accent transition-colors ${readOnly ? 'cursor-default' : 'cursor-pointer'}`}
-            onMouseEnter={() => !readOnly && setHoverValue(star)}
-            onMouseLeave={() => !readOnly && setHoverValue(null)}
-            onClick={() => handleClick(star)}
-            aria-label={`Rate ${star} star${star > 1 ? 's' : ''}`}
-          >
-            <Star
-              className={`w-[${size}px] h-[${size}px] ${star <= displayValue ? 'fill-accent text-accent' : ''}`}
-            />
-          </button>
-        ))}
-      </div>
-    </EducationalTooltip>
+    <div className="flex items-center space-x-1">
+      {[1, 2, 3, 4, 5].map((star) => (
+        <button
+          key={star}
+          type="button"
+          disabled={readOnly}
+          className={`text-gray-300 hover:text-accent transition-colors ${readOnly ? 'cursor-default' : 'cursor-pointer'}`}
+          onMouseEnter={() => !readOnly && setHoverValue(star)}
+          onMouseLeave={() => !readOnly && setHoverValue(null)}
+          onClick={() => handleClick(star)}
+          aria-label={`Rate ${star} star${star > 1 ? 's' : ''}`}
+        >
+          <Star
+            className={`w-[${size}px] h-[${size}px] ${star <= displayValue ? 'fill-accent text-accent' : ''}`}
+          />
+        </button>
+      ))}
+    </div>
   );
 };
 

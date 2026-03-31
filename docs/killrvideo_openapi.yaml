@@ -14,6 +14,7 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/UserCreateRequest'
+              
         required: true
       responses:
         '201':
@@ -281,6 +282,52 @@ paths:
       responses:
         '204':
           description: Successful Response
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/v1/videos/id/{video_id_path}/watch-time:
+    post:
+      tags:
+      - Videos
+      summary: Record watch-time
+      description: "Append a watch-time record for the authenticated user.\n\nBehaviour:\n\
+        \u2022 Requires a valid JWT \u2192 401 if missing or invalid.\n\u2022 `watch_duration_seconds`\
+        \ must be a positive integer \u2192 400 if absent or \u2264 0.\n\u2022 Each\
+        \ call appends a **new** row to the `video_activity` table (append-only);\
+        \ duplicate calls are intentional and allowed.\n\u2022 The backend derives\
+        \ `userid` from the JWT, `day` from the current UTC date, and generates a\
+        \ new `watch_time` timeuuid server-side."
+      operationId: record_watch_time_api_v1_videos_id__video_id_path__watch_time_post
+      security:
+      - OAuth2PasswordBearer: []
+      parameters:
+      - name: video_id_path
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+          title: Video Id Path
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/VideoWatchTimeRequest'
+      responses:
+        '204':
+          description: Watch-time recorded successfully
+        '400':
+          description: Bad Request — missing or invalid watch_duration_seconds
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+        '401':
+          description: Unauthorized — valid JWT required
         '422':
           description: Validation Error
           content:
@@ -2260,6 +2307,18 @@ components:
       title: VideoUpdateRequest
       description: Payload for partial updates to a video owned by the caller or a
         moderator.
+    VideoWatchTimeRequest:
+      properties:
+        watch_duration_seconds:
+          type: integer
+          minimum: 1
+          title: Watch Duration Seconds
+          description: Number of seconds the user watched; must be a positive integer.
+      type: object
+      required:
+      - watch_duration_seconds
+      title: VideoWatchTimeRequest
+      description: Client payload for recording video watch-time.
   securitySchemes:
     OAuth2PasswordBearer:
       type: oauth2

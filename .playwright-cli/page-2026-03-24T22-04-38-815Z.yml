@@ -1,0 +1,490 @@
+- generic:
+  - generic:
+    - list
+    - region "Notifications alt+T"
+    - generic:
+      - banner:
+        - generic:
+          - link:
+            - /url: /
+            - img
+            - generic: KillrVideo
+          - navigation:
+            - link:
+              - /url: /
+              - text: Home
+            - link:
+              - /url: /trending
+              - text: Trending
+            - link:
+              - /url: /explore
+              - text: Explore
+          - generic:
+            - generic:
+              - generic:
+                - img
+                - textbox:
+                  - /placeholder: Search for videos, creators, or topics...
+          - generic:
+            - generic:
+              - img
+              - generic: Dev Panel
+              - switch [checked]
+            - link:
+              - /url: /auth
+              - button: Sign In
+      - generic:
+        - main:
+          - generic:
+            - generic:
+              - generic:
+                - iframe [ref=e38]:
+                  - generic [active] [ref=f7e1]:
+                    - generic "YouTube Video Player" [ref=f7e3]
+                    - generic [ref=f7e5]:
+                      - generic:
+                        - generic:
+                          - button "Play video" [ref=f7e10] [cursor=pointer]:
+                            - generic [ref=f7e13]:
+                              - img
+                          - button "Hide player controls" [ref=f7e14] [cursor=pointer]
+                          - generic [ref=f7e16]:
+                            - generic [ref=f7e21]:
+                              - generic [ref=f7e22]:
+                                - link "Build AI-Powered Apps Faster with Langflow" [ref=f7e23] [cursor=pointer]:
+                                  - /url: https://www.youtube.com/watch?v=L7V_woT8mbQ
+                                - link "DataStax Developers" [ref=f7e24] [cursor=pointer]:
+                                  - /url: /channel/UCAIQY251avaMv7bBv5PCo-A
+                                  - generic [ref=f7e25]: DataStax Developers
+                              - generic [ref=f7e26]:
+                                - button "thumbnail-image" [ref=f7e27] [cursor=pointer]:
+                                  - img "thumbnail-image" [ref=f7e28]
+                                - generic [ref=f7e30]:
+                                  - generic: DataStax Developers
+                                  - generic: 37.9K subscribers
+                            - generic [ref=f7e31]:
+                              - button "Share" [ref=f7e34] [cursor=pointer]:
+                                - generic [ref=f7e38]:
+                                  - img
+                              - link "Watch on YouTube" [ref=f7e45] [cursor=pointer]:
+                                - /url: https://www.youtube.com/watch?v=L7V_woT8mbQ
+                                - generic [ref=f7e48]:
+                                  - text: Watch on
+                                  - img [ref=f7e50]:
+                                    - generic [ref=f7e52]:
+                                      - img
+                - generic:
+                  - heading [level=1]: Build AI-Powered Apps Faster with Langflow
+                  - generic:
+                    - generic:
+                      - generic:
+                        - img
+                        - text: 19 views
+                      - generic:
+                        - img
+                        - generic: "-"
+                      - generic:
+                        - img
+                        - text: 0 rating
+                    - generic:
+                      - button:
+                        - img
+                        - text: Report
+                  - generic:
+                    - generic:
+                      - heading [level=3]: "Uploaded by: Joshua Schultz"
+                      - paragraph: Uploaded on 8/27/2025
+                    - generic:
+                      - button:
+                        - img
+                      - button:
+                        - img
+                      - button:
+                        - img
+                      - button:
+                        - img
+                      - button:
+                        - img
+                  - generic:
+                    - generic: astra
+                    - generic: datastax
+                  - generic:
+                    - heading [level=3]: Description
+                    - paragraph: "You’ve seen the headlines: AI is transforming industries, creating new opportunities, and disrupting the status quo. The real question is, how will you harness it? Your moment to innovate is here, and with Langflow, you can turn ideas into AI-powered applications faster than ever. In this livestream, we’ll show you how Langflow’s intuitive, visual environment empowers you to design, connect, and deploy complex AI workflows, no advanced coding required. You’ll see how to combine LLMs, retrieval-augmented generation (RAG), APIs, and custom logic into solutions that can drive real change in your organization or project. You’ll learn: --How to rapidly prototype and iterate AI-powered workflows --Ways to integrate data, APIs, and custom logic into your AI apps --Best practices for going from proof of concept to production with Langflow Whether you’re a developer, product innovator, or business leader, this is your chance to lead the change. Additional Resources: - DataStax Developer Hub: https://dtsx.io/devhub - DataStax Blog: https://dtsx.io/howto - Try Langflow: https://dtsx.io/trylangflow - Try Astra DB: https://dtsx.io/40kQpI6 ____________________ Stay in touch: - Join our Discord Community: https://discord.gg/datastax - Follow us on X: https://x.com/DataStaxDevs"
+                - generic:
+                  - generic:
+                    - heading [level=2]: Comments
+                    - generic: Denormalized Tables
+                  - generic:
+                    - generic:
+                      - generic:
+                        - generic:
+                          - generic:
+                            - heading [level=4]: Patrick McFadin
+                            - generic: "0.90"
+                        - paragraph: Great video
+              - generic:
+                - generic:
+                  - heading [level=3]: Related Videos
+                  - generic:
+                    - link:
+                      - /url: /watch/a059e84b-cfd9-42e8-902e-8170fd777e00
+                      - generic:
+                        - img
+                    - generic:
+                      - link:
+                        - /url: /watch/a059e84b-cfd9-42e8-902e-8170fd777e00
+                        - heading [level=3]: Optimizing Trucking Routes w/ Vector Search and Apache Cassandra
+                      - generic:
+                        - generic:
+                          - generic:
+                            - img
+                            - text: "0"
+                          - generic:
+                            - img
+                            - text: "0.0"
+                  - generic:
+                    - link:
+                      - /url: /watch/b2f64758-46dd-4976-8099-3d51ed6c82fc
+                      - generic:
+                        - img
+                    - generic:
+                      - link:
+                        - /url: /watch/b2f64758-46dd-4976-8099-3d51ed6c82fc
+                        - heading [level=3]: "MCP for Developers: Visual AI with MCP, Langflow & IBM Tools"
+                      - generic:
+                        - generic:
+                          - generic:
+                            - img
+                            - text: "0"
+                          - generic:
+                            - img
+                            - text: "0.0"
+                  - generic:
+                    - link:
+                      - /url: /watch/8926e6d1-c09d-4f96-92a7-415b5a887233
+                      - generic:
+                        - img
+                    - generic:
+                      - link:
+                        - /url: /watch/8926e6d1-c09d-4f96-92a7-415b5a887233
+                        - heading [level=3]: Build Real-Time GenAI Product Recs that Boost Cart Size
+                      - generic:
+                        - generic:
+                          - generic:
+                            - img
+                            - text: "0"
+                          - generic:
+                            - img
+                            - text: "0.0"
+                  - generic:
+                    - link:
+                      - /url: /watch/9ab33abf-b3cd-45be-8ee3-1efe324372dc
+                      - generic:
+                        - img
+                    - generic:
+                      - link:
+                        - /url: /watch/9ab33abf-b3cd-45be-8ee3-1efe324372dc
+                        - heading [level=3]: "Vibe Coding Tip: Let Your AI Agent Manage Your To-Do List! #vibecoding"
+                      - generic:
+                        - generic:
+                          - generic:
+                            - img
+                            - text: "0"
+                          - generic:
+                            - img
+                            - text: "0.0"
+                  - generic:
+                    - link:
+                      - /url: /watch/6643310e-d373-4304-b7ae-20bb87c94b7b
+                      - generic:
+                        - img
+                    - generic:
+                      - link:
+                        - /url: /watch/6643310e-d373-4304-b7ae-20bb87c94b7b
+                        - heading [level=3]: Connect the Dots in Your RAG Pipeline with Graph RAG and GraphRetriever
+                      - generic:
+                        - generic:
+                          - generic:
+                            - img
+                            - text: "0"
+                          - generic:
+                            - img
+                            - text: "0.0"
+        - generic:
+          - generic:
+            - generic:
+              - generic:
+                - heading [level=2]: Developer Panel
+              - generic:
+                - heading [level=3]: Video Fetch
+                - generic:
+                  - button:
+                    - generic:
+                      - text: READ
+                      - img
+                  - code: "GET /api/v1/videos/id/{video_id}"
+                  - generic: ~3ms
+                  - link:
+                    - /url: https://github.com/KillrVideo/killrvideo-react-frontend/blob/main/src/hooks/useApi.ts#L42
+                    - text: src/hooks/useApi.ts:42
+                    - img
+                - generic:
+                  - generic:
+                    - generic:
+                      - button: CQL
+                      - button: Data API
+                      - button: Table API
+                    - button:
+                      - img
+                  - generic:
+                    - code: SELECT videoid, name, description, userid, tags, preview_image_location, added_date FROM videos WHERE videoid = ?
+                - generic:
+                  - heading [level=4]: "Schema: videos"
+                  - generic:
+                    - generic:
+                      - generic: videoid
+                      - generic: UUID
+                      - generic: PK
+                    - generic:
+                      - generic: added_date
+                      - generic: TIMESTAMP
+                    - generic:
+                      - generic: name
+                      - generic: TEXT
+                    - generic:
+                      - generic: description
+                      - generic: TEXT
+                    - generic:
+                      - generic: userid
+                      - generic: UUID
+                    - generic:
+                      - generic: tags
+                      - generic: SET<TEXT>
+                    - generic:
+                      - generic: preview_image_location
+                      - generic: TEXT
+                  - paragraph: Single-partition lookup by videoid. All video metadata denormalized into one table for single-read access. SAI indexes on tags, userid, and added_date enable flexible querying.
+                - generic:
+                  - heading [level=4]: Driver Examples
+                  - generic:
+                    - tablist:
+                      - tab [selected]: Python
+                      - tab: Java
+                      - tab: Node.js
+                      - tab: C#
+                      - tab: Go
+                    - tabpanel:
+                      - generic:
+                        - code: "from cassandra.cluster import Cluster session = cluster.connect(\"killrvideo\") prepared = session.prepare( \"SELECT * FROM videos WHERE videoid = ?\" ) row = session.execute(prepared, [video_id]).one() if row: print(row.name, row.description)"
+              - generic:
+                - heading [level=3]: Comments by Video
+                - generic:
+                  - button:
+                    - generic:
+                      - text: READ
+                      - img
+                  - code: "GET /api/v1/videos/{video_id}/comments"
+                  - generic: ~3ms
+                  - link:
+                    - /url: https://github.com/KillrVideo/killrvideo-react-frontend/blob/main/src/hooks/useApi.ts#L124
+                    - text: src/hooks/useApi.ts:124
+                    - img
+                - generic:
+                  - generic:
+                    - generic:
+                      - button: CQL
+                      - button: Data API
+                      - button: Table API
+                    - button:
+                      - img
+                  - generic:
+                    - code: SELECT commentid, userid, comment, sentiment_score FROM comments WHERE videoid = ? ORDER BY commentid DESC
+                - generic:
+                  - heading [level=4]: "Schema: comments"
+                  - generic:
+                    - generic:
+                      - generic: videoid
+                      - generic: UUID
+                      - generic: PK
+                    - generic:
+                      - generic: commentid
+                      - generic: TIMEUUID
+                      - generic: CK ↓
+                    - generic:
+                      - generic: userid
+                      - generic: UUID
+                    - generic:
+                      - generic: comment
+                      - generic: TEXT
+                    - generic:
+                      - generic: sentiment_score
+                      - generic: FLOAT
+                  - paragraph: TIMEUUID clustering column encodes both time and uniqueness, enabling time-ordered retrieval. Comments are denormalized per-video for single-partition reads. A parallel comments_by_user table enables user-centric queries.
+                - generic:
+                  - heading [level=4]: Driver Examples
+                  - generic:
+                    - tablist:
+                      - tab [selected]: Python
+                      - tab: Java
+                      - tab: Node.js
+                      - tab: C#
+                      - tab: Go
+                    - tabpanel:
+                      - generic:
+                        - code: "from cassandra.cluster import Cluster session = cluster.connect(\"killrvideo\") prepared = session.prepare( \"SELECT * FROM comments \" \"WHERE videoid = ? ORDER BY commentid DESC\" ) rows = session.execute(prepared, [video_id]) for row in rows: print(row.userid, row.comment)"
+              - generic:
+                - heading [level=3]: Rating Submit
+                - generic:
+                  - button [expanded]:
+                    - generic:
+                      - text: WRITE
+                      - img
+                  - code: "POST /api/v1/videos/{video_id}/ratings"
+                  - generic: ~4ms
+                  - link:
+                    - /url: https://github.com/KillrVideo/killrvideo-react-frontend/blob/main/src/hooks/useApi.ts#L198
+                    - text: src/hooks/useApi.ts:198
+                    - img
+                - generic:
+                  - generic:
+                    - generic:
+                      - button: CQL
+                      - button: Data API
+                      - button: Table API
+                    - button:
+                      - img
+                  - generic:
+                    - code: "INSERT INTO video_ratings_by_user (videoid, userid, rating, rating_date) VALUES (?, ?, ?, ?) -- Then update summary counters: UPDATE video_ratings SET rating_counter = rating_counter + 1, rating_total = rating_total + ? WHERE videoid = ?"
+                - generic:
+                  - heading [level=4]: "Schema: video_ratings_by_user"
+                  - generic:
+                    - generic:
+                      - generic: videoid
+                      - generic: UUID
+                      - generic: PK
+                    - generic:
+                      - generic: userid
+                      - generic: UUID
+                      - generic: CK ↑
+                    - generic:
+                      - generic: rating
+                      - generic: INT
+                    - generic:
+                      - generic: rating_date
+                      - generic: TIMESTAMP
+                  - paragraph: Individual user ratings with composite primary key (videoid, userid) enabling upsert semantics. A separate video_ratings counter table tracks aggregate totals for average calculation.
+                - generic:
+                  - heading [level=4]: Driver Examples
+                  - generic:
+                    - tablist:
+                      - tab [selected]: Python
+                      - tab: Java
+                      - tab: Node.js
+                      - tab: C#
+                      - tab: Go
+                    - tabpanel:
+                      - generic:
+                        - code: "from cassandra.cluster import Cluster session = cluster.connect(\"killrvideo\") # Upsert individual rating prepared = session.prepare( \"INSERT INTO video_ratings_by_user \" \"(videoid, userid, rating, rating_date) \" \"VALUES (?, ?, ?, ?)\" ) session.execute(prepared, [video_id, user_id, rating, now]) # Update counter summary counter_stmt = session.prepare( \"UPDATE video_ratings \" \"SET rating_counter = rating_counter + 1, \" \"rating_total = rating_total + ? \" \"WHERE videoid = ?\" ) session.execute(counter_stmt, [rating, video_id])"
+              - generic:
+                - heading [level=3]: Rating Summary
+                - generic:
+                  - button:
+                    - generic:
+                      - text: READ
+                      - img
+                  - code: "GET /api/v1/videos/{video_id}/ratings"
+                  - generic: ~3ms
+                  - link:
+                    - /url: https://github.com/KillrVideo/killrvideo-react-frontend/blob/main/src/hooks/useApi.ts#L205
+                    - text: src/hooks/useApi.ts:205
+                    - img
+                - generic:
+                  - generic:
+                    - generic:
+                      - button: CQL
+                      - button: Data API
+                      - button: Table API
+                    - button:
+                      - img
+                  - generic:
+                    - code: "-- Get aggregate counters SELECT rating_counter, rating_total FROM video_ratings WHERE videoid = ? -- Get current user's individual rating (optional) SELECT rating FROM video_ratings_by_user WHERE videoid = ? AND userid = ?"
+                - generic:
+                  - heading [level=4]: "Schema: video_ratings"
+                  - generic:
+                    - generic:
+                      - generic: videoid
+                      - generic: UUID
+                      - generic: PK
+                    - generic:
+                      - generic: rating_counter
+                      - generic: COUNTER
+                    - generic:
+                      - generic: rating_total
+                      - generic: COUNTER
+                  - paragraph: COUNTER columns support atomic increment/decrement without read-before-write. Counter tables cannot contain non-counter, non-key columns. Average is computed as rating_total / rating_counter.
+                - generic:
+                  - heading [level=4]: Driver Examples
+                  - generic:
+                    - tablist:
+                      - tab [selected]: Python
+                      - tab: Java
+                      - tab: Node.js
+                      - tab: C#
+                      - tab: Go
+                    - tabpanel:
+                      - generic:
+                        - code: "prepared = session.prepare( \"SELECT rating_counter, rating_total \" \"FROM video_ratings WHERE videoid = ?\" ) row = session.execute(prepared, [video_id]).one() if row and row.rating_counter > 0: avg = row.rating_total / row.rating_counter print(f\"Average: {avg:.1f} ({row.rating_counter} ratings)\")"
+              - generic:
+                - heading [level=3]: Record Video View
+                - generic:
+                  - button:
+                    - generic:
+                      - text: WRITE
+                      - img
+                  - code: "POST /api/v1/videos/id/{video_id}/view"
+                  - generic: ~5ms
+                  - link:
+                    - /url: https://github.com/KillrVideo/killrvideo-react-frontend/blob/main/src/hooks/useApi.ts#L155
+                    - text: src/hooks/useApi.ts:155
+                    - img
+                - generic:
+                  - generic:
+                    - generic:
+                      - button: CQL
+                      - button: Data API
+                      - button: Table API
+                    - button:
+                      - img
+                  - generic:
+                    - code: "-- Read-modify-write for view count SELECT views FROM videos WHERE videoid = ? UPDATE videos SET views = ? WHERE videoid = ? -- Log activity event INSERT INTO video_activity (day, watch_time, videoid) VALUES (?, ?, ?)"
+                - generic:
+                  - heading [level=4]: "Schema: videos"
+                  - generic:
+                    - generic:
+                      - generic: videoid
+                      - generic: UUID
+                      - generic: PK
+                    - generic:
+                      - generic: views
+                      - generic: INT
+                  - paragraph: View counts stored directly in the videos table. The Table API does not support $inc, so a read-modify-write cycle is used. A video_activity time-series table logs each view event for trending calculation.
+                - generic:
+                  - heading [level=4]: Driver Examples
+                  - generic:
+                    - tablist:
+                      - tab [selected]: Python
+                      - tab: Java
+                      - tab: Node.js
+                      - tab: C#
+                      - tab: Go
+                    - tabpanel:
+                      - generic:
+                        - code: "# Atomic counter increment with CQL prepared = session.prepare( \"UPDATE video_playback_stats \" \"SET views = views + 1 \" \"WHERE videoid = ?\" ) session.execute(prepared, [video_id])"
+  - menu "WRITE" [active] [ref=e467]:
+    - generic [ref=e468]: "Operations on: video_ratings_by_user"
+    - separator [ref=e469]
+    - 'menuitem "C POST /api/v1/videos/{video_id}/ratings current" [ref=e470]':
+      - generic [ref=e471]: C
+      - generic [ref=e472]: "POST /api/v1/videos/{video_id}/ratings"
+      - generic [ref=e473]: current

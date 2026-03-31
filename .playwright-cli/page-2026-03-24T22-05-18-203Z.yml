@@ -1,0 +1,21 @@
+- generic [ref=e2]:
+  - region "Notifications (F8)":
+    - list
+  - region "Notifications alt+T"
+  - generic [ref=e4]:
+    - generic [ref=e5]:
+      - heading "Welcome to KillrVideo" [level=3] [ref=e6]
+      - paragraph [ref=e7]: Sign in to your account or create a new one
+    - generic [ref=e9]:
+      - tablist [ref=e10]:
+        - tab "Login" [selected] [ref=e11] [cursor=pointer]
+        - tab "Register" [ref=e12] [cursor=pointer]
+      - tabpanel "Login" [ref=e13]:
+        - generic [ref=e14]:
+          - generic [ref=e15]:
+            - text: Email
+            - textbox "Email" [ref=e16]
+          - generic [ref=e17]:
+            - text: Password
+            - textbox "Password" [ref=e18]
+          - button "Sign In" [ref=e19] [cursor=pointer]
