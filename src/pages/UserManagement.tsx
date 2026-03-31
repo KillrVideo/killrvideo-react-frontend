@@ -10,7 +10,6 @@ import { User } from '@/types/api';
 import { Search, Shield, ShieldOff, ArrowLeft } from 'lucide-react';
 import { toast } from 'sonner';
 import Layout from '@/components/layout/Layout';
-import { EducationalTooltip } from '@/components/educational/EducationalTooltip';
 
 export default function UserManagement() {
   const [searchQuery, setSearchQuery] = useState('');
@@ -71,8 +70,7 @@ export default function UserManagement() {
             <CardDescription>Search for users by name or email to manage their accounts</CardDescription>
           </CardHeader>
           <CardContent>
-            <EducationalTooltip id="user-search-sai" side="bottom">
-              <form onSubmit={handleSearch} className="flex space-x-2">
+            <form onSubmit={handleSearch} className="flex space-x-2">
                 <div className="flex-1 relative">
                   <Input
                     type="text"
@@ -87,7 +85,6 @@ export default function UserManagement() {
                   Search
                 </Button>
               </form>
-            </EducationalTooltip>
           </CardContent>
         </Card>
 

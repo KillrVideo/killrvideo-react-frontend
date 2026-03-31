@@ -1,10 +1,23 @@
-# GET /api/v1/search/videos - Video Search (Semantic & Keyword)
+# GET /api/v1/search/videos - Video Search (Keyword & Semantic)
 
 ## Overview
 
-This endpoint searches videos using either **semantic search** (AI-powered, meaning-based) or **keyword search** (traditional text matching). It demonstrates Astra DB's vector search capabilities with NVIDIA embeddings and Storage-Attached Indexes for text search.
+This endpoint searches videos using either **keyword search** (text-based substring matching) or
+**semantic search** (AI-powered meaning-based search using vector embeddings). It is the primary
+discovery mechanism for users who know what they are looking for, as opposed to browsing feeds.
 
-**Why it exists**: Modern search needs go beyond exact keyword matching. Semantic search understands intent and meaning, enabling queries like "funny cat videos" to match videos titled "Hilarious Feline Compilation" even though they share no common words.
+**Why it exists**: Traditional keyword search works well when a user knows the exact terms a video
+uses, but it fails when intent and meaning diverge from literal words. A search for "how to cook
+Italian food" would miss a video titled "Homemade Pasta From Scratch" because none of the words
+overlap. Semantic search solves this by converting both the query and every video's content into
+numerical vectors and comparing their geometric similarity. KillrVideo supports both modes behind
+a single endpoint so the frontend can experiment with search quality without changing its API
+integration.
+
+**Key design decision**: The backend's `search_videos_by_keyword()` actually delegates to
+`search_videos_by_semantic()` internally. Both code paths ultimately perform a vector-based
+search, making keyword mode a thin wrapper rather than a fundamentally different strategy. This
+keeps the implementation simple while still exposing separate modes for future differentiation.
 
 ## HTTP Details
 
@@ -12,35 +25,34 @@ This endpoint searches videos using either **semantic search** (AI-powered, mean
 - **Path**: `/api/v1/search/videos`
 - **Auth Required**: No (public endpoint)
 - **Success Status**: 200 OK
-- **Handler**: `app/api/v1/endpoints/search_catalog.py:31`
 
 ### Request Parameters
 
 ```http
-GET /api/v1/search/videos?query=python+tutorials&mode=semantic&page=1&pageSize=10
+GET /api/v1/search/videos?query=italian+cooking&mode=semantic&page=1&pageSize=10
 ```
 
-| Parameter | Type | Required | Default | Description |
-|-----------|------|----------|---------|-------------|
-| `query` | string | Yes | - | Search term (min 1 char) |
-| `mode` | string | No | `keyword` | Search mode: `semantic` or `keyword` |
-| `page` | integer | No | 1 | Page number (≥1) |
-| `pageSize` | integer | No | 10 | Results per page (1-100) |
+| Parameter  | Type    | Required | Default   | Description                              |
+|------------|---------|----------|-----------|------------------------------------------|
+| `query`    | string  | Yes      | -         | Search term (min 1 character)            |
+| `mode`     | string  | No       | `keyword` | Search mode: `keyword` or `semantic`     |
+| `page`     | integer | No       | 1         | Page number (>=1)                        |
+| `pageSize` | integer | No       | 10        | Results per page (1-100)                 |
 
-### Response Body
+### Success Response (200 OK)
 
 ```json
 {
   "data": [
     {
       "videoid": "550e8400-e29b-41d4-a716-446655440000",
-      "name": "Advanced Python Tutorial",
-      "description": "Learn advanced Python concepts",
-      "preview_image_location": "https://...",
-      "userid": "...",
+      "name": "Homemade Pasta From Scratch",
+      "description": "Learn to make fresh pasta at home with simple ingredients.",
+      "preview_image_location": "https://storage.example.com/thumbs/550e8400.jpg",
+      "userid": "7c9e6679-7425-40de-944b-e07fc1f90ae7",
       "added_date": "2025-10-31T10:00:00Z",
-      "tags": ["python", "tutorial", "programming"],
-      "$similarity": 0.87  # Only in semantic mode
+      "tags": ["cooking", "pasta", "italian"],
+      "$similarity": 0.87
     }
   ],
   "pagination": {
@@ -52,148 +64,126 @@ GET /api/v1/search/videos?query=python+tutorials&mode=semantic&page=1&pageSize=1
 }
 ```
 
+**Note**: The `$similarity` field (a float from 0.0 to 1.0) is present on every result in
+semantic mode. In keyword mode it may still appear because keyword search delegates to
+semantic search internally.
+
+### Error Responses
+
+| Status | Condition                          | Example Body                                     |
+|--------|------------------------------------|--------------------------------------------------|
+| 422    | Missing or invalid query parameter | `{"detail": "query is required"}`                |
+| 422    | pageSize out of range              | `{"detail": "pageSize must be between 1 and 100"}` |
+| 500    | Embedding service unavailable      | `{"detail": "Internal server error"}`            |
+
 ## Cassandra Concepts Explained
 
 ### What is Vector Search?
 
-**Vector search** finds items based on semantic similarity rather than exact text matches.
+Imagine a library where every book is placed on an enormous 3D map. Cookbooks cluster near
+each other, science fiction novels form another cluster, and history books sit in their own
+neighborhood. When you walk into the library and say "I want something about space
+exploration," the librarian does not check every title for the words "space" and "exploration."
+Instead, they look at where you are standing on the map (based on what your words *mean*) and
+hand you the nearest books.
 
-**How it works**:
+Vector search works the same way, except the "map" has 384 dimensions instead of three, and
+the "books" are videos.
 
-1. **Text → Numbers**: Convert text to a vector (array of numbers)
+**The three-step process**:
+
+1. **Encode**: Convert text into a list of numbers (a "vector"). The IBM Granite-Embedding-30m-English
+   model turns any text into 384 floating-point numbers.
    ```
-   "python tutorial" → [0.23, 0.87, -0.45, ..., 0.12]  # 4096 numbers
+   "italian cooking" --> [0.023, -0.871, 0.445, ..., 0.112]   (384 floats)
    ```
 
-2. **Measure distance**: Calculate how similar two vectors are
+2. **Compare**: Measure how close two vectors are using cosine similarity. Two vectors
+   pointing in the same direction score close to 1.0; perpendicular vectors score 0.0.
    ```
-   cosine_similarity(query_vector, video_vector) = 0.87  # 0-1 scale
+   cosine_similarity(query_vector, video_vector) = 0.87
    ```
 
-3. **Rank by similarity**: Return results sorted by similarity score
+3. **Rank**: Return videos sorted from most similar to least similar.
 
-**Example**:
+### Approximate Nearest Neighbor (ANN)
+
+Searching every single video vector to find the closest ones is expensive. With one million
+videos and 384-dimensional vectors, an exact search requires one million cosine calculations
+per query. ANN algorithms trade a tiny amount of accuracy for a massive speedup by organizing
+vectors into a navigable graph structure at index time. At query time, the algorithm walks this
+graph to find *approximately* the nearest neighbors, often achieving 95-99% recall while
+examining only a fraction of all vectors.
+
+**Analogy**: Finding the nearest coffee shop by checking every shop on Earth versus using GPS
+to jump to your neighborhood first and then walking to the nearest one.
+
+### Cosine Similarity
+
+Cosine similarity measures the angle between two vectors, ignoring their magnitude (length).
+This is important because we care about *what* a video is about, not *how much* text its
+description contains.
+
 ```
-Query: "learn coding"
-Results:
-  1. "Programming Tutorial" (similarity: 0.92)
-  2. "Software Development Basics" (similarity: 0.89)
-  3. "How to Code" (similarity: 0.85)
-```
-
-Notice: None match exactly, but all are semantically related!
-
-### Vector Column in Cassandra
-
-Cassandra 5.0 introduces the `vector` data type:
-
-```cql
-CREATE TABLE videos (
-    videoid uuid PRIMARY KEY,
-    name text,
-    content_features vector<float, 4096>  -- 4096-dimensional vector
-);
-```
-
-**What's stored**:
-```json
-{
-  "videoid": "...",
-  "name": "Python Tutorial",
-  "content_features": [0.234, 0.876, -0.453, ..., 0.123]  // 4096 floats
-}
+              Video A
+              /
+             / 15 degrees  <-- high similarity (cos 15 deg ~ 0.97)
+            /
+  Query ---+
+            \
+             \ 80 degrees  <-- low similarity (cos 80 deg ~ 0.17)
+              \
+              Video B
 ```
 
-**Size**: 4096 floats × 4 bytes = ~16 KB per video embedding
+| Score     | Meaning              | Typical Action   |
+|-----------|----------------------|------------------|
+| 0.90-1.00 | Nearly identical     | Top result       |
+| 0.70-0.89 | Highly relevant      | Include          |
+| 0.50-0.69 | Loosely related      | Borderline       |
+| 0.00-0.49 | Unrelated            | Filter out       |
 
-### Vectorize Feature (Astra DB)
+### IBM Granite Embeddings
 
-**Problem**: How do we convert text to vectors?
+KillrVideo uses the **IBM Granite-Embedding-30m-English** model, a lightweight 30-million
+parameter model producing 384-dimensional vectors. Compared to larger models (e.g., OpenAI's
+text-embedding-ada-002 at 1536 dimensions or NVIDIA NV-Embed-QA at 4096 dimensions), Granite
+is faster and cheaper to run while still delivering strong semantic understanding for English
+text.
 
-**Traditional approach**: Run your own embedding model
-```python
-import openai
-embedding = openai.embeddings.create(
-    model="text-embedding-ada-002",
-    input="Python tutorial"
-)
-```
+**Key characteristics**:
+- **Dimensions**: 384 (about 1.5 KB per vector)
+- **Language**: English
+- **Model size**: 30M parameters -- small enough to self-host
+- **Use case**: Query-document similarity, search, retrieval
 
-**Astra approach**: Built-in `$vectorize` (automatic)
-```python
-# Just insert text, Astra handles embedding
-await videos_table.insert_one({
-    "videoid": video_id,
-    "content_features": "Python tutorial for beginners"  # Text, not vector!
-})
-# Astra automatically converts to 4096-dim vector using NVIDIA model
-```
+### Storage-Attached Indexes (SAI)
 
-**For search**:
-```python
-# Query with text, Astra embeds it automatically
-results = videos_table.find(
-    sort={"content_features": "learn python"}  # Text query
-)
-# Astra embeds "learn python" and finds similar vectors
-```
+Cassandra's SAI is a secondary-index implementation that lives alongside SSTables on disk. For
+vector columns, SAI builds an ANN graph that enables `ORDER BY ... ANN OF` queries. For
+collection columns like `set<text>`, SAI enables queries against individual elements of the
+collection (used by the tag suggestion endpoint).
 
-**Benefits**:
-- No need to run embedding models yourself
-- Consistent embeddings (same model for all data)
-- Lower latency (embeddings happen in-database)
+**Why SAI instead of a separate vector database?**
 
-### Vector Index with SAI
+Using SAI keeps vectors co-located with the rest of the video metadata. There is no need to
+synchronize data between Cassandra and a standalone vector store like Pinecone or Milvus.
+Reads, writes, and indexes share the same replication, consistency, and operational tooling.
 
-To enable fast vector search, create a SAI index:
+### Keyword vs Semantic Search
 
-```cql
-CREATE CUSTOM INDEX videos_content_features_idx
-ON videos(content_features)
-USING 'StorageAttachedIndex'
-WITH OPTIONS = {
-  'similarity_function': 'COSINE',  -- How to measure similarity
-  'source_model': 'nv-qa-4'         -- NVIDIA NV-Embed-QA model
-};
-```
+| Aspect            | Keyword Search                     | Semantic Search                       |
+|-------------------|------------------------------------|---------------------------------------|
+| **Matching**      | Delegates to semantic internally   | Vector similarity (ANN)               |
+| **Example query** | "python tutorial"                  | "learn to code in python"             |
+| **Matches**       | Semantically similar videos        | Semantically similar videos           |
+| **Technology**    | Embedding + ANN (via delegation)   | Embedding + ANN                       |
+| **Latency**       | ~50-200 ms                         | ~50-200 ms                            |
+| **Key point**     | Currently wraps semantic search    | Direct vector similarity              |
 
-**Schema Location**: `docs/schema-astra.cql:136-144`
-
-**Index Properties**:
-- **Similarity Function**: COSINE (others: EUCLIDEAN, DOT_PRODUCT)
-- **Source Model**: `nv-qa-4` (NVIDIA NV-Embed-QA, 4096 dimensions)
-- **Performance**: Approximate Nearest Neighbor (ANN) search, not exhaustive
-
-### Keyword Search with SAI
-
-For traditional text search, use SAI on text columns:
-
-```cql
-CREATE CUSTOM INDEX videos_name_idx
-ON videos(name)
-USING 'StorageAttachedIndex';
-```
-
-**Query**:
-```python
-results = videos_table.find(
-    filter={"name": {"$regex": "python", "$options": "i"}}  # Case-insensitive
-)
-```
-
-**Schema Location**: `docs/schema-astra.cql:102-105`
-
-### Semantic vs Keyword Search
-
-| Aspect | Semantic Search | Keyword Search |
-|--------|-----------------|----------------|
-| **Matching** | Meaning-based | Exact text |
-| **Example Query** | "learn coding" | "python tutorial" |
-| **Matches** | "Programming Basics", "Software Dev" | "Python Tutorial" only |
-| **Technology** | Vector embeddings + ANN | Text index + regex |
-| **Speed** | Slower (~50-200ms) | Faster (~10-50ms) |
-| **Accuracy** | Better for natural language | Better for exact terms |
-| **Storage** | +16KB per video | Minimal |
+In the current backend both modes exercise the same vector pipeline. The `mode` parameter
+exists so the frontend can distinguish intent and so the backend can be extended later (for
+example, adding BM25 or hybrid search for keyword mode).
 
 ## Data Model
 
@@ -202,446 +192,346 @@ results = videos_table.find(
 ```cql
 CREATE TABLE killrvideo.videos (
     videoid uuid PRIMARY KEY,
-    added_date timestamp,
-    description text,
     name text,
+    description text,
     tags set<text>,
-    content_features vector<float, 4096>,  -- For semantic search
+    content_features vector<float, 384>,
     userid uuid,
-    preview_image_location text
+    added_date timestamp,
+    views int
 );
+```
 
--- Vector search index
+### Index: Vector Search (SAI with Cosine Similarity)
+
+```cql
 CREATE CUSTOM INDEX videos_content_features_idx
 ON killrvideo.videos(content_features)
 USING 'StorageAttachedIndex'
-WITH OPTIONS = {
-  'similarity_function': 'COSINE',
-  'source_model': 'nv-qa-4'
-};
+WITH OPTIONS = { 'similarity_function': 'COSINE' };
+```
 
--- Keyword search index
-CREATE CUSTOM INDEX videos_name_idx
-ON killrvideo.videos(name)
+**Index properties**:
+- **Similarity function**: COSINE -- measures angle between vectors, range [-1, 1] normalized
+  to [0, 1] for the `similarity_cosine()` function.
+- **Performance**: ANN search, not brute-force. Index maintenance happens during compaction.
+
+### Index: Tags (SAI on Collection)
+
+```cql
+CREATE CUSTOM INDEX videos_tags_idx
+ON killrvideo.videos(tags)
 USING 'StorageAttachedIndex';
 ```
 
-**Schema Location**: `docs/schema-astra.cql:81-144`
+This index is not used by search directly but is shared infrastructure with the tag suggestion
+endpoint.
+
+### Storage Estimates
+
+| Component          | Size per Video | 1 Million Videos |
+|--------------------|----------------|------------------|
+| Vector (384 float) | ~1.5 KB        | ~1.5 GB          |
+| SAI ANN index      | ~0.5 KB (est.) | ~500 MB          |
+| Metadata columns   | ~0.5 KB        | ~500 MB          |
+| **Total**          | **~2.5 KB**    | **~2.5 GB**      |
+
+The 384-dimension vectors are substantially smaller than 4096-dimension alternatives, which
+would require ~16 KB per video.
 
 ## Database Queries
 
-### Mode Selection Logic
+### How Keyword Mode Delegates to Semantic Mode
 
-**Endpoint Logic**: `app/api/v1/endpoints/search_catalog.py:44`
-
-```python
-use_semantic = (
-    mode == "semantic" and
-    settings.VECTOR_SEARCH_ENABLED  # Feature flag
-)
-
-if use_semantic:
-    results = await search_videos_by_semantic(query, page, page_size)
-else:
-    results = await search_videos_by_keyword(query, page, page_size)
-```
-
-**Why a feature flag?**
-- Vector search requires embeddings to be populated
-- May be disabled for cost/performance reasons
-- Allows A/B testing
-
-### Query 1: Semantic Search
-
-**Service Function**: `app/services/vector_search_utils.py:28`
-
-```python
-async def semantic_search_with_threshold(
-    db_table,
-    vector_column="content_features",
-    query="python tutorials",
-    page=1,
-    page_size=10,
-    similarity_threshold=0.7,   # Min similarity score
-    overfetch_factor=3          # Fetch 3x to allow filtering
-):
-    # Calculate how many docs to fetch
-    overfetch = page_size * overfetch_factor * page
-
-    # Vector search query
-    cursor = db_table.find(
-        filter={},                      # No WHERE clause (search all)
-        sort={vector_column: query},    # Sort by similarity to query
-        limit=overfetch,                # Fetch extra for filtering
-        include_similarity=True         # Return $similarity score
-    )
-
-    docs = await cursor.to_list()
-
-    # Client-side filtering by similarity threshold
-    docs = [d for d in docs if d.get("$similarity", 0) >= similarity_threshold]
-
-    # Paginate client-side
-    start = (page - 1) * page_size
-    end = start + page_size
-    page_docs = docs[start:end]
-
-    return page_docs, len(docs)
-```
-
-**Equivalent Astra Data API Request**:
-```json
-{
-  "find": {
-    "filter": {},
-    "sort": {"content_features": "python tutorials"},
-    "options": {
-      "limit": 30,
-      "includeSimilarity": true
-    }
-  }
-}
-```
-
-**What Astra does**:
-1. Embeds query "python tutorials" using NVIDIA model → 4096-dim vector
-2. Performs ANN search to find nearest neighbors
-3. Returns results with `$similarity` score (0.0-1.0)
-
-**Performance**: **~50-200ms** depending on dataset size
-
-**Example Response**:
-```json
-[
-  {
-    "videoid": "...",
-    "name": "Python for Beginners",
-    "content_features": "python tutorial beginners",
-    "$similarity": 0.92
-  },
-  {
-    "videoid": "...",
-    "name": "Learn Programming",
-    "content_features": "coding tutorial basics",
-    "$similarity": 0.78
-  }
-]
-```
-
-### Query 2: Keyword Search
-
-**Service Function**: `app/services/video_service.py:250`
+The backend function `video_service.search_videos_by_keyword()` does not perform traditional
+text matching. Instead, it delegates to `search_videos_by_semantic()`:
 
 ```python
 async def search_videos_by_keyword(query: str, page: int, page_size: int):
-    videos_table = await get_table("videos")
+    """Keyword search delegates to semantic search."""
+    return await search_videos_by_semantic(query, page, page_size)
+```
 
-    # Case-insensitive regex search on video name
-    cursor = videos_table.find(
-        filter={"name": {"$regex": query, "$options": "i"}},
-        limit=page_size,
-        skip=(page - 1) * page_size
+This means both modes ultimately follow the same execution path described below.
+
+### Core Query: Semantic Search
+
+**Service Function**: `video_service.search_videos_by_semantic()`
+
+```python
+async def search_videos_by_semantic(query: str, page: int, page_size: int):
+    # Step 1: Generate query embedding using IBM Granite
+    query_embedding = generate_embedding(query)
+    # Calls IBM Granite-Embedding-30m-English
+    # Returns: list of 384 floats
+
+    # Step 2: Perform vector search with similarity threshold
+    results = await semantic_search_with_threshold(
+        table="videos",
+        vector_column="content_features",
+        query_embedding=query_embedding,
+        page=page,
+        page_size=page_size,
+        similarity_threshold=0.7
     )
 
-    docs = await cursor.to_list()
-    return [VideoSummary.model_validate(d) for d in docs], len(docs)
+    return results
 ```
 
-**Equivalent CQL** (conceptual, SAI doesn't use CQL LIKE):
+**Vector search utility**: `vector_search_utils.semantic_search_with_threshold()`
+
+```python
+async def semantic_search_with_threshold(
+    table, vector_column, query_embedding,
+    page, page_size, similarity_threshold=0.7,
+    overfetch_factor=3
+):
+    overfetch = page_size * overfetch_factor * page
+
+    # Execute ANN query
+    rows = execute_cql(
+        "SELECT videoid, name, description, tags, userid, added_date, views, "
+        "similarity_cosine(content_features, ?) AS score "
+        "FROM videos "
+        "ORDER BY content_features ANN OF ? "
+        "LIMIT ?",
+        [query_embedding, query_embedding, overfetch]
+    )
+
+    # Client-side filtering by threshold
+    rows = [r for r in rows if r["score"] >= similarity_threshold]
+
+    # Paginate client-side
+    start = (page - 1) * page_size
+    page_rows = rows[start : start + page_size]
+
+    return page_rows, len(rows)
+```
+
+### Equivalent CQL
+
 ```cql
-SELECT *
+SELECT videoid, name, description, tags, userid, added_date, views,
+       similarity_cosine(content_features, ?) AS score
 FROM killrvideo.videos
-WHERE name LIKE '%python%'  -- Case-insensitive
-LIMIT 10;
+ORDER BY content_features ANN OF ?
+LIMIT 30;
 ```
 
-**Actual Data API syntax**:
-```json
-{
-  "find": {
-    "filter": {"name": {"$regex": "python", "$options": "i"}},
-    "options": {"limit": 10, "skip": 0}
-  }
-}
+**Parameter binding**:
+- Both `?` placeholders receive the 384-float query embedding generated by IBM Granite.
+- `LIMIT 30` = `pageSize(10) * overfetch_factor(3) * page(1)`.
+
+**What happens inside Cassandra**:
+1. The query embedding arrives as a 384-float vector.
+2. SAI traverses its ANN graph starting from a random entry point, greedily navigating to
+   closer neighbors.
+3. Returns up to 30 rows sorted by descending cosine similarity.
+4. The `similarity_cosine()` function computes the exact similarity for display.
+
+**Performance**: ~50-200 ms depending on dataset size and cluster topology.
+
+### The Overfetch Pattern
+
+**Problem**: Cassandra's ANN search has no built-in `WHERE similarity >= 0.7` filter. The
+`ORDER BY ... ANN OF` clause returns the top-N nearest neighbors regardless of how similar
+they actually are.
+
+**Solution**: Fetch more rows than needed (overfetch), filter client-side, then paginate.
+
+```
+Database returns 30 rows (overfetch 3x for page 1, pageSize 10)
+  |
+  v
+Client filters: keep only rows with score >= 0.7
+  |-- 22 rows pass the threshold
+  |
+  v
+Client paginates: return rows 1-10 (page 1)
+  |-- 10 rows returned to caller
+  |
+  v
+Remaining 12 rows available for page 2
 ```
 
-**Performance**: **~10-50ms** (faster than vector search)
+**Why 3x?** With a threshold of 0.7, typically 60-80% of ANN results pass. A 3x factor
+provides enough headroom. For deeper pages (page 5, page 10), the overfetch grows
+proportionally (`page_size * overfetch_factor * page`) to ensure earlier pages' worth of
+results are available for skipping.
+
+**Trade-off**: More data transferred from the database, but this is necessary until Cassandra
+supports server-side similarity filtering.
 
 ## Implementation Flow
 
 ```
-┌───────────────────────────────────────────────────────────┐
-│ 1. Client sends GET /api/v1/search/videos?               │
-│    query=python&mode=semantic                            │
-└────────────────────┬──────────────────────────────────────┘
-                     │
-                     ▼
-┌───────────────────────────────────────────────────────────┐
-│ 2. Validate query parameters                             │
-│    ├─ query too short? → 422 Validation Error            │
-│    ├─ page/pageSize invalid? → 422                       │
-│    └─ Valid? → Continue                                  │
-└────────────────────┬──────────────────────────────────────┘
-                     │
-                     ▼
-┌───────────────────────────────────────────────────────────┐
-│ 3. Determine search mode                                 │
-│    mode == "semantic" AND VECTOR_SEARCH_ENABLED?         │
-│    ├─ Yes → Use semantic_search_with_threshold()         │
-│    └─ No → Use search_videos_by_keyword()                │
-└────────────────────┬──────────────────────────────────────┘
-                     │
-                ┌────┴────┐
-                │         │
-                ▼         ▼
-    ┌────────────────┐  ┌──────────────────┐
-    │ SEMANTIC PATH  │  │  KEYWORD PATH    │
-    └────────────────┘  └──────────────────┘
-                │         │
-                ▼         ▼
-┌───────────────────────────────────────────────────────────┐
-│ 4. Execute database query                                │
-│                                                           │
-│ SEMANTIC:                                                 │
-│   find(sort={content_features: query},                   │
-│        limit=overfetch, include_similarity=True)         │
-│                                                           │
-│ KEYWORD:                                                  │
-│   find(filter={name: {$regex: query}},                   │
-│        limit=pageSize, skip=offset)                      │
-└────────────────────┬──────────────────────────────────────┘
-                     │
-                     ▼
-┌───────────────────────────────────────────────────────────┐
-│ 5. Post-process results (semantic only)                  │
-│    ├─ Filter by similarity_threshold (>=0.7)             │
-│    ├─ Paginate client-side                               │
-│    └─ Map to VideoSummary models                         │
-└────────────────────┬──────────────────────────────────────┘
-                     │
-                     ▼
-┌───────────────────────────────────────────────────────────┐
-│ 6. Build paginated response                              │
-│    {data: [...], pagination: {page, totalItems, ...}}    │
-└────────────────────┬──────────────────────────────────────┘
-                     │
-                     ▼
-┌───────────────────────────────────────────────────────────┐
-│ 7. Return 200 OK with search results                     │
-└───────────────────────────────────────────────────────────┘
++-------------------------------------------------------------+
+| 1. Client sends GET /api/v1/search/videos?                  |
+|    query=italian+cooking&mode=semantic&page=1&pageSize=10    |
++-----------------------------+-------------------------------+
+                              |
+                              v
++-------------------------------------------------------------+
+| 2. Validate query parameters                                |
+|    +-- query missing/empty?  --> 422 Validation Error       |
+|    +-- pageSize out of range? --> 422 Validation Error      |
+|    +-- Valid? --> Continue                                   |
++-----------------------------+-------------------------------+
+                              |
+                              v
++-------------------------------------------------------------+
+| 3. Route to search function                                 |
+|    +-- mode=keyword?  --> search_videos_by_keyword()        |
+|    |                      (delegates to semantic internally)|
+|    +-- mode=semantic? --> search_videos_by_semantic()       |
++-----------------------------+-------------------------------+
+                              |
+                              v
++-------------------------------------------------------------+
+| 4. Generate query embedding                                 |
+|    IBM Granite-Embedding-30m-English                        |
+|    "italian cooking" --> [0.023, -0.871, ..., 0.112]        |
+|    (384-dimensional float vector)                           |
++-----------------------------+-------------------------------+
+                              |
+                              v
++-------------------------------------------------------------+
+| 5. Execute ANN query against Cassandra                      |
+|    SELECT videoid, name, ...,                               |
+|      similarity_cosine(content_features, ?) AS score        |
+|    FROM videos                                              |
+|    ORDER BY content_features ANN OF ?                       |
+|    LIMIT 30                                                 |
++-----------------------------+-------------------------------+
+                              |
+                              v
++-------------------------------------------------------------+
+| 6. Client-side post-processing                              |
+|    +-- Filter: keep rows where score >= 0.7                 |
+|    +-- Paginate: slice rows[(page-1)*pageSize : page*pageSize] |
+|    +-- Map to VideoSummary models                           |
++-----------------------------+-------------------------------+
+                              |
+                              v
++-------------------------------------------------------------+
+| 7. Build paginated response                                 |
+|    { "data": [...], "pagination": { ... } }                 |
++-----------------------------+-------------------------------+
+                              |
+                              v
++-------------------------------------------------------------+
+| 8. Return 200 OK with search results                        |
++-------------------------------------------------------------+
 ```
 
-**Semantic Search Queries**: 1 vector search
-
-**Keyword Search Queries**: 1 text search
+**Total database queries**: 1 (ANN vector search)
+**External service calls**: 1 (embedding generation via IBM Granite)
+**Expected latency**: 50-200 ms (embedding ~20 ms + ANN search ~30-180 ms)
 
 ## Special Notes
 
-### 1. The Overfetch Pattern
+### 1. Embedding Generation is a Network Call
 
-**Problem**: We want to filter by similarity threshold **and** paginate
+Every search request requires a call to the IBM Granite-Embedding-30m-English model to
+convert the query string into a 384-float vector. If the embedding service is down or slow,
+search fails entirely.
 
-**Naive approach** (doesn't work):
-```python
-# Can't filter by $similarity in the query itself
-cursor = db_table.find(
-    filter={"$similarity": {"$gte": 0.7}},  # ❌ Not supported
-    sort={"content_features": query}
-)
+**Mitigation strategies**:
+- Cache embeddings for repeated queries (e.g., "tutorial" is searched frequently).
+- Set aggressive timeouts on the embedding call (500 ms).
+- Consider running the model locally -- at 30M parameters, Granite is small enough to serve
+  on a single CPU.
+
+### 2. Similarity Threshold Tuning
+
+The default threshold of 0.7 was chosen as a reasonable starting point. In practice:
+
+- **Raise to 0.8+** if users complain about irrelevant results.
+- **Lower to 0.5** if users complain about missing results.
+- The best threshold depends on the embedding model, the corpus, and user expectations.
+
+**Monitoring tip**: Log the score distribution of returned results. If 90% of results score
+above 0.9, the threshold is too low to matter. If many results cluster near 0.7, the
+threshold is actively shaping the result set.
+
+### 3. Cold Start: Videos Without Embeddings
+
+When a video is first uploaded, its `content_features` column may be NULL if the embedding
+pipeline has not run yet. Videos with NULL vectors are invisible to ANN search -- they simply
+do not appear in results.
+
+**Current behavior**: Embeddings are generated synchronously during video creation, so this
+gap should not occur under normal operation. However, if the embedding service is temporarily
+unavailable, videos may be created without vectors.
+
+### 4. Astra DB / DataStax Considerations
+
+If running on DataStax Astra DB (the managed Cassandra service), the CQL syntax is identical.
+Astra's SAI implementation supports the same `ORDER BY ... ANN OF` syntax. The main
+operational difference is that index builds and compaction are managed automatically.
+
+For self-hosted Cassandra 5.0+, ensure that SAI is enabled in `cassandra.yaml`:
+```yaml
+storage_attached_index_enabled: true
 ```
 
-**Solution**: Overfetch + client-side filter
-```python
-# Fetch 3x the page size
-cursor = db_table.find(
-    sort={"content_features": query},
-    limit=page_size * 3,  # Overfetch
-    include_similarity=True
-)
+### 5. Why Not Use Cassandra's LIKE or CONTAINS?
 
-docs = await cursor.to_list()
+Cassandra's `LIKE` operator (available with SAI on text columns) supports prefix and suffix
+matching but not full-text search with relevance ranking. For a search feature, users expect
+results ranked by relevance, not returned in token order. Vector search provides this ranking
+naturally via similarity scores.
 
-# Filter client-side
-docs = [d for d in docs if d["$similarity"] >= 0.7]
+### 6. Security: Query Injection
 
-# Then paginate
-page_docs = docs[start:end]
-```
-
-**Code Location**: `app/services/vector_search_utils.py:67`
-
-**Why overfetch by 3x?**
-- With threshold=0.7, ~60-70% of results typically pass
-- 3x gives us enough results after filtering
-- Grows with page number (page 10 fetches more to account for earlier pages)
-
-**Trade-off**: More data transferred, but necessary for filtering
-
-### 2. Token Limit for Embeddings
-
-**Limitation**: NVIDIA NV-Embed-QA has a 512-token limit
-
-**What's a token?** Roughly 1 token ≈ 0.75 words
-
-**Examples**:
-- "Python tutorial" ≈ 2 tokens ✅
-- 300-word description ≈ 400 tokens ✅
-- 1000-word description ≈ 1333 tokens ❌ Too long!
-
-**Solution**: Clip text before embedding
-
-**Helper Function** (`app/utils/text_helpers.py`):
-```python
-def clip_to_512_tokens(text: str) -> str:
-    """Clip text to 512 tokens (rough estimate)."""
-    # Rough estimate: 1 token ≈ 4 characters
-    max_chars = 512 * 4
-    if len(text) <= max_chars:
-        return text
-    return text[:max_chars] + "..."
-```
-
-**Used during video submission**:
-```python
-content_text = f"{video.name} {video.description} {' '.join(video.tags)}"
-clipped_text = clip_to_512_tokens(content_text)
-
-await videos_table.insert_one({
-    "content_features": clipped_text  # Safe to embed
-})
-```
-
-**Code Location**: `app/services/video_service.py:85`
-
-### 3. Similarity Score Interpretation
-
-**Scale**: 0.0 (completely different) to 1.0 (identical)
-
-**Typical values**:
-| Score | Interpretation | Action |
-|-------|----------------|--------|
-| 0.9-1.0 | Nearly identical | Perfect match |
-| 0.7-0.9 | Highly relevant | Include in results |
-| 0.5-0.7 | Somewhat related | Marginal |
-| 0.0-0.5 | Unrelated | Filter out |
-
-**Current threshold**: 0.7 (configurable in code)
-
-**Tuning**:
-- **Higher threshold** (0.8+): Fewer, more relevant results
-- **Lower threshold** (0.5+): More results, some less relevant
-
-### 4. Cold Start Problem
-
-**Scenario**: New video just uploaded, no embedding yet
-
-**What happens**:
-1. Video inserted with title/description
-2. Background job hasn't run yet
-3. `content_features` is null or empty
-
-**Vector search behavior**:
-```python
-# Videos without embeddings won't appear in vector search
-cursor = db_table.find(sort={"content_features": query})
-# Only returns videos with populated content_features
-```
-
-**Solution**:
-- Process embeddings during video submission (synchronous)
-- OR ensure background job runs quickly
-- OR fall back to keyword search for new videos
-
-**Current implementation**: Embeddings created during submission (synchronous)
-
-### 5. Cost Considerations
-
-**Vector embeddings have costs**:
-
-| Aspect | Cost |
-|--------|------|
-| **Storage** | ~16KB per video (4096 floats) |
-| **Compute** | Embedding API calls (NVIDIA charges per call) |
-| **Search** | ANN index maintenance |
-
-**For 1 million videos**:
-- Storage: 1M × 16KB = ~16GB of vector data
-- Embedding cost: Depends on pricing model (could be thousands of dollars)
-
-**Optimization**:
-- Only embed text up to 512 tokens (saves compute)
-- Batch embedding operations
-- Cache frequent queries
-- Use keyword search for simple exact-match queries
-
-### 6. Observability
-
-**OpenTelemetry tracing**:
-```python
-with tracer.start_as_current_span("vector.search") as span:
-    span.set_attribute("query", query[:64])
-    span.set_attribute("duration_ms", int(duration * 1000))
-    span.set_attribute("total_results", len(docs))
-```
-
-**Prometheus metrics**:
-```python
-VECTOR_SEARCH_DURATION_SECONDS.observe(duration)
-```
-
-**Code Location**: `app/services/vector_search_utils.py:71`
-
-**Why instrument?**
-- Monitor search latency
-- Identify slow queries
-- Capacity planning
+The query parameter is passed to the embedding model, not interpolated into CQL. There is no
+risk of CQL injection. However, excessively long queries waste embedding compute. The backend
+should enforce a maximum query length (e.g., 500 characters).
 
 ## Developer Tips
 
 ### Common Pitfalls
 
-1. **Forgetting token limits**: Clip text to 512 tokens before embedding
+1. **Assuming keyword and semantic are different code paths**: In the current backend, keyword
+   mode delegates to semantic mode. Do not build frontend logic that assumes keyword results
+   lack similarity scores or behave fundamentally differently.
 
-2. **Not handling empty results**: Vector search may return no results above threshold
+2. **Ignoring the overfetch cost**: Requesting page 10 with pageSize=20 causes the backend to
+   fetch 600 rows (`20 * 3 * 10`) from Cassandra. Deep pagination is expensive. Consider
+   capping the maximum page depth.
 
-3. **Overfetching too much**: Balance between filtering flexibility and performance
+3. **Not handling empty results**: A query with no results above the similarity threshold
+   returns `{"data": [], "pagination": {"totalItems": 0, ...}}`. The frontend should display
+   a helpful message, not an error.
 
-4. **Mixing search modes**: Don't combine vector + keyword in same query
+4. **Forgetting that embeddings can fail**: If the IBM Granite service is unreachable, the
+   endpoint returns a 500 error. The frontend should have a graceful fallback (e.g., show the
+   latest videos feed instead).
 
-5. **Ignoring similarity scores**: Threshold is crucial for result quality
+5. **Testing with very short queries**: Single-character queries like "a" produce poor
+   embeddings because there is not enough semantic signal. Results will be essentially random.
 
 ### Best Practices
 
-1. **Combine both search modes**:
-   ```python
-   # Try semantic first
-   results = semantic_search(query)
-   if len(results) < 5:
-       # Fall back to keyword
-       results += keyword_search(query)
-   ```
+1. **Debounce search requests**: On the frontend, wait 300-500 ms after the user stops typing
+   before firing the API call. This reduces unnecessary embedding computations.
 
-2. **Tune similarity threshold** based on user feedback
+2. **Show similarity scores to aid debugging**: During development, display the `$similarity`
+   value next to each result so you can evaluate search quality.
 
-3. **Add query expansion**:
-   ```python
-   # "python" → ["python", "programming", "coding"]
-   expanded_query = expand_synonyms(query)
-   ```
+3. **Log zero-result queries**: These reveal gaps in your video catalog or problems with the
+   similarity threshold.
 
-4. **Cache popular queries**:
-   ```python
-   cache_key = f"search:{mode}:{query}:{page}"
-   if cached := await redis.get(cache_key):
-       return cached
-   ```
+4. **Cache popular query embeddings**: If "tutorial" is searched 100 times per hour, cache its
+   embedding vector to avoid 100 calls to the Granite model.
 
-5. **Log zero-result queries**: Identify gaps in content
+5. **Pre-warm the embedding model**: If self-hosting Granite, send a dummy query at startup to
+   load model weights into memory. The first real query will be much faster.
 
 ### Testing Tips
 
 ```python
-# Test semantic search
+# Test semantic search returns similarity scores
 async def test_semantic_search():
     response = await client.get(
         "/api/v1/search/videos",
@@ -650,41 +540,23 @@ async def test_semantic_search():
 
     assert response.status_code == 200
     data = response.json()
-
-    # Check pagination structure
     assert "data" in data
     assert "pagination" in data
 
-    # Check similarity scores
     for video in data["data"]:
         assert "$similarity" in video
-        assert 0 <= video["$similarity"] <= 1
+        assert 0 <= video["$similarity"] <= 1.0
 
-# Test keyword search
-async def test_keyword_search():
+# Test keyword mode also returns results (since it delegates to semantic)
+async def test_keyword_delegates_to_semantic():
     response = await client.get(
         "/api/v1/search/videos",
-        params={"query": "python", "mode": "keyword"}
+        params={"query": "cooking", "mode": "keyword"}
     )
 
     assert response.status_code == 200
     data = response.json()
-
-    # Results should contain "python" in name
-    for video in data["data"]:
-        assert "python" in video["name"].lower()
-
-# Test empty results
-async def test_no_results():
-    response = await client.get(
-        "/api/v1/search/videos",
-        params={"query": "xyzabc123notfound"}
-    )
-
-    assert response.status_code == 200
-    data = response.json()
-    assert len(data["data"]) == 0
-    assert data["pagination"]["totalItems"] == 0
+    assert len(data["data"]) >= 0  # May be empty if no videos match
 
 # Test pagination
 async def test_search_pagination():
@@ -697,18 +569,59 @@ async def test_search_pagination():
     assert data["pagination"]["currentPage"] == 2
     assert data["pagination"]["pageSize"] == 5
     assert len(data["data"]) <= 5
+
+# Test empty query returns 422
+async def test_empty_query_rejected():
+    response = await client.get(
+        "/api/v1/search/videos",
+        params={"query": ""}
+    )
+    assert response.status_code == 422
+
+# Test no results scenario
+async def test_no_results():
+    response = await client.get(
+        "/api/v1/search/videos",
+        params={"query": "xyzzy_nothing_matches_this_uniquestring"}
+    )
+
+    assert response.status_code == 200
+    data = response.json()
+    assert len(data["data"]) == 0
+    assert data["pagination"]["totalItems"] == 0
+
+# Test pageSize boundary
+async def test_max_page_size():
+    response = await client.get(
+        "/api/v1/search/videos",
+        params={"query": "test", "pageSize": 101}
+    )
+    assert response.status_code == 422  # Exceeds max
+```
+
+### curl Examples
+
+```bash
+# Semantic search
+curl "http://localhost:8080/api/v1/search/videos?query=italian+cooking&mode=semantic"
+
+# Keyword search (delegates to semantic)
+curl "http://localhost:8080/api/v1/search/videos?query=pasta&mode=keyword"
+
+# Paginated search
+curl "http://localhost:8080/api/v1/search/videos?query=tutorial&page=2&pageSize=5"
 ```
 
 ## Related Endpoints
 
-- [POST /api/v1/videos](../video_catalog/POST_videos.md) - Create embeddings during submission
-- [GET /api/v1/search/tags/suggest](./GET_search_tags_suggest.md) - Autocomplete search
-- [GET /api/v1/videos/latest](../video_catalog/GET_videos_latest.md) - Browse without search
+- [GET /api/v1/search/tags/suggest](./GET_tags_suggest.md) - Autocomplete tag suggestions
+- [GET /api/v1/recommendations/foryou](../recommendations/GET_for_you.md) - Personalized recommendations (also uses vectors)
+- [POST /api/v1/reco/ingest](../recommendations/POST_reco_ingest.md) - Ingest video embeddings
 
 ## Further Learning
 
-- [Vector Search in Cassandra](https://docs.datastax.com/en/astra-db-serverless/databases/vector-search.html)
-- [NVIDIA NV-Embed-QA Model](https://huggingface.co/nvidia/NV-Embed-v2)
+- [Vector Search in Cassandra 5.0](https://cassandra.apache.org/doc/latest/cassandra/vector-search.html)
+- [IBM Granite Embedding Models](https://www.ibm.com/granite)
 - [Cosine Similarity Explained](https://en.wikipedia.org/wiki/Cosine_similarity)
-- [Approximate Nearest Neighbor (ANN) Algorithms](https://www.datastax.com/blog/vector-search-using-astra-db)
-- [Vector Database Use Cases](https://www.pinecone.io/learn/vector-database/)
+- [Approximate Nearest Neighbor Search](https://en.wikipedia.org/wiki/Nearest_neighbor_search#Approximate_nearest_neighbor)
+- [Storage-Attached Indexes (SAI)](https://docs.datastax.com/en/cql/developing/indexing/sai/sai-concepts.html)

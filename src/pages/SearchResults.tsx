@@ -6,7 +6,6 @@ import { Button } from '@/components/ui/button';
 import { Search, Loader2 } from 'lucide-react';
 import { useSearchVideos, useUserNames } from '@/hooks/useApi';
 import SearchBar from '@/components/search/SearchBar';
-import { EducationalTooltip } from '@/components/educational/EducationalTooltip';
 import { PAGINATION } from '@/lib/constants';
 
 const EMPTY_TAGS: string[] = [];
@@ -43,11 +42,9 @@ const SearchResults = () => {
               Search Results for "{query}"
             </h1>
             {searchResults && (
-              <EducationalTooltip id="search-results-ranking" showIcon side="right">
-                <p className="text-gray-600">
+              <p className="text-gray-600">
                   {searchResults.pagination.totalItems} results found
                 </p>
-              </EducationalTooltip>
             )}
           </div>
         )}

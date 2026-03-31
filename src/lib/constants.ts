@@ -63,8 +63,9 @@ export const STORAGE_KEYS = {
   AUTH_TOKEN: 'auth_token',
   AUTH_USER: 'auth_user',
   USER_ID: 'user_id',
-  GUIDED_TOUR_ENABLED: 'killrvideo_guided_tour_enabled',
-  TOUR_WELCOMED: 'killrvideo_tour_welcomed',
+  DEV_MODE_ENABLED: 'killrvideo_dev_mode_enabled',
+  DEV_ACTIVE_LANGUAGE: 'killrvideo_dev_active_language',
+  DEV_QUERY_MODE: 'killrvideo_dev_query_mode',
 } as const;
 
 // Issue #30: Pagination Defaults

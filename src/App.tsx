@@ -5,7 +5,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/hooks/useAuth";
-import { WelcomeModal } from "@/components/educational/WelcomeModal";
+import { DevPanelProvider } from "@/hooks/useDevPanel";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import Home from "./pages/Home";
 import Auth from "./pages/Auth";
@@ -40,10 +40,10 @@ const LazyRoute = ({ children }: { children: ReactNode }) => (
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <AuthProvider>
+      <DevPanelProvider>
       <TooltipProvider>
         <Toaster />
         <Sonner />
-        <WelcomeModal />
         <BrowserRouter>
           <Routes>
             <Route path="/" element={<Home />} />
@@ -62,6 +62,7 @@ const App = () => (
           </Routes>
         </BrowserRouter>
       </TooltipProvider>
+      </DevPanelProvider>
     </AuthProvider>
   </QueryClientProvider>
 );

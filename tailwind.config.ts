@@ -22,6 +22,8 @@ export default {
       fontFamily: {
         sora: ["Sora", "sans-serif"],
         noto: ["Noto Sans", "sans-serif"],
+        playfair: ['"Playfair Display"', "serif"],
+        inter: ["Inter", "sans-serif"],
       },
       colors: {
         border: "hsl(var(--border))",
@@ -57,6 +59,14 @@ export default {
           DEFAULT: "hsl(var(--card))",
           foreground: "hsl(var(--card-foreground))",
         },
+        'kv-orange': '#E85B3A',
+        'kv-navy': '#1A1A2E',
+        'kv-cream': '#FBF8F4',
+        'kv-teal': '#0DB7C4',
+        'kv-surface': '#252538',
+        'kv-text-light': '#E8E6E1',
+        'kv-text-medium': '#4A4A5A',
+        'kv-text-muted': '#8A8A9A',
       },
       borderRadius: {
         lg: "var(--radius)",

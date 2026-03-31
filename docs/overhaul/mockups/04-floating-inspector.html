@@ -1,0 +1,1530 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>04 — Floating Inspector · KillrVideo Prototype</title>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400;1,700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            'kv-orange':  '#E85B3A',
+            'kv-teal':    '#0DB7C4',
+            'kv-navy':    '#1A1A2E',
+            'kv-cream':   '#FBF8F4',
+            'kv-offwhite':'#E8E6E1',
+            'kv-muted':   '#4A4A5A',
+            'kv-gold':    '#FFCA0B',
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    /* ── Page base ─────────────────────────────────────────── */
+    body {
+      background-color: #FBF8F4;
+      color: #1A1A2E;
+      font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    }
+
+    /* ── Solid navy header ─────────────────────────────────── */
+    .kv-header {
+      background: #1A1A2E;
+    }
+
+    /* ── Hero section (same navy) ──────────────────────────── */
+    .kv-hero {
+      background: #1A1A2E;
+    }
+
+    /* ── Video player placeholder ──────────────────────────── */
+    .video-player {
+      background: linear-gradient(135deg, #0F172A 0%, #1E293B 100%);
+      aspect-ratio: 16/9;
+      position: relative;
+      border-radius: 14px;
+      overflow: hidden;
+    }
+    .video-play-btn {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 64px;
+      height: 64px;
+      background: rgba(232, 91, 58, 0.25);
+      border-radius: 50%;
+      border: 2px solid rgba(232, 91, 58, 0.6);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    .video-play-btn:hover {
+      background: rgba(232, 91, 58, 0.4);
+    }
+
+    /* ── Star rating ───────────────────────────────────────── */
+    .star { color: #FFCA0B; }
+    .star-empty { color: #CBD5E1; }
+
+    /* ── FAB ───────────────────────────────────────────────── */
+    #fab {
+      position: fixed;
+      bottom: 28px;
+      right: 28px;
+      width: 52px;
+      height: 52px;
+      border-radius: 50%;
+      background: #E85B3A;
+      color: #fff;
+      border: none;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 14px;
+      font-weight: 700;
+      font-family: monospace;
+      box-shadow: 0 4px 20px rgba(232, 91, 58, 0.45);
+      z-index: 9998;
+      transition: background 0.2s, transform 0.15s;
+      user-select: none;
+    }
+    #fab:hover { background: #d44e2e; transform: scale(1.07); }
+    #fab.is-open { background: #374151; }
+    #fab.is-open:hover { background: #4B5563; }
+
+    /* ── Floating inspector panel ──────────────────────────── */
+    #inspector {
+      position: fixed;
+      bottom: 96px;
+      right: 28px;
+      width: 420px;
+      height: 520px;
+      background: rgba(26, 26, 46, 0.95);
+      border: 1px solid #E85B3A;
+      box-shadow: 0 0 20px rgba(232, 91, 58, 0.15), 0 20px 60px rgba(0,0,0,0.5);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border-radius: 12px;
+      z-index: 9997;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      /* hidden by default */
+      opacity: 0;
+      pointer-events: none;
+      transform: translateY(8px) scale(0.98);
+      transition: opacity 0.2s ease, transform 0.2s ease;
+    }
+    #inspector.is-visible {
+      opacity: 1;
+      pointer-events: all;
+      transform: translateY(0) scale(1);
+    }
+
+    /* ── Inspector title bar (drag handle) ─────────────────── */
+    #inspector-titlebar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 10px 14px;
+      background: rgba(232, 91, 58, 0.08);
+      border-bottom: 1px solid rgba(232, 91, 58, 0.25);
+      cursor: grab;
+      user-select: none;
+      flex-shrink: 0;
+    }
+    #inspector-titlebar:active { cursor: grabbing; }
+    .titlebar-left {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .titlebar-dot {
+      width: 10px; height: 10px; border-radius: 50%;
+    }
+    #inspector-close {
+      width: 28px; height: 28px;
+      border-radius: 6px;
+      background: rgba(255,255,255,0.06);
+      border: 1px solid rgba(255,255,255,0.1);
+      color: #94A3B8;
+      cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 13px;
+      transition: background 0.15s, color 0.15s;
+    }
+    #inspector-close:hover { background: rgba(255,255,255,0.12); color: #E8E6E1; }
+
+    /* ── Inspector tabs ────────────────────────────────────── */
+    .insp-tabs {
+      display: flex;
+      padding: 0 14px;
+      border-bottom: 1px solid rgba(255,255,255,0.07);
+      flex-shrink: 0;
+    }
+    .insp-tab {
+      padding: 9px 14px;
+      font-size: 12px;
+      font-weight: 600;
+      font-family: 'Inter', sans-serif;
+      color: #64748B;
+      cursor: pointer;
+      border-bottom: 2px solid transparent;
+      margin-bottom: -1px;
+      transition: color 0.15s, border-color 0.15s;
+      user-select: none;
+    }
+    .insp-tab:hover { color: #94A3B8; }
+    .insp-tab.active { color: #E85B3A; border-bottom-color: #E85B3A; }
+
+    /* ── Inspector body ────────────────────────────────────── */
+    .insp-body {
+      flex: 1;
+      overflow-y: auto;
+      padding: 14px;
+      scrollbar-width: thin;
+      scrollbar-color: rgba(232, 91, 58, 0.3) transparent;
+    }
+    .insp-body::-webkit-scrollbar { width: 4px; }
+    .insp-body::-webkit-scrollbar-track { background: transparent; }
+    .insp-body::-webkit-scrollbar-thumb { background: rgba(232, 91, 58, 0.3); border-radius: 2px; }
+
+    /* ── Inspector content panels ──────────────────────────── */
+    .insp-panel { display: none; }
+    .insp-panel.active { display: block; }
+
+    /* ── Metadata bar ──────────────────────────────────────── */
+    .meta-bar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-bottom: 12px;
+    }
+    .meta-badge {
+      font-size: 11px;
+      font-weight: 700;
+      padding: 3px 8px;
+      border-radius: 5px;
+      font-family: monospace;
+      letter-spacing: 0.02em;
+    }
+    .badge-read    { background: rgba(13,183,196,0.15); color: #0DB7C4; border: 1px solid rgba(13,183,196,0.3); }
+    .badge-write   { background: rgba(232,91,58,0.15); color: #E85B3A; border: 1px solid rgba(232,91,58,0.3); }
+    .badge-endpoint { background: rgba(255,255,255,0.05); color: #94A3B8; border: 1px solid rgba(255,255,255,0.1); }
+    .badge-latency  { background: rgba(232,91,58,0.1); color: #E8A090; border: 1px solid rgba(232,91,58,0.25); }
+    .badge-source   { background: rgba(255,255,255,0.04); color: #64748B; border: 1px solid rgba(255,255,255,0.08); cursor: pointer; }
+    .badge-source:hover { color: #94A3B8; }
+
+    /* ── API mode toggle ───────────────────────────────────── */
+    .api-toggle {
+      display: inline-flex;
+      background: rgba(255,255,255,0.05);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 20px;
+      overflow: hidden;
+      margin-bottom: 10px;
+    }
+    .api-btn {
+      padding: 5px 14px;
+      font-size: 11px;
+      font-weight: 600;
+      font-family: 'Inter', sans-serif;
+      color: #64748B;
+      cursor: pointer;
+      transition: background 0.15s, color 0.15s;
+      user-select: none;
+      border-radius: 20px;
+    }
+    .api-btn.active { background: #E85B3A; color: #fff; }
+    .api-btn:not(.active):hover { color: #94A3B8; }
+
+    /* ── Code blocks ───────────────────────────────────────── */
+    .code-block {
+      background: rgba(0,0,0,0.35);
+      border: 1px solid rgba(255,255,255,0.07);
+      border-radius: 8px;
+      padding: 12px 14px;
+      font-family: 'Fira Code', 'Cascadia Code', 'Consolas', monospace;
+      font-size: 11.5px;
+      line-height: 1.65;
+      overflow-x: auto;
+      white-space: pre;
+      color: #E8E6E1;
+      margin-bottom: 12px;
+    }
+
+    /* ── Syntax highlighting ───────────────────────────────── */
+    .cql-keyword { color: #E85B3A; }
+    .cql-table   { color: #78A9FF; }
+    .cql-col     { color: #E8E6E1; }
+    .cql-op      { color: #94A3B8; }
+    .cql-val     { color: #7EC89F; }
+    .cql-comment { color: #6B6B7B; font-style: italic; }
+
+    /* ── JSON colors ───────────────────────────────────────── */
+    .json-key    { color: #78A9FF; }
+    .json-str    { color: #7EC89F; }
+    .json-num    { color: #E85B3A; }
+    .json-bool   { color: #F472B6; }
+    .json-punc   { color: #94A3B8; }
+
+    /* ── Schema columns ────────────────────────────────────── */
+    .schema-table {
+      width: 100%;
+      font-size: 12px;
+      border-collapse: collapse;
+      margin-bottom: 10px;
+    }
+    .schema-table th {
+      color: #475569;
+      font-size: 10px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      padding: 4px 8px 6px;
+      text-align: left;
+      border-bottom: 1px solid rgba(255,255,255,0.07);
+    }
+    .schema-table td {
+      padding: 5px 8px;
+      color: #CBD5E1;
+      font-family: monospace;
+      font-size: 11.5px;
+      border-bottom: 1px solid rgba(255,255,255,0.04);
+    }
+    .badge-pk  { background: rgba(232,91,58,0.2); color: #E85B3A; border: 1px solid rgba(232,91,58,0.35); font-size: 10px; font-weight: 700; padding: 1px 6px; border-radius: 4px; white-space: nowrap; }
+    .badge-ck  { background: rgba(13,183,196,0.15); color: #0DB7C4; border: 1px solid rgba(13,183,196,0.3); font-size: 10px; font-weight: 700; padding: 1px 6px; border-radius: 4px; white-space: nowrap; }
+    .badge-col { background: rgba(255,255,255,0.05); color: #64748B; border: 1px solid rgba(255,255,255,0.08); font-size: 10px; font-weight: 600; padding: 1px 6px; border-radius: 4px; }
+
+    /* ── Language tabs ─────────────────────────────────────── */
+    .lang-tabs {
+      display: flex;
+      gap: 2px;
+      margin-bottom: 10px;
+    }
+    .lang-btn {
+      padding: 5px 10px;
+      font-size: 11px;
+      font-weight: 600;
+      font-family: 'Inter', sans-serif;
+      border-radius: 5px;
+      background: rgba(255,255,255,0.04);
+      color: #64748B;
+      cursor: pointer;
+      border: 1px solid rgba(255,255,255,0.08);
+      transition: background 0.15s, color 0.15s;
+      user-select: none;
+    }
+    .lang-btn.active { background: rgba(232,91,58,0.15); color: #E85B3A; border-color: rgba(232,91,58,0.35); }
+    .lang-btn:not(.active):hover { color: #94A3B8; background: rgba(255,255,255,0.07); }
+
+    .lang-snippet { display: none; }
+    .lang-snippet.active { display: block; }
+
+    /* ── Schema note ───────────────────────────────────────── */
+    .schema-note {
+      font-size: 11px;
+      color: #64748B;
+      background: rgba(232, 91, 58, 0.05);
+      border-left: 3px solid rgba(232, 91, 58, 0.4);
+      border-radius: 0 4px 4px 0;
+      padding: 7px 10px;
+      line-height: 1.5;
+    }
+
+    /* ── Inspector section label ───────────────────────────── */
+    .insp-label {
+      font-size: 10px;
+      font-weight: 700;
+      font-family: 'Inter', sans-serif;
+      color: #475569;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      margin-bottom: 6px;
+    }
+
+    /* ── Watch secondary query strip ───────────────────────── */
+    .secondary-strip {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: rgba(232, 91, 58, 0.06);
+      border: 1px solid rgba(232, 91, 58, 0.15);
+      border-radius: 7px;
+      padding: 8px 12px;
+      margin-top: 12px;
+      cursor: pointer;
+      transition: background 0.15s;
+    }
+    .secondary-strip:hover { background: rgba(232, 91, 58, 0.12); }
+    .secondary-label { font-size: 11px; color: #E85B3A; font-weight: 600; }
+    .secondary-meta { font-size: 10px; color: #475569; font-family: monospace; }
+
+    /* ── Consumer UI cards ─────────────────────────────────── */
+    .video-card {
+      background: #fff;
+      border-radius: 14px;
+      overflow: hidden;
+      box-shadow: 0 2px 12px rgba(26, 26, 46, 0.07), 0 1px 3px rgba(0,0,0,0.05);
+      transition: box-shadow 0.2s, transform 0.2s;
+      cursor: pointer;
+    }
+    .video-card:hover {
+      box-shadow: 0 8px 28px rgba(26, 26, 46, 0.12), 0 2px 8px rgba(0,0,0,0.07);
+      transform: translateY(-2px);
+    }
+    .video-thumb {
+      aspect-ratio: 16/9;
+      position: relative;
+      overflow: hidden;
+    }
+    .video-thumb-img {
+      width: 100%; height: 100%; object-fit: cover;
+    }
+    .video-duration {
+      position: absolute;
+      bottom: 6px; right: 6px;
+      background: rgba(0,0,0,0.75);
+      color: #fff;
+      font-size: 11px;
+      font-weight: 600;
+      padding: 2px 6px;
+      border-radius: 4px;
+    }
+    .video-card-body { padding: 12px 14px; }
+    .video-card-title { font-size: 14px; font-weight: 700; color: #1A1A2E; line-height: 1.35; margin-bottom: 5px; }
+    .video-card-meta { font-size: 12px; color: #4A4A5A; }
+    .video-card-views { display: flex; align-items: center; gap: 4px; margin-top: 4px; }
+
+    /* ── Stats bar ─────────────────────────────────────────── */
+    .stats-bar {
+      background: #fff;
+      border-radius: 14px;
+      box-shadow: 0 1px 6px rgba(26, 26, 46, 0.06);
+      display: flex;
+      divide: #F3F4F6;
+    }
+    .stat-item {
+      flex: 1;
+      padding: 16px 12px;
+      text-align: center;
+      border-right: 1px solid #F3F4F6;
+    }
+    .stat-item:last-child { border-right: none; }
+    .stat-num { font-size: 22px; font-weight: 800; color: #E85B3A; line-height: 1; font-family: 'Inter', sans-serif; }
+    .stat-label { font-size: 11px; color: #9CA3AF; margin-top: 4px; font-weight: 500; }
+
+    /* ── Comment item ──────────────────────────────────────── */
+    .comment-item {
+      display: flex;
+      gap: 10px;
+      padding: 12px 0;
+      border-bottom: 1px solid #F3F4F6;
+    }
+    .comment-item:last-child { border-bottom: none; }
+    .comment-avatar {
+      width: 36px; height: 36px; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 13px; font-weight: 700; color: #fff; flex-shrink: 0;
+    }
+    .comment-body { flex: 1; }
+    .comment-author { font-size: 13px; font-weight: 700; color: #1A1A2E; }
+    .comment-text { font-size: 13px; color: #4A4A5A; margin-top: 3px; line-height: 1.5; }
+    .comment-time { font-size: 11px; color: #9CA3AF; margin-top: 4px; }
+
+    /* ── Related video item ────────────────────────────────── */
+    .related-item {
+      display: flex;
+      gap: 10px;
+      padding: 8px 0;
+      cursor: pointer;
+      border-radius: 8px;
+      transition: background 0.15s;
+    }
+    .related-item:hover { background: rgba(232, 91, 58, 0.04); }
+    .related-thumb {
+      width: 100px; height: 56px; border-radius: 8px; overflow: hidden;
+      background: #1E293B; flex-shrink: 0;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .related-info { flex: 1; }
+    .related-title { font-size: 12px; font-weight: 600; color: #1A1A2E; line-height: 1.3; }
+    .related-meta { font-size: 11px; color: #9CA3AF; margin-top: 3px; }
+
+    /* ── Page view tabs ────────────────────────────────────── */
+    .page-tabs {
+      display: flex;
+      gap: 4px;
+      padding: 0 20px;
+      background: rgba(0,0,0,0.2);
+    }
+    .page-tab {
+      padding: 10px 20px;
+      font-size: 13px;
+      font-weight: 600;
+      color: rgba(232, 230, 225, 0.6);
+      cursor: pointer;
+      border-bottom: 2px solid transparent;
+      margin-bottom: -1px;
+      transition: color 0.15s, border-color 0.15s;
+      user-select: none;
+    }
+    .page-tab:hover { color: rgba(232, 230, 225, 0.85); }
+    .page-tab.active { color: #E8E6E1; border-bottom-color: #FFCA0B; }
+
+    /* ── Avatar ────────────────────────────────────────────── */
+    .user-avatar {
+      width: 40px; height: 40px; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 15px; font-weight: 700; color: #fff;
+    }
+
+    /* ── Scrollable content area ───────────────────────────── */
+    .page-view { display: none; }
+    .page-view.active { display: block; }
+
+    /* ── Tooltip ───────────────────────────────────────────── */
+    [data-tooltip] { position: relative; }
+    [data-tooltip]::after {
+      content: attr(data-tooltip);
+      position: absolute;
+      bottom: calc(100% + 6px);
+      left: 50%; transform: translateX(-50%);
+      background: #1A1A2E;
+      color: #CBD5E1;
+      font-size: 10px;
+      font-weight: 500;
+      padding: 5px 8px;
+      border-radius: 5px;
+      white-space: nowrap;
+      max-width: 220px;
+      white-space: normal;
+      text-align: center;
+      pointer-events: none;
+      opacity: 0;
+      transition: opacity 0.15s;
+      z-index: 10000;
+      border: 1px solid rgba(255,255,255,0.1);
+    }
+    [data-tooltip]:hover::after { opacity: 1; }
+  </style>
+</head>
+<body class="min-h-screen antialiased">
+
+  <!-- ══════════════════════════════════════════
+       SOLID NAVY HEADER
+  ═══════════════════════════════════════════ -->
+  <header class="kv-header">
+    <div class="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between">
+      <!-- Brand -->
+      <div class="flex items-center gap-3">
+        <div class="w-8 h-8 rounded-lg flex items-center justify-center" style="background: rgba(232,91,58,0.2);">
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+            <polygon points="3,2 13,8 3,14" fill="#E85B3A"/>
+          </svg>
+        </div>
+        <span style="font-family:'Playfair Display',serif;font-style:italic;color:#E8E6E1;font-size:1.2rem;">KillrVideo</span>
+      </div>
+      <!-- Nav links -->
+      <nav class="hidden sm:flex items-center gap-6">
+        <a href="#" style="color:rgba(232,230,225,0.65);" class="hover:text-kv-offwhite text-sm font-medium transition-colors">Browse</a>
+        <a href="#" style="color:rgba(232,230,225,0.65);" class="hover:text-kv-offwhite text-sm font-medium transition-colors">My Videos</a>
+        <a href="#" style="color:rgba(232,230,225,0.65);" class="hover:text-kv-offwhite text-sm font-medium transition-colors">Upload</a>
+      </nav>
+      <!-- Right side -->
+      <div class="flex items-center gap-3">
+        <div class="user-avatar" style="background: rgba(255,202,11,0.2); border: 2px solid #FFCA0B;">
+          <span style="color: #FFCA0B;">JD</span>
+        </div>
+      </div>
+    </div>
+    <!-- Page tabs -->
+    <div class="page-tabs">
+      <button class="page-tab active" onclick="switchPage('home')">Home</button>
+      <button class="page-tab" onclick="switchPage('watch')">Watch</button>
+    </div>
+  </header>
+
+  <!-- ══════════════════════════════════════════
+       HOME VIEW
+  ═══════════════════════════════════════════ -->
+  <div id="view-home" class="page-view active">
+
+    <!-- Hero -->
+    <section class="kv-hero py-12 px-6">
+      <div class="max-w-6xl mx-auto">
+        <p style="color:rgba(232,230,225,0.55);font-size:0.75rem;font-weight:600;text-transform:uppercase;letter-spacing:0.12em;margin-bottom:0.5rem;">Featured this week</p>
+        <h1 style="font-family:'Playfair Display',serif;color:#E8E6E1;font-size:clamp(1.75rem,4vw,2.5rem);line-height:1.2;max-width:32rem;margin-bottom:1rem;">
+          Getting Started with Apache Cassandra
+        </h1>
+        <p style="color:rgba(232,230,225,0.65);font-size:1rem;max-width:32rem;margin-bottom:1.5rem;line-height:1.6;">
+          Learn how to build scalable, distributed applications using the world's most popular NoSQL database.
+        </p>
+        <button style="display:inline-flex;align-items:center;gap:8px;background:#E85B3A;color:#fff;font-weight:700;font-size:0.875rem;padding:12px 24px;border-radius:9999px;border:none;cursor:pointer;box-shadow:0 4px 16px rgba(232,91,58,0.35);transition:background 0.2s;" onmouseover="this.style.background='#d44e2e'" onmouseout="this.style.background='#E85B3A'">
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><polygon points="4,2 14,8 4,14" fill="#fff"/></svg>
+          Watch Now
+        </button>
+      </div>
+    </section>
+
+    <div class="max-w-6xl mx-auto px-6 py-8">
+
+      <!-- Stats bar -->
+      <div class="stats-bar mb-8">
+        <div class="stat-item">
+          <div class="stat-num">2.4k</div>
+          <div class="stat-label">Videos</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-num">18k</div>
+          <div class="stat-label">Members</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-num">340k</div>
+          <div class="stat-label">Views</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-num">42</div>
+          <div class="stat-label">Courses</div>
+        </div>
+      </div>
+
+      <!-- Featured videos grid -->
+      <div class="mb-6 flex items-center justify-between">
+        <h2 style="font-family:'Playfair Display',serif;font-size:1.375rem;color:#1A1A2E;">Latest Videos</h2>
+        <a href="#" class="text-sm font-semibold" style="color:#E85B3A;">View all &rarr;</a>
+      </div>
+
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+
+        <!-- Card 1 -->
+        <div class="video-card">
+          <div class="video-thumb" style="background: linear-gradient(135deg, #1E1B4B 0%, #312e81 100%);">
+            <div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;">
+              <svg width="36" height="36" viewBox="0 0 36 36" fill="none"><circle cx="18" cy="18" r="17" stroke="rgba(255,255,255,0.2)" stroke-width="1.5"/><polygon points="14,11 26,18 14,25" fill="rgba(255,255,255,0.7)"/></svg>
+            </div>
+            <span class="video-duration">12:34</span>
+          </div>
+          <div class="video-card-body">
+            <div class="video-card-title">Data Modeling for Cassandra — Partition Keys</div>
+            <div class="video-card-meta">DataStax Academy</div>
+            <div class="video-card-views">
+              <svg width="12" height="12" viewBox="0 0 12 12" fill="#9CA3AF"><path d="M6 2C3.2 2 1 6 1 6s2.2 4 5 4 5-4 5-4-2.2-4-5-4zm0 6.5a2.5 2.5 0 110-5 2.5 2.5 0 010 5z"/></svg>
+              <span class="text-xs" style="color:#9CA3AF;">8,241 views · 3 days ago</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Card 2 -->
+        <div class="video-card">
+          <div class="video-thumb" style="background: linear-gradient(135deg, #0F2027 0%, #203A43 50%, #2C5364 100%);">
+            <div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;">
+              <svg width="36" height="36" viewBox="0 0 36 36" fill="none"><circle cx="18" cy="18" r="17" stroke="rgba(255,255,255,0.2)" stroke-width="1.5"/><polygon points="14,11 26,18 14,25" fill="rgba(255,255,255,0.7)"/></svg>
+            </div>
+            <span class="video-duration">8:17</span>
+          </div>
+          <div class="video-card-body">
+            <div class="video-card-title">Using the DataStax Astra Data API with Python</div>
+            <div class="video-card-meta">KillrVideo Team</div>
+            <div class="video-card-views">
+              <svg width="12" height="12" viewBox="0 0 12 12" fill="#9CA3AF"><path d="M6 2C3.2 2 1 6 1 6s2.2 4 5 4 5-4 5-4-2.2-4-5-4zm0 6.5a2.5 2.5 0 110-5 2.5 2.5 0 010 5z"/></svg>
+              <span class="text-xs" style="color:#9CA3AF;">5,109 views · 1 week ago</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Card 3 -->
+        <div class="video-card">
+          <div class="video-thumb" style="background: linear-gradient(135deg, #3D1A0A 0%, #7A2E10 100%);">
+            <div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;">
+              <svg width="36" height="36" viewBox="0 0 36 36" fill="none"><circle cx="18" cy="18" r="17" stroke="rgba(255,255,255,0.2)" stroke-width="1.5"/><polygon points="14,11 26,18 14,25" fill="rgba(255,255,255,0.7)"/></svg>
+            </div>
+            <span class="video-duration">24:02</span>
+          </div>
+          <div class="video-card-body">
+            <div class="video-card-title">Building a Real-Time Chat App with Cassandra</div>
+            <div class="video-card-meta">Community Contributor</div>
+            <div class="video-card-views">
+              <svg width="12" height="12" viewBox="0 0 12 12" fill="#9CA3AF"><path d="M6 2C3.2 2 1 6 1 6s2.2 4 5 4 5-4 5-4-2.2-4-5-4zm0 6.5a2.5 2.5 0 110-5 2.5 2.5 0 010 5z"/></svg>
+              <span class="text-xs" style="color:#9CA3AF;">12,880 views · 2 weeks ago</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Card 4 -->
+        <div class="video-card">
+          <div class="video-thumb" style="background: linear-gradient(135deg, #0C4A6E 0%, #0369A1 100%);">
+            <div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;">
+              <svg width="36" height="36" viewBox="0 0 36 36" fill="none"><circle cx="18" cy="18" r="17" stroke="rgba(255,255,255,0.2)" stroke-width="1.5"/><polygon points="14,11 26,18 14,25" fill="rgba(255,255,255,0.7)"/></svg>
+            </div>
+            <span class="video-duration">16:55</span>
+          </div>
+          <div class="video-card-body">
+            <div class="video-card-title">Cassandra vs DynamoDB — Architecture Deep Dive</div>
+            <div class="video-card-meta">DataStax Academy</div>
+            <div class="video-card-views">
+              <svg width="12" height="12" viewBox="0 0 12 12" fill="#9CA3AF"><path d="M6 2C3.2 2 1 6 1 6s2.2 4 5 4 5-4 5-4-2.2-4-5-4zm0 6.5a2.5 2.5 0 110-5 2.5 2.5 0 010 5z"/></svg>
+              <span class="text-xs" style="color:#9CA3AF;">3,642 views · 1 month ago</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Card 5 -->
+        <div class="video-card">
+          <div class="video-thumb" style="background: linear-gradient(135deg, #064E3B 0%, #065F46 100%);">
+            <div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;">
+              <svg width="36" height="36" viewBox="0 0 36 36" fill="none"><circle cx="18" cy="18" r="17" stroke="rgba(255,255,255,0.2)" stroke-width="1.5"/><polygon points="14,11 26,18 14,25" fill="rgba(255,255,255,0.7)"/></svg>
+            </div>
+            <span class="video-duration">9:44</span>
+          </div>
+          <div class="video-card-body">
+            <div class="video-card-title">Understanding TIMEUUID and Time-Ordered Clustering</div>
+            <div class="video-card-meta">KillrVideo Team</div>
+            <div class="video-card-views">
+              <svg width="12" height="12" viewBox="0 0 12 12" fill="#9CA3AF"><path d="M6 2C3.2 2 1 6 1 6s2.2 4 5 4 5-4 5-4-2.2-4-5-4zm0 6.5a2.5 2.5 0 110-5 2.5 2.5 0 010 5z"/></svg>
+              <span class="text-xs" style="color:#9CA3AF;">7,015 views · 3 weeks ago</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Card 6 -->
+        <div class="video-card">
+          <div class="video-thumb" style="background: linear-gradient(135deg, #450A0A 0%, #7F1D1D 100%);">
+            <div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;">
+              <svg width="36" height="36" viewBox="0 0 36 36" fill="none"><circle cx="18" cy="18" r="17" stroke="rgba(255,255,255,0.2)" stroke-width="1.5"/><polygon points="14,11 26,18 14,25" fill="rgba(255,255,255,0.7)"/></svg>
+            </div>
+            <span class="video-duration">31:20</span>
+          </div>
+          <div class="video-card-body">
+            <div class="video-card-title">Zero-Downtime Schema Migrations in Production</div>
+            <div class="video-card-meta">Community Contributor</div>
+            <div class="video-card-views">
+              <svg width="12" height="12" viewBox="0 0 12 12" fill="#9CA3AF"><path d="M6 2C3.2 2 1 6 1 6s2.2 4 5 4 5-4 5-4-2.2-4-5-4zm0 6.5a2.5 2.5 0 110-5 2.5 2.5 0 010 5z"/></svg>
+              <span class="text-xs" style="color:#9CA3AF;">19,337 views · 2 months ago</span>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════
+       WATCH VIEW
+  ═══════════════════════════════════════════ -->
+  <div id="view-watch" class="page-view">
+    <div class="max-w-6xl mx-auto px-6 py-8">
+      <div class="flex gap-8 flex-col lg:flex-row">
+
+        <!-- Main column -->
+        <div class="flex-1 min-w-0">
+
+          <!-- Video player -->
+          <div class="video-player mb-5">
+            <div class="video-play-btn" aria-label="Play video">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none"><polygon points="8,5 20,12 8,19" fill="white"/></svg>
+            </div>
+            <!-- Progress bar -->
+            <div style="position:absolute;bottom:0;left:0;right:0;height:3px;background:rgba(255,255,255,0.1);">
+              <div style="width:35%;height:100%;background:#E85B3A;"></div>
+            </div>
+          </div>
+
+          <!-- Title & meta -->
+          <div class="bg-white rounded-2xl p-5 mb-4" style="box-shadow:0 2px 12px rgba(26,26,46,0.07);">
+            <h1 style="font-family:'Playfair Display',serif;font-size:1.35rem;color:#1A1A2E;margin-bottom:0.5rem;line-height:1.3;">Getting Started with Apache Cassandra</h1>
+            <div class="flex items-center justify-between flex-wrap gap-3">
+              <div class="flex items-center gap-3">
+                <div class="user-avatar" style="background: linear-gradient(135deg, #E85B3A, #c0392b);">DS</div>
+                <div>
+                  <div class="text-sm font-semibold" style="color:#1A1A2E;">DataStax Academy</div>
+                  <div class="text-xs" style="color:#9CA3AF;">18,241 subscribers</div>
+                </div>
+              </div>
+              <div class="flex items-center gap-1">
+                <span class="star">&#9733;</span>
+                <span class="star">&#9733;</span>
+                <span class="star">&#9733;</span>
+                <span class="star">&#9733;</span>
+                <span class="star-empty">&#9733;</span>
+                <span class="text-sm font-semibold ml-1" style="color:#6B7280;">4.0</span>
+                <span class="text-xs ml-1" style="color:#9CA3AF;">(312 ratings)</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Description -->
+          <div class="bg-white rounded-2xl p-5 mb-4" style="box-shadow:0 2px 12px rgba(26,26,46,0.07);">
+            <p class="text-sm leading-relaxed" style="color:#4A4A5A;">
+              In this video, you'll learn the fundamentals of Apache Cassandra — how it differs from relational databases,
+              why partition keys matter, and how to model your data for write-heavy, globally distributed workloads.
+              We walk through a realistic schema and show how the same query looks in CQL vs. the DataStax Data API.
+            </p>
+            <div class="flex flex-wrap gap-2 mt-3">
+              <span class="text-xs font-medium px-3 py-1 rounded-full" style="background:#FBF8F4;color:#E85B3A;">#cassandra</span>
+              <span class="text-xs font-medium px-3 py-1 rounded-full" style="background:#FBF8F4;color:#E85B3A;">#nosql</span>
+              <span class="text-xs font-medium px-3 py-1 rounded-full" style="background:#FBF8F4;color:#E85B3A;">#datastax</span>
+              <span class="text-xs font-medium px-3 py-1 rounded-full" style="background:#FBF8F4;color:#E85B3A;">#tutorial</span>
+            </div>
+          </div>
+
+          <!-- Comments -->
+          <div class="bg-white rounded-2xl p-5" style="box-shadow:0 2px 12px rgba(26,26,46,0.07);">
+            <h3 class="text-sm font-bold mb-4" style="color:#1A1A2E;">Comments <span style="color:#9CA3AF;font-weight:500;">· 47</span></h3>
+
+            <div class="comment-item">
+              <div class="comment-avatar" style="background: linear-gradient(135deg, #E85B3A, #c0392b);">AL</div>
+              <div class="comment-body">
+                <div class="comment-author">Alex L.</div>
+                <div class="comment-text">This is exactly the intro I needed. The partition key explanation finally clicked for me after watching this.</div>
+                <div class="comment-time">2 days ago · 14 likes</div>
+              </div>
+            </div>
+
+            <div class="comment-item">
+              <div class="comment-avatar" style="background: linear-gradient(135deg, #0C4A6E, #0369A1);">MR</div>
+              <div class="comment-body">
+                <div class="comment-author">Maria R.</div>
+                <div class="comment-text">Could you do a follow-up on wide partitions vs. time-bucketing patterns? The yyyymmdd trick from the schema tab is clever.</div>
+                <div class="comment-time">5 days ago · 8 likes</div>
+              </div>
+            </div>
+
+            <div class="comment-item">
+              <div class="comment-avatar" style="background: linear-gradient(135deg, #064E3B, #065F46);">TK</div>
+              <div class="comment-body">
+                <div class="comment-author">Tom K.</div>
+                <div class="comment-text">The Data API JSON comparison is really useful for those of us coming from a MongoDB background.</div>
+                <div class="comment-time">1 week ago · 22 likes</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Sidebar -->
+        <div class="lg:w-72 flex-shrink-0">
+          <h3 class="text-sm font-bold mb-3" style="color:#1A1A2E;">Up Next</h3>
+          <div class="space-y-1">
+
+            <div class="related-item px-2">
+              <div class="related-thumb" style="background:linear-gradient(135deg,#1E1B4B,#312e81);">
+                <svg width="20" height="20" viewBox="0 0 20 20" fill="none"><polygon points="7,5 15,10 7,15" fill="rgba(255,255,255,0.5)"/></svg>
+              </div>
+              <div class="related-info">
+                <div class="related-title">Data Modeling for Cassandra — Partition Keys</div>
+                <div class="related-meta">DataStax Academy · 12:34</div>
+              </div>
+            </div>
+
+            <div class="related-item px-2">
+              <div class="related-thumb" style="background:linear-gradient(135deg,#0F2027,#203A43);">
+                <svg width="20" height="20" viewBox="0 0 20 20" fill="none"><polygon points="7,5 15,10 7,15" fill="rgba(255,255,255,0.5)"/></svg>
+              </div>
+              <div class="related-info">
+                <div class="related-title">Using the DataStax Astra Data API with Python</div>
+                <div class="related-meta">KillrVideo Team · 8:17</div>
+              </div>
+            </div>
+
+            <div class="related-item px-2">
+              <div class="related-thumb" style="background:linear-gradient(135deg,#3D1A0A,#7A2E10);">
+                <svg width="20" height="20" viewBox="0 0 20 20" fill="none"><polygon points="7,5 15,10 7,15" fill="rgba(255,255,255,0.5)"/></svg>
+              </div>
+              <div class="related-info">
+                <div class="related-title">Building a Real-Time Chat App with Cassandra</div>
+                <div class="related-meta">Community · 24:02</div>
+              </div>
+            </div>
+
+            <div class="related-item px-2">
+              <div class="related-thumb" style="background:linear-gradient(135deg,#0C4A6E,#0369A1);">
+                <svg width="20" height="20" viewBox="0 0 20 20" fill="none"><polygon points="7,5 15,10 7,15" fill="rgba(255,255,255,0.5)"/></svg>
+              </div>
+              <div class="related-info">
+                <div class="related-title">Cassandra vs DynamoDB — Architecture Deep Dive</div>
+                <div class="related-meta">DataStax Academy · 16:55</div>
+              </div>
+            </div>
+
+            <div class="related-item px-2">
+              <div class="related-thumb" style="background:linear-gradient(135deg,#064E3B,#065F46);">
+                <svg width="20" height="20" viewBox="0 0 20 20" fill="none"><polygon points="7,5 15,10 7,15" fill="rgba(255,255,255,0.5)"/></svg>
+              </div>
+              <div class="related-info">
+                <div class="related-title">Understanding TIMEUUID and Time-Ordered Clustering</div>
+                <div class="related-meta">KillrVideo Team · 9:44</div>
+              </div>
+            </div>
+
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════
+       FAB
+  ═══════════════════════════════════════════ -->
+  <button id="fab" onclick="toggleInspector()" aria-label="Toggle Dev Inspector" title="Open Dev Inspector">
+    <span id="fab-icon">&lt;/&gt;</span>
+  </button>
+
+  <!-- ══════════════════════════════════════════
+       FLOATING INSPECTOR PANEL
+  ═══════════════════════════════════════════ -->
+  <div id="inspector" role="dialog" aria-label="Dev Inspector" aria-modal="false">
+
+    <!-- Title bar (drag handle) -->
+    <div id="inspector-titlebar">
+      <div class="titlebar-left">
+        <div class="titlebar-dot" style="background:#FF5F57;"></div>
+        <div class="titlebar-dot" style="background:#FFBD2E;"></div>
+        <div class="titlebar-dot" style="background:#28C840;"></div>
+        <span style="font-family:'Inter',sans-serif;color:#E85B3A;font-size:12px;font-weight:700;margin-left:6px;letter-spacing:0.04em;">Dev Inspector</span>
+        <span id="inspector-page-label" style="font-size:10px;color:#475569;margin-left:6px;font-weight:500;">· Home</span>
+      </div>
+      <button id="inspector-close" onclick="toggleInspector()" aria-label="Close inspector">&times;</button>
+    </div>
+
+    <!-- Inspector tabs -->
+    <div class="insp-tabs">
+      <button class="insp-tab active" onclick="switchInspTab('query', this)">Query</button>
+      <button class="insp-tab" onclick="switchInspTab('schema', this)">Schema</button>
+      <button class="insp-tab" onclick="switchInspTab('code', this)">Code</button>
+    </div>
+
+    <!-- Inspector body -->
+    <div class="insp-body">
+
+      <!-- ── QUERY TAB ── -->
+      <div id="insp-query" class="insp-panel active">
+
+        <!-- Home query content -->
+        <div id="query-home-content">
+          <div class="insp-label">Metadata</div>
+          <div class="meta-bar">
+            <span class="meta-badge badge-read" data-tooltip="SELECT operation — read-only, no side effects">READ</span>
+            <span class="meta-badge badge-endpoint">GET /api/v1/videos</span>
+            <span class="meta-badge badge-latency" data-tooltip="Representative value — multi-partition reads typically complete in 8–15ms on co-located infrastructure">~12ms</span>
+            <span class="meta-badge badge-source" onclick="copyToClipboard(this,'src/hooks/useApi.ts:67')" title="Click to copy" data-tooltip="Click to copy source location">src/hooks/useApi.ts:67</span>
+          </div>
+
+          <div class="insp-label">Query Mode</div>
+          <div class="api-toggle">
+            <div class="api-btn active" onclick="switchApiMode('home', 'cql', this)">CQL</div>
+            <div class="api-btn" onclick="switchApiMode('home', 'dataapi', this)">Data API</div>
+          </div>
+
+          <div id="home-cql" class="code-block"><span class="cql-keyword">SELECT</span> <span class="cql-col">video_id</span>, <span class="cql-col">title</span>, <span class="cql-col">preview_image</span>, <span class="cql-col">user_id</span>, <span class="cql-col">added_date</span>
+<span class="cql-keyword">FROM</span> <span class="cql-table">latest_videos</span>
+<span class="cql-keyword">WHERE</span> <span class="cql-col">yyyymmdd</span> <span class="cql-op">=</span> <span class="cql-val">?</span>
+<span class="cql-keyword">ORDER BY</span> <span class="cql-col">added_date</span> <span class="cql-keyword">DESC</span>
+<span class="cql-keyword">LIMIT</span> <span class="cql-val">10</span></div>
+
+          <div id="home-dataapi" class="code-block" style="display:none;"><span class="json-punc">{</span>
+  <span class="json-key">"find"</span><span class="json-punc">: {</span>
+    <span class="json-key">"filter"</span><span class="json-punc">: {},</span>
+    <span class="json-key">"sort"</span><span class="json-punc">: {</span>
+      <span class="json-key">"addedDate"</span><span class="json-punc">:</span> <span class="json-num">-1</span>
+    <span class="json-punc">},</span>
+    <span class="json-key">"options"</span><span class="json-punc">: {</span>
+      <span class="json-key">"limit"</span><span class="json-punc">:</span> <span class="json-num">10</span>
+    <span class="json-punc">}</span>
+  <span class="json-punc">}</span>
+<span class="json-punc">}</span></div>
+        </div>
+
+        <!-- Watch query content (hidden by default) -->
+        <div id="query-watch-content" style="display:none;">
+          <div class="insp-label">Metadata</div>
+          <div class="meta-bar">
+            <span class="meta-badge badge-read" data-tooltip="SELECT operation — read-only, no side effects">READ</span>
+            <span class="meta-badge badge-endpoint">GET /api/v1/videos/:id</span>
+            <span class="meta-badge badge-latency" data-tooltip="Representative value — single-partition reads typically complete in 1–5ms on co-located infrastructure">~3ms</span>
+            <span class="meta-badge badge-source" onclick="copyToClipboard(this,'src/hooks/useApi.ts:42')" title="Click to copy" data-tooltip="Click to copy source location">src/hooks/useApi.ts:42</span>
+          </div>
+
+          <div class="insp-label">Query Mode</div>
+          <div class="api-toggle">
+            <div class="api-btn active" onclick="switchApiMode('watch', 'cql', this)">CQL</div>
+            <div class="api-btn" onclick="switchApiMode('watch', 'dataapi', this)">Data API</div>
+          </div>
+
+          <div id="watch-cql" class="code-block"><span class="cql-keyword">SELECT</span> <span class="cql-col">video_id</span>, <span class="cql-col">title</span>, <span class="cql-col">description</span>,
+       <span class="cql-col">user_id</span>, <span class="cql-col">tags</span>, <span class="cql-col">thumbnail_url</span>, <span class="cql-col">added_date</span>
+<span class="cql-keyword">FROM</span> <span class="cql-table">videos</span>
+<span class="cql-keyword">WHERE</span> <span class="cql-col">video_id</span> <span class="cql-op">=</span> <span class="cql-val">?</span></div>
+
+          <div id="watch-dataapi" class="code-block" style="display:none;"><span class="json-punc">{</span>
+  <span class="json-key">"findOne"</span><span class="json-punc">: {</span>
+    <span class="json-key">"filter"</span><span class="json-punc">: {</span>
+      <span class="json-key">"_id"</span><span class="json-punc">:</span> <span class="json-str">"550e8400-e29b-41d4-a716-446655440000"</span>
+    <span class="json-punc">}</span>
+  <span class="json-punc">}</span>
+<span class="json-punc">}</span></div>
+
+          <!-- Secondary: comments query -->
+          <div class="secondary-strip" onclick="loadCommentsQuery()">
+            <span class="secondary-label">+ Also loaded: comments query</span>
+            <span class="secondary-meta">GET /api/v1/videos/:id/comments</span>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- ── SCHEMA TAB ── -->
+      <div id="insp-schema" class="insp-panel">
+
+        <!-- Home schema (latest_videos) -->
+        <div id="schema-home-content">
+          <div class="insp-label">Table: latest_videos</div>
+          <table class="schema-table">
+            <thead>
+              <tr>
+                <th>Column</th>
+                <th>Type</th>
+                <th>Role</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>yyyymmdd</td>
+                <td style="color:#78A9FF;">TEXT</td>
+                <td><span class="badge-pk" data-tooltip="The partition key determines which Cassandra node stores this row. All rows with the same partition key are stored together.">[PK]</span></td>
+              </tr>
+              <tr>
+                <td>added_date</td>
+                <td style="color:#78A9FF;">TIMESTAMP</td>
+                <td><span class="badge-ck" data-tooltip="Clustering key: rows within a partition are sorted by this column in descending order.">[CK ↓]</span></td>
+              </tr>
+              <tr>
+                <td>video_id</td>
+                <td style="color:#78A9FF;">UUID</td>
+                <td><span class="badge-ck" data-tooltip="Secondary clustering key: ensures uniqueness within a partition when added_date values collide.">[CK ↓]</span></td>
+              </tr>
+              <tr>
+                <td>user_id</td>
+                <td style="color:#78A9FF;">UUID</td>
+                <td><span class="badge-col">—</span></td>
+              </tr>
+              <tr>
+                <td>title</td>
+                <td style="color:#78A9FF;">TEXT</td>
+                <td><span class="badge-col">—</span></td>
+              </tr>
+              <tr>
+                <td>preview_image</td>
+                <td style="color:#78A9FF;">TEXT</td>
+                <td><span class="badge-col">—</span></td>
+              </tr>
+            </tbody>
+          </table>
+          <div class="schema-note">
+            <code style="color:#E85B3A;">yyyymmdd</code> is a date bucket (e.g. <code style="color:#7EC89F;">"20240315"</code>).
+            Partitioning by day prevents unbounded partition growth while keeping chronological queries efficient.
+          </div>
+        </div>
+
+        <!-- Watch schema (videos_by_id) -->
+        <div id="schema-watch-content" style="display:none;">
+          <div class="insp-label">Table: videos_by_id</div>
+          <table class="schema-table">
+            <thead>
+              <tr>
+                <th>Column</th>
+                <th>Type</th>
+                <th>Role</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>video_id</td>
+                <td style="color:#78A9FF;">UUID</td>
+                <td><span class="badge-pk" data-tooltip="The partition key determines which Cassandra node stores this row. All rows with the same partition key are stored together.">[PK]</span></td>
+              </tr>
+              <tr>
+                <td>added_date</td>
+                <td style="color:#78A9FF;">TIMESTAMP</td>
+                <td><span class="badge-ck" data-tooltip="Clustering key: rows within a partition are sorted by this column in descending order.">[CK ↓]</span></td>
+              </tr>
+              <tr>
+                <td>title</td>
+                <td style="color:#78A9FF;">TEXT</td>
+                <td><span class="badge-col">—</span></td>
+              </tr>
+              <tr>
+                <td>description</td>
+                <td style="color:#78A9FF;">TEXT</td>
+                <td><span class="badge-col">—</span></td>
+              </tr>
+              <tr>
+                <td>user_id</td>
+                <td style="color:#78A9FF;">UUID</td>
+                <td><span class="badge-col">—</span></td>
+              </tr>
+              <tr>
+                <td>tags</td>
+                <td style="color:#78A9FF;">SET&lt;TEXT&gt;</td>
+                <td><span class="badge-col">—</span></td>
+              </tr>
+              <tr>
+                <td>thumbnail_url</td>
+                <td style="color:#78A9FF;">TEXT</td>
+                <td><span class="badge-col">—</span></td>
+              </tr>
+            </tbody>
+          </table>
+          <div class="schema-note">
+            Single-partition lookup by <code style="color:#E85B3A;">video_id</code> — the fastest possible Cassandra read path.
+            This table is optimized for the watch page: one partition key = one video.
+          </div>
+
+          <!-- Comments schema inline -->
+          <div class="insp-label mt-4" style="margin-top:14px;">Table: comments_by_video</div>
+          <table class="schema-table">
+            <thead>
+              <tr>
+                <th>Column</th>
+                <th>Type</th>
+                <th>Role</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>video_id</td>
+                <td style="color:#78A9FF;">UUID</td>
+                <td><span class="badge-pk" data-tooltip="All comments for a video are co-located on the same Cassandra node.">[PK]</span></td>
+              </tr>
+              <tr>
+                <td>comment_timestamp</td>
+                <td style="color:#78A9FF;">TIMEUUID</td>
+                <td><span class="badge-ck" data-tooltip="TIMEUUID encodes both time and uniqueness, enabling time-ordered clustering without a separate timestamp column.">[CK ↓]</span></td>
+              </tr>
+              <tr>
+                <td>comment_id</td>
+                <td style="color:#78A9FF;">UUID</td>
+                <td><span class="badge-col">—</span></td>
+              </tr>
+              <tr>
+                <td>user_id</td>
+                <td style="color:#78A9FF;">UUID</td>
+                <td><span class="badge-col">—</span></td>
+              </tr>
+              <tr>
+                <td>comment</td>
+                <td style="color:#78A9FF;">TEXT</td>
+                <td><span class="badge-col">—</span></td>
+              </tr>
+            </tbody>
+          </table>
+          <div class="schema-note">
+            <code style="color:#E85B3A;">TIMEUUID</code> encodes both a timestamp and a UUID in one value, giving chronological ordering and collision-free uniqueness in a single column.
+          </div>
+        </div>
+
+      </div>
+
+      <!-- ── CODE TAB ── -->
+      <div id="insp-code" class="insp-panel">
+
+        <div class="insp-label">Language</div>
+        <div class="lang-tabs">
+          <button class="lang-btn active" onclick="switchLang('python', this)">Python</button>
+          <button class="lang-btn" onclick="switchLang('java', this)">Java</button>
+          <button class="lang-btn" onclick="switchLang('nodejs', this)">Node.js</button>
+          <button class="lang-btn" onclick="switchLang('rust', this)">Rust</button>
+        </div>
+
+        <!-- Python -->
+        <div id="lang-python" class="lang-snippet active">
+          <div id="code-home-python" class="code-block"><span class="cql-comment"># Home page: fetch latest videos</span>
+<span class="cql-keyword">from</span> cassandra.cluster <span class="cql-keyword">import</span> Cluster
+
+<span class="cql-comment"># Connection setup omitted — see docs/connection-setup.md</span>
+session = cluster.connect(<span class="json-str">"killrvideo"</span>)
+
+prepared = session.prepare(<span class="json-str">"""
+  SELECT video_id, title, preview_image, user_id, added_date
+  FROM latest_videos
+  WHERE yyyymmdd = %s
+  ORDER BY added_date DESC LIMIT 10
+"""</span>)
+
+rows = session.execute(prepared, [today_bucket])
+<span class="cql-keyword">for</span> row <span class="cql-keyword">in</span> rows:
+    print(row.title, row.video_id)</div>
+          <div id="code-watch-python" class="code-block" style="display:none;"><span class="cql-comment"># Watch page: fetch video by ID</span>
+<span class="cql-keyword">from</span> cassandra.cluster <span class="cql-keyword">import</span> Cluster
+<span class="cql-keyword">from</span> uuid <span class="cql-keyword">import</span> UUID
+
+<span class="cql-comment"># Connection setup omitted — see docs/connection-setup.md</span>
+session = cluster.connect(<span class="json-str">"killrvideo"</span>)
+
+prepared = session.prepare(<span class="json-str">"""
+  SELECT video_id, title, description, user_id, tags,
+         thumbnail_url, added_date
+  FROM videos WHERE video_id = %s
+"""</span>)
+
+row = session.execute(prepared, [UUID(video_id)]).one()
+
+<span class="cql-keyword">if</span> row:
+    print(row.title, row.description)</div>
+        </div>
+
+        <!-- Java -->
+        <div id="lang-java" class="lang-snippet">
+          <div id="code-home-java" class="code-block"><span class="cql-comment">// Home page: fetch latest videos</span>
+<span class="cql-keyword">import</span> com.datastax.oss.driver.api.core.CqlSession;
+<span class="cql-keyword">import</span> com.datastax.oss.driver.api.core.cql.*;
+
+<span class="cql-comment">// Session from application context</span>
+PreparedStatement prepared = session.prepare(
+  <span class="json-str">"SELECT video_id, title, preview_image, user_id, added_date "</span> +
+  <span class="json-str">"FROM latest_videos WHERE yyyymmdd = ? "</span> +
+  <span class="json-str">"ORDER BY added_date DESC LIMIT 10"</span>
+);
+
+ResultSet rs = session.execute(
+  prepared.bind(todayBucket)
+);
+<span class="cql-keyword">for</span> (Row row : rs) {
+  String title = row.getString(<span class="json-str">"title"</span>);
+}</div>
+          <div id="code-watch-java" class="code-block" style="display:none;"><span class="cql-comment">// Watch page: fetch video by ID</span>
+<span class="cql-keyword">import</span> com.datastax.oss.driver.api.core.CqlSession;
+<span class="cql-keyword">import</span> com.datastax.oss.driver.api.core.cql.*;
+<span class="cql-keyword">import</span> java.util.UUID;
+
+<span class="cql-comment">// Session from application context</span>
+PreparedStatement prepared = session.prepare(
+  <span class="json-str">"SELECT video_id, title, description, user_id, tags, "</span> +
+  <span class="json-str">"thumbnail_url, added_date FROM videos WHERE video_id = ?"</span>
+);
+
+Row row = session.execute(
+  prepared.bind(UUID.fromString(videoId))
+).one();
+
+<span class="cql-keyword">if</span> (row != null) {
+  String title = row.getString(<span class="json-str">"title"</span>);
+}</div>
+        </div>
+
+        <!-- Node.js -->
+        <div id="lang-nodejs" class="lang-snippet">
+          <div id="code-home-nodejs" class="code-block"><span class="cql-comment">// Home page: fetch latest videos</span>
+<span class="cql-keyword">const</span> cassandra = require(<span class="json-str">'cassandra-driver'</span>);
+
+<span class="cql-comment">// Client from application context</span>
+<span class="cql-keyword">const</span> query = <span class="json-str">`SELECT video_id, title, preview_image,
+  user_id, added_date FROM latest_videos
+  WHERE yyyymmdd = ?
+  ORDER BY added_date DESC LIMIT 10`</span>;
+
+<span class="cql-keyword">const</span> result = <span class="cql-keyword">await</span> client.execute(
+  query, [todayBucket], { prepare: <span class="cql-keyword">true</span> }
+);
+
+result.rows.forEach(row => {
+  console.log(row[<span class="json-str">'title'</span>]);
+});</div>
+          <div id="code-watch-nodejs" class="code-block" style="display:none;"><span class="cql-comment">// Watch page: fetch video by ID</span>
+<span class="cql-keyword">const</span> cassandra = require(<span class="json-str">'cassandra-driver'</span>);
+
+<span class="cql-comment">// Client from application context</span>
+<span class="cql-keyword">const</span> query = <span class="json-str">`SELECT video_id, title, description,
+  user_id, tags, thumbnail_url, added_date
+  FROM videos WHERE video_id = ?`</span>;
+
+<span class="cql-keyword">const</span> result = <span class="cql-keyword">await</span> client.execute(
+  query, [videoId], { prepare: <span class="cql-keyword">true</span> }
+);
+<span class="cql-keyword">const</span> row = result.first();
+
+<span class="cql-keyword">if</span> (row) {
+  console.log(row[<span class="json-str">'title'</span>], row[<span class="json-str">'description'</span>]);
+}</div>
+        </div>
+
+        <!-- Rust -->
+        <div id="lang-rust" class="lang-snippet">
+          <div id="code-home-rust" class="code-block"><span class="cql-comment">// Home page: fetch latest videos</span>
+<span class="cql-keyword">use</span> scylla::Session;
+
+<span class="cql-comment">// Session from application state</span>
+<span class="cql-keyword">let</span> result = session
+    .query(
+        <span class="json-str">"SELECT video_id, title, preview_image,
+         user_id, added_date FROM latest_videos
+         WHERE yyyymmdd = ? ORDER BY added_date DESC LIMIT 10"</span>,
+        (today_bucket,),
+    )
+    .<span class="cql-keyword">await</span>?;
+
+<span class="cql-keyword">for</span> row <span class="cql-keyword">in</span> result.rows_typed::<span class="json-punc">(</span>String, String<span class="json-punc">)</span>()? {
+    <span class="cql-keyword">let</span> (video_id, title) = row?;
+    println!(<span class="json-str">"{title}"</span>);
+}</div>
+          <div id="code-watch-rust" class="code-block" style="display:none;"><span class="cql-comment">// Watch page: fetch video by ID</span>
+<span class="cql-keyword">use</span> scylla::Session;
+<span class="cql-keyword">use</span> uuid::Uuid;
+
+<span class="cql-comment">// Session from application state</span>
+<span class="cql-keyword">let</span> result = session
+    .query(
+        <span class="json-str">"SELECT title, description FROM videos
+         WHERE video_id = ?"</span>,
+        (video_id,),
+    )
+    .<span class="cql-keyword">await</span>?;
+
+<span class="cql-keyword">if let</span> Some(row) = result
+    .rows_typed::<span class="json-punc">(</span>String, String<span class="json-punc">)</span>()?
+    .next()
+{
+    <span class="cql-keyword">let</span> (title, description) = row?;
+    println!(<span class="json-str">"{title}: {description}"</span>);
+}</div>
+        </div>
+
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════
+       VANILLA JS
+  ═══════════════════════════════════════════ -->
+  <script>
+    // ── State ─────────────────────────────────────────────────────
+    let inspectorOpen = false;
+    let currentPage = 'home';           // 'home' | 'watch'
+    let currentInspTab = 'query';       // 'query' | 'schema' | 'code'
+    let activeLang = localStorage.getItem('kv-inspector-lang') || 'python';
+    let homeApiMode = 'cql';            // per-page CQL/DataAPI state
+    let watchApiMode = 'cql';
+
+    // ── Page switch ───────────────────────────────────────────────
+    function switchPage(page) {
+      currentPage = page;
+
+      // Swap visible view
+      document.querySelectorAll('.page-view').forEach(v => v.classList.remove('active'));
+      document.getElementById('view-' + page).classList.add('active');
+
+      // Swap page tab active state
+      document.querySelectorAll('.page-tab').forEach(t => t.classList.remove('active'));
+      document.querySelectorAll('.page-tab').forEach(t => {
+        if (t.textContent.trim().toLowerCase() === page) t.classList.add('active');
+      });
+
+      // Update inspector page label
+      document.getElementById('inspector-page-label').textContent =
+        '· ' + (page === 'home' ? 'Home' : 'Watch');
+
+      // Update inspector content to match page
+      syncInspectorToPage();
+    }
+
+    function syncInspectorToPage() {
+      const page = currentPage;
+      // Query tab
+      document.getElementById('query-home-content').style.display = page === 'home' ? '' : 'none';
+      document.getElementById('query-watch-content').style.display = page === 'watch' ? '' : 'none';
+      // Schema tab
+      document.getElementById('schema-home-content').style.display = page === 'home' ? '' : 'none';
+      document.getElementById('schema-watch-content').style.display = page === 'watch' ? '' : 'none';
+      // Code tab: swap which code snippets show
+      updateCodeSnippets();
+    }
+
+    // ── FAB / Inspector toggle ────────────────────────────────────
+    function toggleInspector() {
+      inspectorOpen = !inspectorOpen;
+      const panel = document.getElementById('inspector');
+      const fab = document.getElementById('fab');
+      const fabIcon = document.getElementById('fab-icon');
+
+      if (inspectorOpen) {
+        panel.classList.add('is-visible');
+        fab.classList.add('is-open');
+        fabIcon.textContent = '✕';
+      } else {
+        panel.classList.remove('is-visible');
+        fab.classList.remove('is-open');
+        fabIcon.textContent = '</>';
+      }
+    }
+
+    // ── Inspector tabs ────────────────────────────────────────────
+    function switchInspTab(tabName, el) {
+      currentInspTab = tabName;
+      // Deactivate all tabs and panels
+      document.querySelectorAll('.insp-tab').forEach(t => t.classList.remove('active'));
+      document.querySelectorAll('.insp-panel').forEach(p => p.classList.remove('active'));
+      // Activate selected
+      el.classList.add('active');
+      document.getElementById('insp-' + tabName).classList.add('active');
+    }
+
+    // ── CQL / Data API mode toggle ────────────────────────────────
+    function switchApiMode(page, mode, el) {
+      if (page === 'home') homeApiMode = mode;
+      else watchApiMode = mode;
+
+      // Toggle btn active state within this toggle group
+      const parentToggle = el.closest('.api-toggle');
+      parentToggle.querySelectorAll('.api-btn').forEach(b => b.classList.remove('active'));
+      el.classList.add('active');
+
+      // Show/hide the right code block
+      if (page === 'home') {
+        document.getElementById('home-cql').style.display = mode === 'cql' ? '' : 'none';
+        document.getElementById('home-dataapi').style.display = mode === 'dataapi' ? '' : 'none';
+      } else {
+        document.getElementById('watch-cql').style.display = mode === 'cql' ? '' : 'none';
+        document.getElementById('watch-dataapi').style.display = mode === 'dataapi' ? '' : 'none';
+      }
+    }
+
+    // ── Language switcher ─────────────────────────────────────────
+    function switchLang(lang, el) {
+      activeLang = lang;
+      localStorage.setItem('kv-inspector-lang', lang);
+
+      document.querySelectorAll('.lang-btn').forEach(b => b.classList.remove('active'));
+      el.classList.add('active');
+
+      document.querySelectorAll('.lang-snippet').forEach(s => s.classList.remove('active'));
+      document.getElementById('lang-' + lang).classList.add('active');
+
+      updateCodeSnippets();
+    }
+
+    function updateCodeSnippets() {
+      // Within the active language snippet, show home or watch specific code
+      ['python', 'java', 'nodejs', 'rust'].forEach(lang => {
+        const homeEl = document.getElementById('code-home-' + lang);
+        const watchEl = document.getElementById('code-watch-' + lang);
+        if (homeEl) homeEl.style.display = currentPage === 'home' ? '' : 'none';
+        if (watchEl) watchEl.style.display = currentPage === 'watch' ? '' : 'none';
+      });
+    }
+
+    // ── Secondary comments strip ──────────────────────────────────
+    function loadCommentsQuery() {
+      // Switch inspector to show the comments query inline
+      // For the prototype we just highlight the strip with a quick flash
+      const strip = document.querySelector('.secondary-strip');
+      const origColor = strip.style.background;
+      strip.style.background = 'rgba(232,91,58,0.2)';
+      setTimeout(() => { strip.style.background = ''; }, 600);
+      // In a real impl this would swap in the comments entry data
+    }
+
+    // ── Copy to clipboard ─────────────────────────────────────────
+    function copyToClipboard(el, text) {
+      navigator.clipboard.writeText(text).then(() => {
+        const orig = el.textContent;
+        el.textContent = 'Copied!';
+        el.style.color = '#E85B3A';
+        setTimeout(() => { el.textContent = orig; el.style.color = ''; }, 1200);
+      }).catch(() => {});
+    }
+
+    // ── Draggable panel ───────────────────────────────────────────
+    (function makeDraggable() {
+      const panel = document.getElementById('inspector');
+      const titlebar = document.getElementById('inspector-titlebar');
+
+      let isDragging = false;
+      let dragStartX = 0;
+      let dragStartY = 0;
+      let panelStartLeft = 0;
+      let panelStartTop = 0;
+
+      // Convert from bottom/right anchoring to top/left before dragging
+      function switchToAbsolute() {
+        const rect = panel.getBoundingClientRect();
+        panel.style.bottom = 'auto';
+        panel.style.right = 'auto';
+        panel.style.top = rect.top + 'px';
+        panel.style.left = rect.left + 'px';
+      }
+
+      titlebar.addEventListener('mousedown', function(e) {
+        // Only drag on the titlebar itself, not the close button
+        if (e.target.id === 'inspector-close') return;
+        e.preventDefault();
+
+        if (panel.style.top === '' || panel.style.top === 'auto') {
+          switchToAbsolute();
+        }
+
+        isDragging = true;
+        dragStartX = e.clientX;
+        dragStartY = e.clientY;
+        panelStartLeft = parseFloat(panel.style.left) || 0;
+        panelStartTop = parseFloat(panel.style.top) || 0;
+
+        panel.style.transition = 'opacity 0.2s ease, transform 0.2s ease'; // keep fade
+        titlebar.style.cursor = 'grabbing';
+        document.body.style.userSelect = 'none';
+      });
+
+      document.addEventListener('mousemove', function(e) {
+        if (!isDragging) return;
+        const dx = e.clientX - dragStartX;
+        const dy = e.clientY - dragStartY;
+
+        let newLeft = panelStartLeft + dx;
+        let newTop = panelStartTop + dy;
+
+        // Clamp to viewport
+        const vw = window.innerWidth;
+        const vh = window.innerHeight;
+        const pw = panel.offsetWidth;
+        const ph = panel.offsetHeight;
+        newLeft = Math.max(8, Math.min(newLeft, vw - pw - 8));
+        newTop  = Math.max(8, Math.min(newTop, vh - ph - 8));
+
+        panel.style.left = newLeft + 'px';
+        panel.style.top  = newTop + 'px';
+      });
+
+      document.addEventListener('mouseup', function() {
+        if (!isDragging) return;
+        isDragging = false;
+        titlebar.style.cursor = 'grab';
+        document.body.style.userSelect = '';
+      });
+    })();
+
+    // ── Init ──────────────────────────────────────────────────────
+    (function init() {
+      // Restore language preference
+      if (activeLang !== 'python') {
+        const btn = document.querySelector('.lang-btn[onclick*="' + activeLang + '"]');
+        if (btn) {
+          document.querySelectorAll('.lang-btn').forEach(b => b.classList.remove('active'));
+          document.querySelectorAll('.lang-snippet').forEach(s => s.classList.remove('active'));
+          btn.classList.add('active');
+          const snippet = document.getElementById('lang-' + activeLang);
+          if (snippet) snippet.classList.add('active');
+        }
+      }
+      updateCodeSnippets();
+    })();
+  </script>
+
+</body>
+</html>

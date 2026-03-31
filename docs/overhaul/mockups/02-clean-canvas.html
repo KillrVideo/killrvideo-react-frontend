@@ -1,0 +1,1068 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>KillrVideo — Clean Canvas (Prototype 02)</title>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400;1,700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            'kv-orange':  '#E85B3A',
+            'kv-orange-hover': '#D14A2B',
+            'kv-teal':    '#0DB7C4',
+            'kv-gold':    '#FFCA0B',
+            'kv-cream':   '#FBF8F4',
+            'kv-gray-lt': '#F5F3EF',
+            'kv-navy':    '#1A1A2E',
+            'kv-muted':   '#4A4A5A',
+            'kv-caption': '#8A8A9A',
+            'dev-bg':     '#F0FDFA',
+            'dev-border': '#0DB7C4',
+          },
+          fontFamily: {
+            'serif-display': ['"Playfair Display"', 'Georgia', 'serif'],
+            'sans': ['Inter', 'system-ui', '-apple-system', 'sans-serif'],
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    /* ── Base resets ─────────────────────────────────────────────────────── */
+    *, *::before, *::after { box-sizing: border-box; }
+    body { font-family: 'Inter', system-ui, -apple-system, sans-serif; color: #1A1A2E; }
+
+    /* ── Dev block ───────────────────────────────────────────────────────── */
+    .dev-block {
+      border-left: 3px solid #0DB7C4;
+      background: #F0FDFA;
+      border-radius: 0 12px 12px 0;
+      overflow: hidden;
+      transition: all 0.2s ease;
+    }
+    .dev-block-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 10px 16px;
+      cursor: pointer;
+      user-select: none;
+    }
+    .dev-block-header:hover { background: rgba(13,183,196,0.08); }
+    .dev-block-body {
+      display: none;
+      padding: 0 16px 16px 16px;
+    }
+    .dev-block-body.open { display: block; }
+    .dev-chevron {
+      transition: transform 0.2s ease;
+      color: #0DB7C4;
+      font-size: 10px;
+    }
+    .dev-chevron.open { transform: rotate(90deg); }
+
+    /* ── Code blocks ─────────────────────────────────────────────────────── */
+    .code-block {
+      background: #F5F3EF;
+      border: 1px solid #E8E4DE;
+      border-radius: 8px;
+      padding: 12px 14px;
+      font-family: "SF Mono", "Fira Code", "Fira Mono", Menlo, Monaco, Consolas, monospace;
+      font-size: 12px;
+      line-height: 1.6;
+      color: #1A1A2E;
+      overflow-x: auto;
+      white-space: pre;
+    }
+    .kw  { color: #E85B3A; font-weight: 600; }  /* keywords — warm orange */
+    .fn  { color: #2563EB; }                      /* functions — blue */
+    .str { color: #2E7D5B; }                      /* strings — forest green */
+    .cm  { color: #8A8A9A; font-style: italic; }  /* comments */
+    .tp  { color: #B45309; }                      /* types */
+    .num { color: #DC2626; }                      /* numbers/uuids */
+
+    /* ── API segmented control ───────────────────────────────────────────── */
+    .seg-control {
+      display: inline-flex;
+      background: #EAE6E0;
+      border-radius: 999px;
+      padding: 3px;
+      gap: 2px;
+    }
+    .seg-btn {
+      padding: 4px 16px;
+      border-radius: 999px;
+      font-size: 11px;
+      font-weight: 600;
+      cursor: pointer;
+      border: none;
+      background: transparent;
+      color: #4A4A5A;
+      transition: all 0.15s;
+      font-family: 'Inter', sans-serif;
+    }
+    .seg-btn.active {
+      background: #E85B3A;
+      color: #FFFFFF;
+      box-shadow: 0 1px 3px rgba(232,91,58,0.25);
+    }
+
+    /* ── Language tabs ───────────────────────────────────────────────────── */
+    .lang-tabs { display: flex; gap: 0; border-bottom: 1px solid #E8E4DE; margin-bottom: 10px; }
+    .lang-tab {
+      padding: 6px 12px;
+      font-size: 11px;
+      font-weight: 600;
+      color: #8A8A9A;
+      cursor: pointer;
+      border-bottom: 2px solid transparent;
+      margin-bottom: -1px;
+      background: none;
+      border-top: none;
+      border-left: none;
+      border-right: none;
+      transition: all 0.15s;
+      font-family: 'Inter', sans-serif;
+    }
+    .lang-tab.active { color: #E85B3A; border-bottom-color: #E85B3A; }
+    .lang-panel { display: none; }
+    .lang-panel.active { display: block; }
+
+    /* ── Schema badges ───────────────────────────────────────────────────── */
+    .badge-pk  { background: #FFE8D6; color: #C94A22; border: 1px solid #F5C4AA; font-size: 10px; font-weight: 700; padding: 1px 6px; border-radius: 4px; }
+    .badge-ck  { background: #CCFBF1; color: #0F766E; border: 1px solid #5EEAD4; font-size: 10px; font-weight: 700; padding: 1px 6px; border-radius: 4px; }
+    .badge-col { background: #F5F3EF; color: #4A4A5A; border: 1px solid #DDD9D2; font-size: 10px; font-weight: 600; padding: 1px 6px; border-radius: 4px; }
+
+    /* ── Metadata row ────────────────────────────────────────────────────── */
+    .meta-row { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-top: 12px; }
+    .meta-chip {
+      display: inline-flex; align-items: center; gap: 4px;
+      font-size: 10px; font-weight: 600; padding: 3px 8px;
+      border-radius: 4px; letter-spacing: 0.02em;
+      font-family: 'Inter', sans-serif;
+    }
+    .meta-read   { background: #DBEAFE; color: #1D4ED8; }
+    .meta-write  { background: #FEF9C3; color: #854D0E; }
+    .meta-ep     { background: #F5F3EF; color: #4A4A5A; font-weight: 500; font-family: monospace; }
+    .meta-lat    { background: #DCFCE7; color: #15803D; }
+    .meta-src    { background: #F5F3EF; color: #E85B3A; font-weight: 500; font-family: monospace; }
+
+    /* ── Video cards ─────────────────────────────────────────────────────── */
+    .video-card {
+      background: #FFFFFF;
+      border: 1px solid #EAE6E0;
+      border-radius: 16px;
+      overflow: hidden;
+      transition: box-shadow 0.2s, transform 0.2s;
+    }
+    .video-card:hover {
+      box-shadow: 0 8px 28px rgba(26,26,46,0.08), 0 2px 8px rgba(26,26,46,0.04);
+      transform: translateY(-2px);
+    }
+    .video-thumb {
+      width: 100%; aspect-ratio: 16/9;
+      display: flex; align-items: center; justify-content: center;
+      position: relative;
+    }
+    .play-icon {
+      width: 36px; height: 36px;
+      background: rgba(255,255,255,0.92);
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.14);
+    }
+
+    /* ── Star rating ─────────────────────────────────────────────────────── */
+    .star { cursor: pointer; font-size: 20px; transition: transform 0.1s; color: #DDD9D2; }
+    .star.lit { color: #FFCA0B; }
+    .star:hover { transform: scale(1.2); }
+
+    /* ── Page / view transitions ─────────────────────────────────────────── */
+    .page-view { display: none; }
+    .page-view.active { display: block; }
+
+    /* ── Dev badge in header ─────────────────────────────────────────────── */
+    .dev-mode-indicator {
+      display: none;
+      font-size: 10px; font-weight: 700; letter-spacing: 0.05em;
+      padding: 2px 8px; border-radius: 999px;
+      background: #CCFBF1; color: #0F766E; border: 1px solid #5EEAD4;
+      font-family: 'Inter', sans-serif;
+    }
+    .dev-mode-indicator.visible { display: inline-block; }
+
+    /* ── Inline dev block mount point ────────────────────────────────────── */
+    .dev-mount { display: none; margin-top: 12px; }
+    .dev-mode-on .dev-mount { display: block; }
+
+    /* ── Tab bar ─────────────────────────────────────────────────────────── */
+    .tab-bar { display: flex; border-bottom: 1px solid #EAE6E0; }
+    .tab-item {
+      padding: 12px 20px;
+      font-size: 13px; font-weight: 600;
+      color: #8A8A9A; cursor: pointer;
+      border-bottom: 2px solid transparent; margin-bottom: -1px;
+      background: none; border-top: none; border-left: none; border-right: none;
+      transition: all 0.15s;
+      font-family: 'Inter', sans-serif;
+    }
+    .tab-item.active { color: #E85B3A; border-bottom-color: #E85B3A; }
+
+    /* ── Comment thread ──────────────────────────────────────────────────── */
+    .comment-avatar {
+      width: 32px; height: 32px; border-radius: 50%; flex-shrink: 0;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 12px; font-weight: 700; color: #FFFFFF;
+    }
+
+    /* ── Stats bar ───────────────────────────────────────────────────────── */
+    .stats-bar {
+      background: #FBF8F4;
+      border: 1px solid #EAE6E0;
+      border-radius: 16px;
+      padding: 32px 36px;
+    }
+
+    /* ── Section headings (Playfair Display) ────────────────────────────── */
+    .heading-serif {
+      font-family: 'Playfair Display', Georgia, serif;
+      color: #1A1A2E;
+    }
+
+    /* ── Smooth scrollbar ────────────────────────────────────────────────── */
+    html { scroll-behavior: smooth; }
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: #DDD9D2; border-radius: 3px; }
+
+    /* ── Dev toggle active state ─────────────────────────────────────────── */
+    #dev-toggle.dev-active {
+      background: #E85B3A;
+      color: #FFFFFF;
+      border-color: #D14A2B;
+    }
+  </style>
+</head>
+<body class="bg-white antialiased min-h-screen" id="app-root" style="color:#1A1A2E;">
+
+  <!-- ═══════════════════════════════════════════════════════════════════════
+       HEADER
+  ════════════════════════════════════════════════════════════════════════ -->
+  <header class="bg-white border-b sticky top-0 z-40" style="border-color:#EAE6E0;">
+    <div class="max-w-5xl mx-auto px-6 h-14 flex items-center justify-between gap-4">
+
+      <!-- Logo -->
+      <div class="flex items-center gap-2.5">
+        <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+          <rect width="20" height="20" rx="4" fill="#E85B3A"/>
+          <polygon points="7,5 7,15 15,10" fill="white"/>
+        </svg>
+        <span class="font-semibold tracking-tight text-sm" style="color:#1A1A2E; font-family:'Inter',sans-serif;">KillrVideo</span>
+        <span class="dev-mode-indicator" id="dev-indicator">DEV MODE</span>
+      </div>
+
+      <!-- Centre: page tab bar -->
+      <div class="tab-bar border-0 gap-1" role="tablist" aria-label="Page view">
+        <button class="tab-item active" role="tab" aria-selected="true"  data-page="home"  onclick="switchPage('home',this)">Home</button>
+        <button class="tab-item"        role="tab" aria-selected="false" data-page="watch" onclick="switchPage('watch',this)">Watch</button>
+      </div>
+
+      <!-- Right: dev mode toggle -->
+      <button
+        id="dev-toggle"
+        onclick="toggleDevMode()"
+        title="Toggle developer mode"
+        aria-pressed="false"
+        style="font-family:'Inter',sans-serif;"
+        class="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold border transition-all"
+        data-inactive-classes="text-kv-muted border-kv-gray-lt hover:bg-kv-gray-lt">
+        <span style="font-size:13px; line-height:1;">&lt;/&gt;</span>
+        <span class="text-xs hidden sm:inline">Dev</span>
+      </button>
+
+    </div>
+  </header>
+
+  <!-- ═══════════════════════════════════════════════════════════════════════
+       HOME PAGE
+  ════════════════════════════════════════════════════════════════════════ -->
+  <main id="page-home" class="page-view active">
+
+    <!-- ── Hero ────────────────────────────────────────────────────────── -->
+    <section class="bg-white" aria-label="Hero" style="padding: 96px 0 80px;">
+      <div class="max-w-5xl mx-auto px-6">
+        <p style="font-family:'Inter',sans-serif; font-size:11px; font-weight:600; letter-spacing:0.12em; text-transform:uppercase; color:#8A8A9A; margin-bottom:16px;">A Cassandra reference app</p>
+        <h1 class="heading-serif" style="font-size:clamp(3rem,7vw,5rem); line-height:1.05; margin-bottom:20px;">
+          <em style="font-style:italic; color:#E85B3A;">Killr</em><span style="color:#1A1A2E;">Video</span>
+        </h1>
+        <p style="font-family:'Inter',sans-serif; font-size:18px; color:#4A4A5A; max-width:520px; line-height:1.7; margin-bottom:36px;">
+          A fully functional video sharing platform built on Apache Cassandra.
+          Explore every feature — then inspect the exact queries, schemas, and
+          driver code behind each interaction.
+        </p>
+        <div class="flex flex-wrap gap-3">
+          <button style="background:#E85B3A; color:#fff; font-family:'Inter',sans-serif; font-weight:600; font-size:14px; padding:12px 28px; border-radius:999px; border:none; cursor:pointer; transition:background 0.15s;"
+                  onmouseover="this.style.background='#D14A2B'" onmouseout="this.style.background='#E85B3A'">
+            Browse Videos
+          </button>
+          <button style="background:transparent; color:#1A1A2E; font-family:'Inter',sans-serif; font-weight:600; font-size:14px; padding:12px 28px; border-radius:999px; border:1.5px solid #DDD9D2; cursor:pointer; transition:background 0.15s;"
+                  onmouseover="this.style.background='#F5F3EF'" onmouseout="this.style.background='transparent'"
+                  onclick="toggleDevMode()">
+            Explore Data Model
+          </button>
+        </div>
+
+        <!-- Dev block: hero -->
+        <div class="dev-mount" id="dev-hero-mount">
+          <div class="dev-block mt-6" id="dev-hero">
+            <div class="dev-block-header" onclick="toggleBlock('dev-hero')" role="button" aria-expanded="false" aria-controls="dev-hero-body">
+              <div class="flex items-center gap-2">
+                <span style="color:#0DB7C4; font-size:11px; font-weight:700; font-family:monospace;">DEV</span>
+                <span style="font-size:12px; font-weight:600; color:#4A4A5A; font-family:'Inter',sans-serif;">latest_videos — home feed query</span>
+              </div>
+              <span class="dev-chevron" id="dev-hero-chevron">&#9654;</span>
+            </div>
+            <div class="dev-block-body" id="dev-hero-body">
+              <!-- API segmented control -->
+              <div class="flex items-center gap-3 mb-4">
+                <div class="seg-control" role="group" aria-label="Query language">
+                  <button class="seg-btn active" onclick="switchApi(this,'home-cql','home-dataapi')">CQL</button>
+                  <button class="seg-btn"        onclick="switchApi(this,'home-dataapi','home-cql')">Data API</button>
+                </div>
+                <span style="font-size:11px; color:#8A8A9A; font-family:'Inter',sans-serif;">Apache Cassandra</span>
+              </div>
+
+              <!-- CQL query -->
+              <div id="home-cql" class="code-block mb-4"><span class="kw">SELECT</span> <span class="fn">*</span> <span class="kw">FROM</span> <span class="tp">latest_videos</span>
+  <span class="kw">WHERE</span> yyyymmdd = <span class="str">'2024-01-15'</span>
+  <span class="kw">ORDER BY</span> added_date <span class="kw">DESC</span>
+  <span class="kw">LIMIT</span> <span class="num">10</span></div>
+
+              <!-- DataAPI query -->
+              <div id="home-dataapi" class="code-block mb-4" style="display:none;"><span class="fn">db</span>.<span class="fn">collection</span>(<span class="str">"videos"</span>)
+  .<span class="fn">find</span>({})
+  .<span class="fn">sort</span>({ <span class="str">"addedDate"</span>: <span class="num">-1</span> })
+  .<span class="fn">limit</span>(<span class="num">10</span>)</div>
+
+              <!-- Schema -->
+              <p style="font-size:10px; font-weight:600; color:#8A8A9A; text-transform:uppercase; letter-spacing:0.1em; margin-bottom:8px; font-family:'Inter',sans-serif;">Schema — latest_videos</p>
+              <div class="overflow-x-auto mb-4">
+                <table class="w-full text-xs border-collapse">
+                  <thead>
+                    <tr style="border-bottom:1px solid #EAE6E0;">
+                      <th class="text-left py-1.5 pr-4 font-semibold" style="color:#8A8A9A;">Column</th>
+                      <th class="text-left py-1.5 pr-4 font-semibold" style="color:#8A8A9A;">Type</th>
+                      <th class="text-left py-1.5 font-semibold" style="color:#8A8A9A;">Role</th>
+                    </tr>
+                  </thead>
+                  <tbody style="divide-y: divide #F5F3EF;">
+                    <tr><td class="py-1.5 pr-4 font-mono" style="color:#4A4A5A;">yyyymmdd</td><td class="py-1.5 pr-4 font-mono" style="color:#8A8A9A;">TEXT</td><td class="py-1.5"><span class="badge-pk">PK</span></td></tr>
+                    <tr><td class="py-1.5 pr-4 font-mono" style="color:#4A4A5A;">added_date</td><td class="py-1.5 pr-4 font-mono" style="color:#8A8A9A;">TIMESTAMP</td><td class="py-1.5"><span class="badge-ck">CK ↓</span></td></tr>
+                    <tr><td class="py-1.5 pr-4 font-mono" style="color:#4A4A5A;">video_id</td><td class="py-1.5 pr-4 font-mono" style="color:#8A8A9A;">UUID</td><td class="py-1.5"><span class="badge-col">col</span></td></tr>
+                    <tr><td class="py-1.5 pr-4 font-mono" style="color:#4A4A5A;">title</td><td class="py-1.5 pr-4 font-mono" style="color:#8A8A9A;">TEXT</td><td class="py-1.5"><span class="badge-col">col</span></td></tr>
+                    <tr><td class="py-1.5 pr-4 font-mono" style="color:#4A4A5A;">user_id</td><td class="py-1.5 pr-4 font-mono" style="color:#8A8A9A;">UUID</td><td class="py-1.5"><span class="badge-col">col</span></td></tr>
+                    <tr><td class="py-1.5 pr-4 font-mono" style="color:#4A4A5A;">thumbnail_url</td><td class="py-1.5 pr-4 font-mono" style="color:#8A8A9A;">TEXT</td><td class="py-1.5"><span class="badge-col">col</span></td></tr>
+                  </tbody>
+                </table>
+              </div>
+
+              <!-- Language tabs -->
+              <p style="font-size:10px; font-weight:600; color:#8A8A9A; text-transform:uppercase; letter-spacing:0.1em; margin-bottom:8px; font-family:'Inter',sans-serif;">Code Sample</p>
+              <div class="lang-tabs" role="tablist">
+                <button class="lang-tab active" role="tab" onclick="switchLang(this,'home','py')">Python</button>
+                <button class="lang-tab" role="tab" onclick="switchLang(this,'home','java')">Java</button>
+                <button class="lang-tab" role="tab" onclick="switchLang(this,'home','node')">Node.js</button>
+                <button class="lang-tab" role="tab" onclick="switchLang(this,'home','rust')">Rust</button>
+              </div>
+              <div id="home-lang-py" class="lang-panel active code-block"><span class="kw">from</span> cassandra.<span class="fn">cluster</span> <span class="kw">import</span> Cluster
+
+cluster = <span class="fn">Cluster</span>([<span class="str">'127.0.0.1'</span>])
+session = cluster.<span class="fn">connect</span>(<span class="str">'killrvideo'</span>)
+
+rows = session.<span class="fn">execute</span>(
+    <span class="str">"""SELECT * FROM latest_videos
+       WHERE yyyymmdd = %s
+       ORDER BY added_date DESC LIMIT 10"""</span>,
+    [<span class="str">'2024-01-15'</span>]
+)
+<span class="kw">for</span> row <span class="kw">in</span> rows:
+    <span class="fn">print</span>(row.title)</div>
+              <div id="home-lang-java" class="lang-panel code-block"><span class="tp">ResultSet</span> results = session.<span class="fn">execute</span>(
+    <span class="tp">QueryBuilder</span>.<span class="fn">selectFrom</span>(<span class="str">"latest_videos"</span>)
+        .<span class="fn">all</span>()
+        .<span class="fn">whereColumn</span>(<span class="str">"yyyymmdd"</span>).<span class="fn">isEqualTo</span>(<span class="fn">literal</span>(<span class="str">"2024-01-15"</span>))
+        .<span class="fn">orderBy</span>(<span class="str">"added_date"</span>, <span class="tp">ClusteringOrder</span>.DESC)
+        .<span class="fn">limit</span>(<span class="num">10</span>)
+        .<span class="fn">build</span>()
+);</div>
+              <div id="home-lang-node" class="lang-panel code-block"><span class="kw">const</span> cassandra = <span class="fn">require</span>(<span class="str">'cassandra-driver'</span>);
+<span class="kw">const</span> client = <span class="kw">new</span> cassandra.<span class="fn">Client</span>({ contactPoints: [<span class="str">'localhost'</span>] });
+
+<span class="kw">const</span> result = <span class="kw">await</span> client.<span class="fn">execute</span>(
+  <span class="str">`SELECT * FROM latest_videos
+   WHERE yyyymmdd = ?
+   ORDER BY added_date DESC LIMIT 10`</span>,
+  [<span class="str">'2024-01-15'</span>],
+  { prepare: <span class="kw">true</span> }
+);</div>
+              <div id="home-lang-rust" class="lang-panel code-block"><span class="kw">use</span> scylla::{<span class="tp">Session</span>, <span class="tp">SessionBuilder</span>};
+
+<span class="kw">let</span> session: <span class="tp">Session</span> = <span class="tp">SessionBuilder</span>::<span class="fn">new</span>()
+    .<span class="fn">known_node</span>(<span class="str">"127.0.0.1:9042"</span>)
+    .<span class="fn">build</span>().<span class="kw">await</span>?;
+
+<span class="kw">let</span> rows = session.<span class="fn">query</span>(
+    <span class="str">"SELECT * FROM latest_videos WHERE yyyymmdd = ? \
+     ORDER BY added_date DESC LIMIT 10"</span>,
+    (<span class="str">"2024-01-15"</span>,)
+).<span class="kw">await</span>?;</div>
+
+              <!-- Metadata -->
+              <div class="meta-row">
+                <span class="meta-chip meta-read">READ</span>
+                <span class="meta-chip meta-ep">GET /api/v1/videos</span>
+                <span class="meta-chip meta-lat">~4 ms</span>
+                <span class="meta-chip meta-src">src/hooks/useApi.ts:87</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ── Video Grid ───────────────────────────────────────────────────── -->
+    <section aria-label="Featured videos" style="background:#FBF8F4; padding:80px 0;">
+      <div class="max-w-5xl mx-auto px-6">
+        <div class="flex items-end justify-between mb-10">
+          <h2 class="heading-serif" style="font-size:2.25rem; line-height:1.1;">Featured Videos</h2>
+          <a href="#" style="font-size:13px; font-weight:600; color:#E85B3A; text-decoration:none; font-family:'Inter',sans-serif;"
+             onmouseover="this.style.textDecoration='underline'" onmouseout="this.style.textDecoration='none'">
+            See all &rarr;
+          </a>
+        </div>
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+
+          <!-- Card 1 -->
+          <article class="video-card">
+            <div class="video-thumb">
+              <div style="position:absolute;inset:0;background:linear-gradient(135deg,#FFE8D6,#FFDAB3);"></div>
+              <div class="play-icon" style="position:relative;z-index:1;">
+                <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><polygon points="3,1 13,7 3,13" fill="#E85B3A"/></svg>
+              </div>
+            </div>
+            <div class="p-4">
+              <p style="font-size:11px; color:#8A8A9A; margin-bottom:4px; font-family:'Inter',sans-serif;">Cassandra Fundamentals</p>
+              <h3 style="font-size:13px; font-weight:600; color:#1A1A2E; margin-bottom:8px; line-height:1.4; font-family:'Inter',sans-serif;">Introduction to Data Modeling in Apache Cassandra</h3>
+              <div class="flex items-center gap-2">
+                <div class="w-5 h-5 rounded-full flex items-center justify-content-center text-white text-xs font-bold" style="background:#E85B3A; display:flex; align-items:center; justify-content:center;">A</div>
+                <span style="font-size:11px; color:#4A4A5A; font-family:'Inter',sans-serif;">alice_codes</span>
+                <span style="color:#DDD9D2;">·</span>
+                <span style="font-size:11px; color:#8A8A9A; font-family:'Inter',sans-serif;">14.2k views</span>
+              </div>
+            </div>
+          </article>
+
+          <!-- Card 2 -->
+          <article class="video-card">
+            <div class="video-thumb">
+              <div style="position:absolute;inset:0;background:linear-gradient(135deg,#D6F0FF,#A8DAFF);"></div>
+              <div class="play-icon" style="position:relative;z-index:1;">
+                <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><polygon points="3,1 13,7 3,13" fill="#2563EB"/></svg>
+              </div>
+            </div>
+            <div class="p-4">
+              <p style="font-size:11px; color:#8A8A9A; margin-bottom:4px; font-family:'Inter',sans-serif;">Performance</p>
+              <h3 style="font-size:13px; font-weight:600; color:#1A1A2E; margin-bottom:8px; line-height:1.4; font-family:'Inter',sans-serif;">Partition Keys &amp; Token-Aware Routing Deep Dive</h3>
+              <div class="flex items-center gap-2">
+                <div class="w-5 h-5 rounded-full flex items-center justify-content-center text-white text-xs font-bold" style="background:#0DB7C4; display:flex; align-items:center; justify-content:center;">B</div>
+                <span style="font-size:11px; color:#4A4A5A; font-family:'Inter',sans-serif;">bob_streams</span>
+                <span style="color:#DDD9D2;">·</span>
+                <span style="font-size:11px; color:#8A8A9A; font-family:'Inter',sans-serif;">9.8k views</span>
+              </div>
+            </div>
+          </article>
+
+          <!-- Card 3 -->
+          <article class="video-card">
+            <div class="video-thumb">
+              <div style="position:absolute;inset:0;background:linear-gradient(135deg,#D6FFE8,#A8FFCA);"></div>
+              <div class="play-icon" style="position:relative;z-index:1;">
+                <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><polygon points="3,1 13,7 3,13" fill="#2E7D5B"/></svg>
+              </div>
+            </div>
+            <div class="p-4">
+              <p style="font-size:11px; color:#8A8A9A; margin-bottom:4px; font-family:'Inter',sans-serif;">Drivers &amp; SDKs</p>
+              <h3 style="font-size:13px; font-weight:600; color:#1A1A2E; margin-bottom:8px; line-height:1.4; font-family:'Inter',sans-serif;">Using the Python Driver: Sessions, Prepared Statements &amp; Batches</h3>
+              <div class="flex items-center gap-2">
+                <div class="w-5 h-5 rounded-full flex items-center justify-content-center text-white text-xs font-bold" style="background:#2E7D5B; display:flex; align-items:center; justify-content:center;">C</div>
+                <span style="font-size:11px; color:#4A4A5A; font-family:'Inter',sans-serif;">carol_dev</span>
+                <span style="color:#DDD9D2;">·</span>
+                <span style="font-size:11px; color:#8A8A9A; font-family:'Inter',sans-serif;">6.1k views</span>
+              </div>
+            </div>
+          </article>
+
+          <!-- Card 4 -->
+          <article class="video-card">
+            <div class="video-thumb">
+              <div style="position:absolute;inset:0;background:linear-gradient(135deg,#FFE8D6,#FFC4A8);"></div>
+              <div class="play-icon" style="position:relative;z-index:1;">
+                <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><polygon points="3,1 13,7 3,13" fill="#C94A22"/></svg>
+              </div>
+            </div>
+            <div class="p-4">
+              <p style="font-size:11px; color:#8A8A9A; margin-bottom:4px; font-family:'Inter',sans-serif;">Architecture</p>
+              <h3 style="font-size:13px; font-weight:600; color:#1A1A2E; margin-bottom:8px; line-height:1.4; font-family:'Inter',sans-serif;">Replication Strategies: SimpleStrategy vs. NetworkTopologyStrategy</h3>
+              <div class="flex items-center gap-2">
+                <div class="w-5 h-5 rounded-full flex items-center justify-content-center text-white text-xs font-bold" style="background:#C94A22; display:flex; align-items:center; justify-content:center;">D</div>
+                <span style="font-size:11px; color:#4A4A5A; font-family:'Inter',sans-serif;">dan_infra</span>
+                <span style="color:#DDD9D2;">·</span>
+                <span style="font-size:11px; color:#8A8A9A; font-family:'Inter',sans-serif;">11.3k views</span>
+              </div>
+            </div>
+          </article>
+
+          <!-- Card 5 -->
+          <article class="video-card">
+            <div class="video-thumb">
+              <div style="position:absolute;inset:0;background:linear-gradient(135deg,#D6F0FF,#93C5FD);"></div>
+              <div class="play-icon" style="position:relative;z-index:1;">
+                <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><polygon points="3,1 13,7 3,13" fill="#1E40AF"/></svg>
+              </div>
+            </div>
+            <div class="p-4">
+              <p style="font-size:11px; color:#8A8A9A; margin-bottom:4px; font-family:'Inter',sans-serif;">Operations</p>
+              <h3 style="font-size:13px; font-weight:600; color:#1A1A2E; margin-bottom:8px; line-height:1.4; font-family:'Inter',sans-serif;">Compaction Strategies: STCS, LCS, and TWCS Explained</h3>
+              <div class="flex items-center gap-2">
+                <div class="w-5 h-5 rounded-full flex items-center justify-content-center text-white text-xs font-bold" style="background:#1D4ED8; display:flex; align-items:center; justify-content:center;">E</div>
+                <span style="font-size:11px; color:#4A4A5A; font-family:'Inter',sans-serif;">eve_ops</span>
+                <span style="color:#DDD9D2;">·</span>
+                <span style="font-size:11px; color:#8A8A9A; font-family:'Inter',sans-serif;">7.5k views</span>
+              </div>
+            </div>
+          </article>
+
+          <!-- Card 6 -->
+          <article class="video-card">
+            <div class="video-thumb">
+              <div style="position:absolute;inset:0;background:linear-gradient(135deg,#F5F3EF,#DDD9D2);"></div>
+              <div class="play-icon" style="position:relative;z-index:1;">
+                <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><polygon points="3,1 13,7 3,13" fill="#4A4A5A"/></svg>
+              </div>
+            </div>
+            <div class="p-4">
+              <p style="font-size:11px; color:#8A8A9A; margin-bottom:4px; font-family:'Inter',sans-serif;">Astra DB</p>
+              <h3 style="font-size:13px; font-weight:600; color:#1A1A2E; margin-bottom:8px; line-height:1.4; font-family:'Inter',sans-serif;">Getting Started with the Astra Data API and JSON Documents</h3>
+              <div class="flex items-center gap-2">
+                <div class="w-5 h-5 rounded-full flex items-center justify-content-center text-white text-xs font-bold" style="background:#4A4A5A; display:flex; align-items:center; justify-content:center;">F</div>
+                <span style="font-size:11px; color:#4A4A5A; font-family:'Inter',sans-serif;">frank_cloud</span>
+                <span style="color:#DDD9D2;">·</span>
+                <span style="font-size:11px; color:#8A8A9A; font-family:'Inter',sans-serif;">18.9k views</span>
+              </div>
+            </div>
+          </article>
+
+        </div>
+      </div>
+    </section>
+
+    <!-- ── Stats Bar ────────────────────────────────────────────────────── -->
+    <section style="padding:80px 0;" aria-label="Platform statistics">
+      <div class="max-w-5xl mx-auto px-6">
+        <div class="stats-bar">
+          <div class="grid grid-cols-2 sm:grid-cols-4 gap-6">
+            <div>
+              <p class="heading-serif" style="font-size:2.5rem; color:#E85B3A; line-height:1;">2,841</p>
+              <p style="font-size:12px; color:#8A8A9A; margin-top:4px; font-family:'Inter',sans-serif;">Videos</p>
+            </div>
+            <div>
+              <p class="heading-serif" style="font-size:2.5rem; color:#1A1A2E; line-height:1;">14,302</p>
+              <p style="font-size:12px; color:#8A8A9A; margin-top:4px; font-family:'Inter',sans-serif;">Comments</p>
+            </div>
+            <div>
+              <p class="heading-serif" style="font-size:2.5rem; color:#1A1A2E; line-height:1;">8,219</p>
+              <p style="font-size:12px; color:#8A8A9A; margin-top:4px; font-family:'Inter',sans-serif;">Users</p>
+            </div>
+            <div>
+              <p class="heading-serif" style="font-size:2.5rem; color:#0DB7C4; line-height:1;">6</p>
+              <p style="font-size:12px; color:#8A8A9A; margin-top:4px; font-family:'Inter',sans-serif;">Cassandra Tables</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- ═══════════════════════════════════════════════════════════════════════
+       WATCH PAGE
+  ════════════════════════════════════════════════════════════════════════ -->
+  <main id="page-watch" class="page-view">
+    <div class="max-w-5xl mx-auto px-6" style="padding-top:48px; padding-bottom:96px;">
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+
+        <!-- ── Main column ──────────────────────────────────────────────── -->
+        <div class="lg:col-span-2 space-y-6">
+
+          <!-- Video player -->
+          <section aria-label="Video player">
+            <div style="border-radius:16px; overflow:hidden; border:1px solid #EAE6E0; background:#1A1A2E; aspect-ratio:16/9; display:flex; align-items:center; justify-content:center; position:relative;">
+              <div style="position:absolute;inset:0;background:linear-gradient(135deg,#1A1A2E 0%,#2D2D4E 50%,#1A1A2E 100%);opacity:0.95;"></div>
+              <div style="position:relative;z-index:1;text-align:center;">
+                <div style="width:64px;height:64px;border-radius:50%;background:rgba(255,255,255,0.12);
+                            backdrop-filter:blur(8px);display:flex;align-items:center;justify-content:center;
+                            margin:0 auto 12px; cursor:pointer; border:1px solid rgba(255,255,255,0.18); transition:background 0.2s;"
+                     onmouseover="this.style.background='rgba(232,91,58,0.75)'" onmouseout="this.style.background='rgba(255,255,255,0.12)'"
+                     onclick="this.style.background='rgba(232,91,58,0.85)'">
+                  <svg width="22" height="22" viewBox="0 0 22 22" fill="none">
+                    <polygon points="5,2 20,11 5,20" fill="white"/>
+                  </svg>
+                </div>
+                <p style="color:white; font-size:14px; font-weight:500; opacity:0.82; font-family:'Inter',sans-serif;">Introduction to Data Modeling</p>
+                <p style="color:white; font-size:12px; opacity:0.45; margin-top:4px; font-family:'Inter',sans-serif;">Click to play</p>
+              </div>
+              <!-- Progress bar -->
+              <div style="position:absolute;bottom:0;left:0;right:0;height:3px;background:rgba(255,255,255,0.1);">
+                <div style="height:100%;width:32%;background:#E85B3A;border-radius:0 2px 2px 0;"></div>
+              </div>
+            </div>
+
+            <!-- Player dev block -->
+            <div class="dev-mount" id="dev-player-mount">
+              <div class="dev-block mt-3" id="dev-player">
+                <div class="dev-block-header" onclick="toggleBlock('dev-player')" role="button" aria-expanded="false" aria-controls="dev-player-body">
+                  <div class="flex items-center gap-2">
+                    <span style="color:#0DB7C4; font-size:11px; font-weight:700; font-family:monospace;">DEV</span>
+                    <span style="font-size:12px; font-weight:600; color:#4A4A5A; font-family:'Inter',sans-serif;">videos_by_id — video fetch query</span>
+                  </div>
+                  <span class="dev-chevron" id="dev-player-chevron">&#9654;</span>
+                </div>
+                <div class="dev-block-body" id="dev-player-body">
+                  <div class="flex items-center gap-3 mb-4">
+                    <div class="seg-control" role="group">
+                      <button class="seg-btn active" onclick="switchApi(this,'watch-video-cql','watch-video-dataapi')">CQL</button>
+                      <button class="seg-btn"        onclick="switchApi(this,'watch-video-dataapi','watch-video-cql')">Data API</button>
+                    </div>
+                  </div>
+                  <div id="watch-video-cql" class="code-block mb-4"><span class="kw">SELECT</span> <span class="fn">*</span> <span class="kw">FROM</span> <span class="tp">videos</span>
+  <span class="kw">WHERE</span> video_id = <span class="num">550e8400-e29b-41d4-a716-446655440000</span></div>
+                  <div id="watch-video-dataapi" class="code-block mb-4" style="display:none;"><span class="fn">db</span>.<span class="fn">collection</span>(<span class="str">"videos"</span>)
+  .<span class="fn">findOne</span>({
+    <span class="str">"_id"</span>: <span class="str">"550e8400-e29b-41d4-a716-446655440000"</span>
+  })</div>
+
+                  <!-- Schema -->
+                  <p style="font-size:10px; font-weight:600; color:#8A8A9A; text-transform:uppercase; letter-spacing:0.1em; margin-bottom:8px; font-family:'Inter',sans-serif;">Schema — videos_by_id</p>
+                  <div class="overflow-x-auto mb-4">
+                    <table class="w-full text-xs border-collapse">
+                      <thead>
+                        <tr style="border-bottom:1px solid #EAE6E0;">
+                          <th class="text-left py-1.5 pr-4 font-semibold" style="color:#8A8A9A;">Column</th>
+                          <th class="text-left py-1.5 pr-4 font-semibold" style="color:#8A8A9A;">Type</th>
+                          <th class="text-left py-1.5 font-semibold" style="color:#8A8A9A;">Role</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <tr><td class="py-1.5 pr-4 font-mono" style="color:#4A4A5A;">video_id</td><td class="py-1.5 pr-4 font-mono" style="color:#8A8A9A;">UUID</td><td class="py-1.5"><span class="badge-pk">PK</span></td></tr>
+                        <tr><td class="py-1.5 pr-4 font-mono" style="color:#4A4A5A;">added_date</td><td class="py-1.5 pr-4 font-mono" style="color:#8A8A9A;">TIMESTAMP</td><td class="py-1.5"><span class="badge-ck">CK ↓</span></td></tr>
+                        <tr><td class="py-1.5 pr-4 font-mono" style="color:#4A4A5A;">title</td><td class="py-1.5 pr-4 font-mono" style="color:#8A8A9A;">TEXT</td><td class="py-1.5"><span class="badge-col">col</span></td></tr>
+                        <tr><td class="py-1.5 pr-4 font-mono" style="color:#4A4A5A;">description</td><td class="py-1.5 pr-4 font-mono" style="color:#8A8A9A;">TEXT</td><td class="py-1.5"><span class="badge-col">col</span></td></tr>
+                        <tr><td class="py-1.5 pr-4 font-mono" style="color:#4A4A5A;">user_id</td><td class="py-1.5 pr-4 font-mono" style="color:#8A8A9A;">UUID</td><td class="py-1.5"><span class="badge-col">col</span></td></tr>
+                        <tr><td class="py-1.5 pr-4 font-mono" style="color:#4A4A5A;">tags</td><td class="py-1.5 pr-4 font-mono" style="color:#8A8A9A;">SET&lt;TEXT&gt;</td><td class="py-1.5"><span class="badge-col">col</span></td></tr>
+                        <tr><td class="py-1.5 pr-4 font-mono" style="color:#4A4A5A;">thumbnail_url</td><td class="py-1.5 pr-4 font-mono" style="color:#8A8A9A;">TEXT</td><td class="py-1.5"><span class="badge-col">col</span></td></tr>
+                      </tbody>
+                    </table>
+                  </div>
+                  <div class="meta-row">
+                    <span class="meta-chip meta-read">READ</span>
+                    <span class="meta-chip meta-ep">GET /api/v1/videos/:id</span>
+                    <span class="meta-chip meta-lat">~3 ms</span>
+                    <span class="meta-chip meta-src">src/hooks/useApi.ts:42</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <!-- Title & meta -->
+          <section aria-label="Video details">
+            <h1 class="heading-serif" style="font-size:1.75rem; margin-bottom:12px; line-height:1.2;">Introduction to Data Modeling in Apache Cassandra</h1>
+            <div class="flex flex-wrap items-center gap-3 mb-4" style="font-size:13px; color:#4A4A5A; font-family:'Inter',sans-serif;">
+              <span>14,231 views</span>
+              <span style="color:#DDD9D2;">·</span>
+              <span>January 15, 2024</span>
+              <span style="color:#DDD9D2;">·</span>
+              <div class="flex gap-1">
+                <span style="display:inline-block; padding:2px 10px; border-radius:999px; font-size:11px; font-weight:600; background:#FFE8D6; color:#C94A22;">cassandra</span>
+                <span style="display:inline-block; padding:2px 10px; border-radius:999px; font-size:11px; font-weight:600; background:#F5F3EF; color:#4A4A5A;">data-modeling</span>
+              </div>
+            </div>
+            <div class="flex items-center justify-between py-3" style="border-top:1px solid #EAE6E0; border-bottom:1px solid #EAE6E0;">
+              <div class="flex items-center gap-3">
+                <div style="width:36px; height:36px; border-radius:50%; background:#E85B3A; display:flex; align-items:center; justify-content:center; color:white; font-weight:700; font-size:14px; font-family:'Inter',sans-serif;">A</div>
+                <div>
+                  <p style="font-size:13px; font-weight:600; color:#1A1A2E; font-family:'Inter',sans-serif;">alice_codes</p>
+                  <p style="font-size:11px; color:#8A8A9A; font-family:'Inter',sans-serif;">1,204 subscribers</p>
+                </div>
+                <button style="margin-left:8px; padding:8px 20px; border-radius:999px; background:#E85B3A; color:#fff; font-size:12px; font-weight:600; border:none; cursor:pointer; font-family:'Inter',sans-serif; transition:background 0.15s;"
+                        onmouseover="this.style.background='#D14A2B'" onmouseout="this.style.background='#E85B3A'">Subscribe</button>
+              </div>
+              <!-- Star rating -->
+              <div class="flex items-center gap-1" id="star-rating" aria-label="Rate this video">
+                <span class="star" data-val="1" onclick="rate(1)" title="1 star">&#9733;</span>
+                <span class="star" data-val="2" onclick="rate(2)" title="2 stars">&#9733;</span>
+                <span class="star" data-val="3" onclick="rate(3)" title="3 stars">&#9733;</span>
+                <span class="star lit" data-val="4" onclick="rate(4)" title="4 stars">&#9733;</span>
+                <span class="star lit" data-val="5" onclick="rate(5)" title="5 stars">&#9733;</span>
+                <span style="font-size:11px; color:#8A8A9A; margin-left:4px; font-family:'Inter',sans-serif;">(312)</span>
+              </div>
+            </div>
+            <p style="font-size:14px; color:#4A4A5A; line-height:1.75; margin-top:20px; font-family:'Inter',sans-serif;">
+              In this video, we cover the fundamentals of data modeling for Apache Cassandra.
+              You'll learn why Cassandra's query-driven design approach is different from
+              relational databases, how partition keys and clustering columns shape your table
+              structure, and how to design tables that support fast, scalable reads.
+            </p>
+          </section>
+
+          <!-- Comments -->
+          <section aria-label="Comments">
+            <h2 class="heading-serif" style="font-size:1.5rem; margin-bottom:20px;">
+              Comments <span style="font-size:1rem; color:#8A8A9A; font-family:'Inter',sans-serif; font-style:normal; font-weight:400;">(47)</span>
+            </h2>
+
+            <!-- Add comment -->
+            <div class="flex items-start gap-3 mb-6">
+              <div class="comment-avatar" style="background:#E85B3A;">Y</div>
+              <div class="flex-1">
+                <input type="text" placeholder="Add a comment…" aria-label="Add a comment"
+                       style="width:100%; padding:8px 0; font-size:13px; border:none; border-bottom:1.5px solid #EAE6E0; outline:none; background:transparent; color:#1A1A2E; font-family:'Inter',sans-serif; transition:border-color 0.15s;"
+                       onfocus="this.style.borderBottomColor='#E85B3A'" onblur="this.style.borderBottomColor='#EAE6E0'"
+                       placeholder="Add a comment…" />
+              </div>
+            </div>
+
+            <!-- Comment list -->
+            <div style="display:flex; flex-direction:column; gap:24px;">
+              <div class="flex items-start gap-3">
+                <div class="comment-avatar" style="background:#0DB7C4;">B</div>
+                <div class="flex-1">
+                  <div class="flex items-baseline gap-2 mb-1">
+                    <span style="font-size:12px; font-weight:600; color:#1A1A2E; font-family:'Inter',sans-serif;">bob_streams</span>
+                    <span style="font-size:11px; color:#8A8A9A; font-family:'Inter',sans-serif;">2 days ago</span>
+                  </div>
+                  <p style="font-size:13px; color:#4A4A5A; line-height:1.65; font-family:'Inter',sans-serif;">This is exactly what I needed. The explanation of partition key cardinality finally clicked for me after watching this!</p>
+                  <div class="flex gap-4 mt-1.5">
+                    <button style="font-size:11px; color:#8A8A9A; background:none; border:none; cursor:pointer; font-family:'Inter',sans-serif;" onmouseover="this.style.color='#1A1A2E'" onmouseout="this.style.color='#8A8A9A'">&#9825; 14</button>
+                    <button style="font-size:11px; color:#8A8A9A; background:none; border:none; cursor:pointer; font-family:'Inter',sans-serif;" onmouseover="this.style.color='#1A1A2E'" onmouseout="this.style.color='#8A8A9A'">Reply</button>
+                  </div>
+                </div>
+              </div>
+              <div class="flex items-start gap-3">
+                <div class="comment-avatar" style="background:#2E7D5B;">C</div>
+                <div class="flex-1">
+                  <div class="flex items-baseline gap-2 mb-1">
+                    <span style="font-size:12px; font-weight:600; color:#1A1A2E; font-family:'Inter',sans-serif;">carol_dev</span>
+                    <span style="font-size:11px; color:#8A8A9A; font-family:'Inter',sans-serif;">1 day ago</span>
+                  </div>
+                  <p style="font-size:13px; color:#4A4A5A; line-height:1.65; font-family:'Inter',sans-serif;">Great content. Would love a follow-up on materialized views vs. manual denormalization tradeoffs.</p>
+                  <div class="flex gap-4 mt-1.5">
+                    <button style="font-size:11px; color:#8A8A9A; background:none; border:none; cursor:pointer; font-family:'Inter',sans-serif;" onmouseover="this.style.color='#1A1A2E'" onmouseout="this.style.color='#8A8A9A'">&#9825; 9</button>
+                    <button style="font-size:11px; color:#8A8A9A; background:none; border:none; cursor:pointer; font-family:'Inter',sans-serif;" onmouseover="this.style.color='#1A1A2E'" onmouseout="this.style.color='#8A8A9A'">Reply</button>
+                  </div>
+                </div>
+              </div>
+              <div class="flex items-start gap-3">
+                <div class="comment-avatar" style="background:#DB2777;">D</div>
+                <div class="flex-1">
+                  <div class="flex items-baseline gap-2 mb-1">
+                    <span style="font-size:12px; font-weight:600; color:#1A1A2E; font-family:'Inter',sans-serif;">dan_infra</span>
+                    <span style="font-size:11px; color:#8A8A9A; font-family:'Inter',sans-serif;">12 hours ago</span>
+                  </div>
+                  <p style="font-size:13px; color:#4A4A5A; line-height:1.65; font-family:'Inter',sans-serif;">We migrated from Postgres last year using these exact patterns. Highly recommend alice's whole series.</p>
+                  <div class="flex gap-4 mt-1.5">
+                    <button style="font-size:11px; color:#8A8A9A; background:none; border:none; cursor:pointer; font-family:'Inter',sans-serif;" onmouseover="this.style.color='#1A1A2E'" onmouseout="this.style.color='#8A8A9A'">&#9825; 6</button>
+                    <button style="font-size:11px; color:#8A8A9A; background:none; border:none; cursor:pointer; font-family:'Inter',sans-serif;" onmouseover="this.style.color='#1A1A2E'" onmouseout="this.style.color='#8A8A9A'">Reply</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Comments dev block -->
+            <div class="dev-mount" id="dev-comments-mount">
+              <div class="dev-block mt-5" id="dev-comments">
+                <div class="dev-block-header" onclick="toggleBlock('dev-comments')" role="button" aria-expanded="false" aria-controls="dev-comments-body">
+                  <div class="flex items-center gap-2">
+                    <span style="color:#0DB7C4; font-size:11px; font-weight:700; font-family:monospace;">DEV</span>
+                    <span style="font-size:12px; font-weight:600; color:#4A4A5A; font-family:'Inter',sans-serif;">comments_by_video — comment thread query</span>
+                  </div>
+                  <span class="dev-chevron" id="dev-comments-chevron">&#9654;</span>
+                </div>
+                <div class="dev-block-body" id="dev-comments-body">
+                  <div class="flex items-center gap-3 mb-4">
+                    <div class="seg-control" role="group">
+                      <button class="seg-btn active" onclick="switchApi(this,'comments-cql','comments-dataapi')">CQL</button>
+                      <button class="seg-btn"        onclick="switchApi(this,'comments-dataapi','comments-cql')">Data API</button>
+                    </div>
+                  </div>
+                  <div id="comments-cql" class="code-block mb-4"><span class="kw">SELECT</span> <span class="fn">*</span> <span class="kw">FROM</span> <span class="tp">comments_by_video</span>
+  <span class="kw">WHERE</span> video_id = <span class="fn">?</span>
+  <span class="kw">ORDER BY</span> comment_timestamp <span class="kw">DESC</span></div>
+                  <div id="comments-dataapi" class="code-block mb-4" style="display:none;"><span class="fn">db</span>.<span class="fn">collection</span>(<span class="str">"comments"</span>)
+  .<span class="fn">find</span>({ <span class="str">"videoId"</span>: <span class="str">"550e8400-..."</span> })
+  .<span class="fn">sort</span>({ <span class="str">"timestamp"</span>: <span class="num">-1</span> })</div>
+
+                  <!-- Language tabs -->
+                  <div class="lang-tabs" role="tablist">
+                    <button class="lang-tab active" role="tab" onclick="switchLang(this,'comments','py')">Python</button>
+                    <button class="lang-tab" role="tab" onclick="switchLang(this,'comments','java')">Java</button>
+                    <button class="lang-tab" role="tab" onclick="switchLang(this,'comments','node')">Node.js</button>
+                    <button class="lang-tab" role="tab" onclick="switchLang(this,'comments','rust')">Rust</button>
+                  </div>
+                  <div id="comments-lang-py" class="lang-panel active code-block">stmt = session.<span class="fn">prepare</span>(
+    <span class="str">"""SELECT * FROM comments_by_video
+       WHERE video_id = ?
+       ORDER BY comment_timestamp DESC"""</span>
+)
+rows = session.<span class="fn">execute</span>(stmt, [video_uuid])</div>
+                  <div id="comments-lang-java" class="lang-panel code-block"><span class="tp">PreparedStatement</span> pstmt = session.<span class="fn">prepare</span>(
+    <span class="str">"SELECT * FROM comments_by_video WHERE video_id = ?"</span>
+);
+<span class="tp">ResultSet</span> rs = session.<span class="fn">execute</span>(
+    pstmt.<span class="fn">bind</span>(videoId)
+);</div>
+                  <div id="comments-lang-node" class="lang-panel code-block"><span class="kw">const</span> stmt = <span class="kw">await</span> client.<span class="fn">execute</span>(
+  <span class="str">'SELECT * FROM comments_by_video WHERE video_id = ?'</span>,
+  [videoId],
+  { prepare: <span class="kw">true</span> }
+);</div>
+                  <div id="comments-lang-rust" class="lang-panel code-block"><span class="kw">let</span> prepared = session
+    .<span class="fn">prepare</span>(<span class="str">"SELECT * FROM comments_by_video WHERE video_id = ?"</span>)
+    .<span class="kw">await</span>?;
+<span class="kw">let</span> rows = session.<span class="fn">execute</span>(&prepared, (video_id,)).<span class="kw">await</span>?;</div>
+
+                  <div class="meta-row">
+                    <span class="meta-chip meta-read">READ</span>
+                    <span class="meta-chip meta-ep">GET /api/v1/videos/:id/comments</span>
+                    <span class="meta-chip meta-lat">~5 ms</span>
+                    <span class="meta-chip meta-src">src/hooks/useApi.ts:118</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+          </section>
+        </div>
+
+        <!-- ── Sidebar: Related videos ────────────────────────────────── -->
+        <aside aria-label="Related videos">
+          <h2 style="font-size:13px; font-weight:600; color:#1A1A2E; margin-bottom:20px; font-family:'Inter',sans-serif;">Up Next</h2>
+          <div style="display:flex; flex-direction:column; gap:20px;">
+
+            <div class="flex gap-3" style="cursor:pointer;" onmouseover="this.querySelector('.sidebar-title').style.color='#E85B3A'" onmouseout="this.querySelector('.sidebar-title').style.color='#1A1A2E'">
+              <div style="flex-shrink:0; border-radius:10px; overflow:hidden; width:112px; height:63px; background:linear-gradient(135deg,#CCFBF1,#5EEAD4);">
+                <div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;">
+                  <svg width="14" height="14" viewBox="0 0 14 14"><polygon points="3,1 13,7 3,13" fill="#0F766E"/></svg>
+                </div>
+              </div>
+              <div class="flex-1 min-w-0">
+                <p class="sidebar-title" style="font-size:12px; font-weight:600; color:#1A1A2E; line-height:1.4; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; font-family:'Inter',sans-serif; transition:color 0.15s;">Partition Keys &amp; Token-Aware Routing Deep Dive</p>
+                <p style="font-size:11px; color:#8A8A9A; margin-top:4px; font-family:'Inter',sans-serif;">bob_streams · 9.8k views</p>
+              </div>
+            </div>
+
+            <div class="flex gap-3" style="cursor:pointer;" onmouseover="this.querySelector('.sidebar-title').style.color='#E85B3A'" onmouseout="this.querySelector('.sidebar-title').style.color='#1A1A2E'">
+              <div style="flex-shrink:0; border-radius:10px; overflow:hidden; width:112px; height:63px; background:linear-gradient(135deg,#FEF9C3,#FDE68A);">
+                <div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;">
+                  <svg width="14" height="14" viewBox="0 0 14 14"><polygon points="3,1 13,7 3,13" fill="#92400E"/></svg>
+                </div>
+              </div>
+              <div class="flex-1 min-w-0">
+                <p class="sidebar-title" style="font-size:12px; font-weight:600; color:#1A1A2E; line-height:1.4; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; font-family:'Inter',sans-serif; transition:color 0.15s;">Python Driver: Sessions, Prepared Statements &amp; Batches</p>
+                <p style="font-size:11px; color:#8A8A9A; margin-top:4px; font-family:'Inter',sans-serif;">carol_dev · 6.1k views</p>
+              </div>
+            </div>
+
+            <div class="flex gap-3" style="cursor:pointer;" onmouseover="this.querySelector('.sidebar-title').style.color='#E85B3A'" onmouseout="this.querySelector('.sidebar-title').style.color='#1A1A2E'">
+              <div style="flex-shrink:0; border-radius:10px; overflow:hidden; width:112px; height:63px; background:linear-gradient(135deg,#DBEAFE,#93C5FD);">
+                <div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;">
+                  <svg width="14" height="14" viewBox="0 0 14 14"><polygon points="3,1 13,7 3,13" fill="#1E40AF"/></svg>
+                </div>
+              </div>
+              <div class="flex-1 min-w-0">
+                <p class="sidebar-title" style="font-size:12px; font-weight:600; color:#1A1A2E; line-height:1.4; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; font-family:'Inter',sans-serif; transition:color 0.15s;">Compaction Strategies: STCS, LCS, and TWCS Explained</p>
+                <p style="font-size:11px; color:#8A8A9A; margin-top:4px; font-family:'Inter',sans-serif;">eve_ops · 7.5k views</p>
+              </div>
+            </div>
+
+            <div class="flex gap-3" style="cursor:pointer;" onmouseover="this.querySelector('.sidebar-title').style.color='#E85B3A'" onmouseout="this.querySelector('.sidebar-title').style.color='#1A1A2E'">
+              <div style="flex-shrink:0; border-radius:10px; overflow:hidden; width:112px; height:63px; background:linear-gradient(135deg,#FFE8D6,#FFC4A8);">
+                <div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;">
+                  <svg width="14" height="14" viewBox="0 0 14 14"><polygon points="3,1 13,7 3,13" fill="#C94A22"/></svg>
+                </div>
+              </div>
+              <div class="flex-1 min-w-0">
+                <p class="sidebar-title" style="font-size:12px; font-weight:600; color:#1A1A2E; line-height:1.4; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; font-family:'Inter',sans-serif; transition:color 0.15s;">Replication Strategies: SimpleStrategy vs. NetworkTopologyStrategy</p>
+                <p style="font-size:11px; color:#8A8A9A; margin-top:4px; font-family:'Inter',sans-serif;">dan_infra · 11.3k views</p>
+              </div>
+            </div>
+
+            <div class="flex gap-3" style="cursor:pointer;" onmouseover="this.querySelector('.sidebar-title').style.color='#E85B3A'" onmouseout="this.querySelector('.sidebar-title').style.color='#1A1A2E'">
+              <div style="flex-shrink:0; border-radius:10px; overflow:hidden; width:112px; height:63px; background:linear-gradient(135deg,#F5F3EF,#DDD9D2);">
+                <div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;">
+                  <svg width="14" height="14" viewBox="0 0 14 14"><polygon points="3,1 13,7 3,13" fill="#4A4A5A"/></svg>
+                </div>
+              </div>
+              <div class="flex-1 min-w-0">
+                <p class="sidebar-title" style="font-size:12px; font-weight:600; color:#1A1A2E; line-height:1.4; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; font-family:'Inter',sans-serif; transition:color 0.15s;">Getting Started with Astra Data API and JSON Documents</p>
+                <p style="font-size:11px; color:#8A8A9A; margin-top:4px; font-family:'Inter',sans-serif;">frank_cloud · 18.9k views</p>
+              </div>
+            </div>
+
+          </div>
+        </aside>
+
+      </div>
+    </div>
+  </main>
+
+  <!-- ═══════════════════════════════════════════════════════════════════════
+       FOOTER
+  ════════════════════════════════════════════════════════════════════════ -->
+  <footer style="border-top:1px solid #EAE6E0; background:#FBF8F4; margin-top:0;">
+    <div class="max-w-5xl mx-auto px-6 py-5 flex flex-col sm:flex-row items-center justify-between gap-3">
+      <div class="flex items-center gap-2">
+        <svg width="14" height="14" viewBox="0 0 20 20" fill="none"><rect width="20" height="20" rx="4" fill="#E85B3A"/><polygon points="7,5 7,15 15,10" fill="white"/></svg>
+        <span style="font-size:12px; color:#8A8A9A; font-family:'Inter',sans-serif;">KillrVideo &mdash; Prototype 02: Clean Canvas</span>
+      </div>
+      <div class="flex items-center gap-4">
+        <a href="index.html" style="font-size:12px; color:#8A8A9A; text-decoration:none; font-family:'Inter',sans-serif;"
+           onmouseover="this.style.color='#1A1A2E'" onmouseout="this.style.color='#8A8A9A'">All Prototypes</a>
+        <span style="color:#DDD9D2;">|</span>
+        <span style="font-size:12px; color:#8A8A9A; font-family:'Inter',sans-serif;">Design exploration only</span>
+      </div>
+    </div>
+  </footer>
+
+
+  <!-- ═══════════════════════════════════════════════════════════════════════
+       JAVASCRIPT
+  ════════════════════════════════════════════════════════════════════════ -->
+  <script>
+    /* ── State ─────────────────────────────────────────────────────────── */
+    let devMode = false;
+    let currentPage = 'home';
+    let currentRating = 4;
+
+    /* ── Dev Mode Toggle ───────────────────────────────────────────────── */
+    function toggleDevMode() {
+      devMode = !devMode;
+      const root = document.getElementById('app-root');
+      const btn  = document.getElementById('dev-toggle');
+      const ind  = document.getElementById('dev-indicator');
+
+      if (devMode) {
+        root.classList.add('dev-mode-on');
+        btn.style.background  = '#E85B3A';
+        btn.style.color       = '#FFFFFF';
+        btn.style.borderColor = '#D14A2B';
+        ind.classList.add('visible');
+        btn.setAttribute('aria-pressed', 'true');
+      } else {
+        root.classList.remove('dev-mode-on');
+        btn.style.background  = '';
+        btn.style.color       = '';
+        btn.style.borderColor = '';
+        ind.classList.remove('visible');
+        btn.setAttribute('aria-pressed', 'false');
+      }
+    }
+
+    /* ── Page Switch ───────────────────────────────────────────────────── */
+    function switchPage(page, tabEl) {
+      // Hide all pages
+      document.querySelectorAll('.page-view').forEach(el => el.classList.remove('active'));
+      // Deactivate all tabs
+      document.querySelectorAll('.tab-item').forEach(el => {
+        el.classList.remove('active');
+        el.setAttribute('aria-selected', 'false');
+      });
+      // Show target page
+      document.getElementById('page-' + page).classList.add('active');
+      tabEl.classList.add('active');
+      tabEl.setAttribute('aria-selected', 'true');
+      currentPage = page;
+      // Scroll to top
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    /* ── Dev Block Accordion ───────────────────────────────────────────── */
+    function toggleBlock(id) {
+      const body    = document.getElementById(id + '-body');
+      const chevron = document.getElementById(id + '-chevron');
+      const header  = body.previousElementSibling;
+
+      const isOpen  = body.classList.contains('open');
+      body.classList.toggle('open', !isOpen);
+      chevron.classList.toggle('open', !isOpen);
+      header.setAttribute('aria-expanded', String(!isOpen));
+    }
+
+    /* ── API Mode Switch (segmented control) ───────────────────────────── */
+    function switchApi(btn, showId, hideId) {
+      // Toggle segmented buttons within same control
+      const control = btn.closest('.seg-control');
+      control.querySelectorAll('.seg-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      // Toggle panels
+      document.getElementById(showId).style.display = '';
+      document.getElementById(hideId).style.display = 'none';
+    }
+
+    /* ── Language Tab Switch ───────────────────────────────────────────── */
+    function switchLang(tab, prefix, lang) {
+      // Find sibling tabs — walk up to the lang-tabs container
+      const tabsContainer = tab.closest('.lang-tabs');
+      tabsContainer.querySelectorAll('.lang-tab').forEach(t => t.classList.remove('active'));
+      tab.classList.add('active');
+      // Hide all panels in the same parent block body
+      const blockBody = tabsContainer.closest('.dev-block-body') || tabsContainer.parentElement;
+      blockBody.querySelectorAll('.lang-panel').forEach(p => p.classList.remove('active'));
+      const target = document.getElementById(prefix + '-lang-' + lang);
+      if (target) target.classList.add('active');
+    }
+
+    /* ── Star Rating ───────────────────────────────────────────────────── */
+    function rate(val) {
+      currentRating = val;
+      renderStars();
+    }
+
+    function renderStars() {
+      document.querySelectorAll('.star').forEach(s => {
+        const v = parseInt(s.dataset.val, 10);
+        s.classList.toggle('lit', v <= currentRating);
+      });
+    }
+
+    // Hover preview
+    document.addEventListener('DOMContentLoaded', () => {
+      const stars = document.querySelectorAll('.star');
+      stars.forEach(s => {
+        s.addEventListener('mouseenter', () => {
+          const hoverVal = parseInt(s.dataset.val, 10);
+          stars.forEach(star => {
+            star.classList.toggle('lit', parseInt(star.dataset.val, 10) <= hoverVal);
+          });
+        });
+        s.addEventListener('mouseleave', () => renderStars());
+      });
+    });
+  </script>
+
+</body>
+</html>
