@@ -23,6 +23,16 @@ KillrVideo is a reference application that demonstrates best practices for build
 - Node.js (install via [nvm](https://github.com/nvm-sh/nvm#installing-and-updating))
 - npm
 
+### Environment varaibles
+
+- `VITE_BACKEND_URL`: set to the URL of the backend.
+
+Example:
+
+```sh
+export VITE_BACKEND_URL=https://localhost:8443
+```
+
 ### Installation
 
 ```sh
