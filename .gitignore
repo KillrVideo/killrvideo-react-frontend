@@ -26,3 +26,6 @@ dist-ssr
 
 .claude/*
 .cursor/*
+
+key.pem
+cert.pem
