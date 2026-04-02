@@ -102,7 +102,7 @@ const ExploreVideos = () => {
                   creator={video.userId}
                   creatorName={userMap[video.userId]}
                   thumbnail={video.thumbnailUrl || PLACEHOLDER_THUMB}
-                  views={video.viewCount}
+                  views={video.views}
                   rating={video.averageRating ?? 0}
                   tags={EMPTY_TAGS}
                   uploadDate={video.submittedAt}
