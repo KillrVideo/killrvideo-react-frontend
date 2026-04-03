@@ -32,4 +32,5 @@ ENV NGINX_ENVSUBST_FILTER=API_
 # Default backend URL (override at runtime with -e)
 ENV API_BACKEND_URL=https://backend:8443
 
+EXPOSE 80
 EXPOSE 443
