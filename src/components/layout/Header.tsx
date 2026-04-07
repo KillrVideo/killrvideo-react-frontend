@@ -42,7 +42,7 @@ const Header = () => {
     <header className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="container mx-auto px-4 h-16 flex items-center justify-between">
 
-      <Link to="/" className="flex items-center space-x-2">
+        <Link to="/" className="flex items-center space-x-2">
             <img src="/killrvideo-logo.png" alt="KillrVideo" className="h-8 w-8" />
             <span className="font-bold text-xl">KillrVideo</span>
         </Link>
@@ -134,6 +134,10 @@ const Header = () => {
             </Link>
           )}
         </div>
+
+        <Link to="https://github.com/KillrVideo" className="flex items-center space-x-2" target="_blank">
+            <img src="/GitHub_Invertocat_Black_Clearspace.png" alt="KillrVideo org on GitHub" className="h-8 w-8" />
+        </Link>
       </div>
     </header>
   );

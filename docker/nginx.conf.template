@@ -1,7 +1,7 @@
 server {
-    listen 8080;
+    listen 80;
     listen 443 ssl;
-    server_name _;
+    server_name killrvideo.com www.killrvideo.com;
 
     # SSL certificate configuration
     ssl_certificate /etc/nginx/ssl/cert.pem;
@@ -11,7 +11,7 @@ server {
     ssl_protocols TLSv1.2 TLSv1.3;
     ssl_ciphers HIGH:!aNULL:!MD5;
     ssl_prefer_server_ciphers on;
-    
+
     root /usr/share/nginx/html;
     index index.html;
 
